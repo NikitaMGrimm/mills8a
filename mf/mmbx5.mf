@@ -1,0 +1,3 @@
+% Mills Modern bx5: letterpress variant of cmbx5.
+input mmbase;
+input cmbx5;

@@ -1,0 +1,8 @@
+\ProvidesFile{omsmmsy.fd}[2026/10/03 Mills Modern math symbols]
+\DeclareFontFamily{OMS}{mmsy}{\skewchar\font48 }
+\DeclareFontShape{OMS}{mmsy}{m}{n}{%
+      <5><6><7><8><9><10>gen*mmsy%
+      <10.95><12><14.4><17.28><20.74><24.88>mmsy10%
+      }{}
+\DeclareFontShape{OMS}{mmsy}{b}{n}{<->mmbsy10}{}
+\endinput

@@ -1,0 +1,3 @@
+% Mills Modern sy8: letterpress variant of cmsy8.
+input mmbase;
+input cmsy8;

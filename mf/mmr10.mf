@@ -1,0 +1,3 @@
+% Mills Modern r10: letterpress variant of cmr10.
+input mmbase;
+input cmr10;

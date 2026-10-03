@@ -1,0 +1,3 @@
+% Mills Modern bxsl10: letterpress variant of cmbxsl10.
+input mmbase;
+input cmbxsl10;

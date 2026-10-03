@@ -1,0 +1,50 @@
+% mmbase.mf -- "Mills Modern": a letterpress-style variant of Computer Modern.
+%
+% Knuth's Computer Modern was modelled on Monotype Modern 8A, the face of
+% the AMS journals of the 1940s-60s.  On the page those journals look far
+% darker than CM because metal type pressed into paper spreads ink: every
+% stroke gains a roughly constant amount of weight, hairlines most visibly,
+% corners round off, and small sizes end up relatively heavier.
+%
+% Each mm*.mf file inputs this file and then Knuth's unmodified cm*.mf
+% parameter file.  We hook `generate' so the adjustments below are applied
+% after the CM parameters are set but before the driver file runs.
+
+input cmbase;
+
+% Tunables (sharp units, i.e. true points; constant across design sizes,
+% like real ink spread, so 5pt and 7pt fonts become relatively darker).
+if unknown mm_ink#:   mm_ink#:=9/36pt#;  fi  % gain on every stroke
+if unknown mm_hair#:  mm_hair#:=4/36pt#; fi  % extra gain on hairlines
+if unknown mm_round#: mm_round#:=4/36pt#; fi % extra corner rounding
+if unknown mm_wide:   mm_wide:=1.04;     fi  % horizontal widening
+
+def mm_adjust =
+ % stems and curves
+ forsuffixes $=stem,curve,ess,flare,dot_size,cap_stem,cap_curve,cap_ess:
+  $.#:=$.#+mm_ink#; endfor
+ % hairlines, bars and serifs: these dominate the letterpress look
+ forsuffixes $=hair,cap_hair,vair,bar,slab,cap_bar,cap_band,thin_join:
+  $.#:=$.#+mm_ink#+mm_hair#; endfor
+ % small-caps fonts (cmcsc) carry a second set for the small capitals
+ if known lower.u#:
+  forsuffixes $=flare,stem,cap_stem,cap_curve,cap_ess:
+   lower.$.#:=lower.$.#+mm_ink#; endfor
+  forsuffixes $=cap_hair,slab,cap_bar,cap_band:
+   lower.$.#:=lower.$.#+mm_ink#+mm_hair#; endfor
+  lower.u#:=mm_wide*lower.u#;
+  lower.cap_jut#:=lower.cap_jut#+.5mm_ink#;
+ fi
+ rule_thickness#:=rule_thickness#+.6mm_ink#;
+ % soft, ink-filled corners
+ % (the pens must stay narrower than the thinnest strokes they draw)
+ mm_thin#:=.8min(hair#,cap_hair#,vair#);
+ crisp#:=min(crisp#+mm_round#,mm_thin#);
+ tiny#:=min(tiny#+mm_round#,mm_thin#);
+ fine#:=min(fine#+.5mm_round#,mm_thin#);
+ % squeezed ink takes up room: open up the set width a little
+ u#:=mm_wide*u#;
+ jut#:=jut#+.5mm_ink#; cap_jut#:=cap_jut#+.5mm_ink#;
+enddef;
+
+def generate = mm_adjust; input enddef;

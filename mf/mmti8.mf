@@ -1,0 +1,3 @@
+% Mills Modern ti8: letterpress variant of cmti8.
+input mmbase;
+input cmti8;

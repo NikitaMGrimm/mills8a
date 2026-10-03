@@ -1,0 +1,3 @@
+% Mills Modern mi7: letterpress variant of cmmi7.
+input mmbase;
+input cmmi7;

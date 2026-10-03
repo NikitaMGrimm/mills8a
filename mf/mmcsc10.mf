@@ -1,0 +1,3 @@
+% Mills Modern csc10: letterpress variant of cmcsc10.
+input mmbase;
+input cmcsc10;

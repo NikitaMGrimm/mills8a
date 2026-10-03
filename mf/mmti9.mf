@@ -1,0 +1,3 @@
+% Mills Modern ti9: letterpress variant of cmti9.
+input mmbase;
+input cmti9;

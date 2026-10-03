@@ -1,0 +1,10 @@
+\ProvidesFile{omlmmm.fd}[2026/10/03 Mills Modern math italic]
+\DeclareFontFamily{OML}{mmm}{\skewchar\font127 }
+\DeclareFontShape{OML}{mmm}{m}{it}{%
+      <5><6><7><8><9>gen*mmmi%
+      <10><10.95>mmmi10%
+      <12><14.4><17.28><20.74><24.88>mmmi12%
+      }{}
+\DeclareFontShape{OML}{mmm}{b}{it}{<->mmmib10}{}
+\DeclareFontShape{OML}{mmm}{bx}{it}{<->ssub*mmm/b/it}{}
+\endinput
