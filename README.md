@@ -6,7 +6,7 @@ in Monotype Modern 8A in the 1940s–60s. Knuth based Computer Modern on that
 same Monotype Modern, so the only change needed is to put back what the press
 did to the type.
 
-![comparison](comparison.png)
+![comparison: 1947 scan, Mills Modern, Old Standard, Computer Modern](comparison.png)
 
 ## How it works
 
@@ -28,9 +28,35 @@ matches the sturdy superscripts of the period. `millsmodern.sty` also uses
 larger script sizes (10/7/6) and tighter relation spacing, imitating hand-set
 math.
 
+## Alternative: Old Standard
+
+The same document can also be set in [Old Standard](https://ctan.org/pkg/oldstandard)
+by Alexey Kryukov, revised by Robert Alessi and Antonis Tsolomitis. It's an
+OpenType revival of the Modern faces of late-19th/early-20th-century books.
+Since v2.7 it includes an OpenType math font, `OldStandard-Math.otf`, which
+pairs the text face with a Bodoni-style math italic.
+
+The two approaches differ:
+
+- **Mills Modern** keeps CM's shapes and math metrics and adds the *ink*: it
+  gets the color and weight of the 1947 page right.
+- **Old Standard** has the period's *shapes*: ball terminals, higher contrast,
+  and a math italic whose *p*, *n*, *u*, *v* are closer to the Monotype ones.
+  But it's a clean, light digital face, so the page looks paler than the scan.
+
+It is scaled by 1.06, which makes the first paragraph break exactly as in the
+scan. It needs LuaLaTeX, `fontspec` and `unicode-math`. The fonts (SIL OFL) are
+downloaded from CTAN rather than committed:
+
+    ./fetch-oldstandard.sh   # into build/oldstandard/
+    ./render.sh type1        # now also writes out/mills-oldstandard.pdf
+
+![Old Standard close-up](closeup-oldstandard.png)
+
 ## Build
 
-Requires TeX Live (`mf`, `pdflatex`), `mftrace`, `potrace` and `t1utils`.
+Requires TeX Live (`mf`, `pdflatex`; `lualatex` for Old Standard), `mftrace`,
+`potrace` and `t1utils`.
 
     ./build.sh type1   # 47 fonts traced to Type 1 outlines (~2.5 min)
     ./render.sh type1  # out/mills.pdf, plus out/mills-cm.pdf for comparison

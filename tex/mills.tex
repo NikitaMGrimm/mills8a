@@ -1,12 +1,25 @@
 % W. H. Mills, "A prime-representing function",
 % Bull. Amer. Math. Soc. 53 (1947), 604, reset in Mills Modern.
-% Compile with \def\usecm{} first to get plain Computer Modern for comparison.
+% Variants, chosen by defining a macro before \input{mills}:
+%   (none)              Mills Modern (pdflatex)
+%   \def\usecm{}        plain Computer Modern (pdflatex)
+%   \def\useoldstandard{} Old Standard text + math (lualatex)
 \documentclass[10pt]{article}
 \usepackage[leqno]{amsmath}
-\ifdefined\usecm\else\usepackage{millsmodern}\fi
+\ifdefined\useoldstandard
+  \usepackage{unicode-math}
+  \setmainfont{OldStandard-Regular.otf}[Scale=1.06,
+    ItalicFont=OldStandard-Italic.otf,
+    BoldFont=OldStandard-Bold.otf,
+    BoldItalicFont=OldStandard-BoldItalic.otf]
+  \setmathfont{OldStandard-Math.otf}[Scale=1.06]
+  \AtBeginDocument{\thickmuskip=3.5mu plus 2mu}
+\else\ifdefined\usecm\else
+  \usepackage{millsmodern}
+\fi\fi
 \usepackage[paperwidth=31pc,paperheight=50pc,textwidth=26pc,
   top=4pc,bottom=4pc,footskip=2pc]{geometry}
-\pdfpkresolution=1200
+\ifdefined\pdfpkresolution\pdfpkresolution=1200 \fi
 \setlength\parindent{1.5em}
 \setlength\parskip{0pt}
 \linespread{1.04}
@@ -83,5 +96,5 @@ $[A^{3^x}]$ is a prime-representing function.
 \proofhead
 From (4) and (5) it follows that $u_n < A < v_n$, or
 $P_n < A^{3^n} < P_n + 1$. Therefore $[A^{3^n}] = P_n$ and $[A^{3^x}]$
-is a prime-representing function.
+is a prime-\hspace{0pt}representing function.
 \end{document}

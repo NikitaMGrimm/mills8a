@@ -1,5 +1,6 @@
 #!/bin/sh
-# Typeset tex/mills.tex in Mills Modern and in plain Computer Modern.
+# Typeset tex/mills.tex in Mills Modern, plain Computer Modern and
+# (if fetched) Old Standard.
 #   ./render.sh pk|type1
 set -e
 cd "$(dirname "$0")"
@@ -13,6 +14,14 @@ MAP=""
 cd out
 pdflatex -interaction=nonstopmode -jobname=mills "$MAP\\input{mills}" >/dev/null || { tail -30 mills.log; exit 1; }
 pdflatex -interaction=nonstopmode -jobname=mills-cm '\def\usecm{}\input{mills}' >/dev/null || { tail -30 mills-cm.log; exit 1; }
+if [ -d "$B/oldstandard" ]; then
+  OPENTYPEFONTS="$B/oldstandard:" lualatex -interaction=nonstopmode -jobname=mills-oldstandard \
+    '\def\useoldstandard{}\input{mills}' >/dev/null || { tail -30 mills-oldstandard.log; exit 1; }
+  pdftoppm -r 200 -png -singlefile mills-oldstandard.pdf mills-oldstandard
+  echo out/mills-oldstandard.pdf
+else
+  echo "skipping Old Standard (run ./fetch-oldstandard.sh first)"
+fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills
 pdftoppm -r 200 -png -singlefile mills-cm.pdf mills-cm
 echo "out/mills.pdf out/mills-cm.pdf"
