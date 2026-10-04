@@ -1,0 +1,144 @@
+# Hand corrections after inspecting work/review-*.png.
+# id	glyph	style	size	(size: 11 body, 9, 8 scripts, 6, D display, T title; glyph "skip" drops)
+# relations
+65	≦	R	11
+207	≧	R	11
+215	≦	R	8
+344	≧	R	8
+447	≤	R	11
+474	≦	R	11
+475	≦	R	11
+45	=	R	11
+88	=	R	11
+166	=	R	11
+486	=	R	11
+71	<	R	11
+294	<	R	11
+480	<	R	11
+483	<	R	11
+489	<	R	11
+107	>	R	11
+349	>	R	11
+247	→	R	11
+# operators
+54	+	R	11
+87	+	R	11
+116	+	R	11
+219	+	R	11
+243	+	R	11
+308	+	R	8
+382	+	R	8
+528	+	R	8
+122	−	R	11
+134	−	R	11
+515	−	R	11
+526	−	R	11
+373	—	R	11
+123	-	R	11
+68	∑	R	11
+82	∑	R	D
+114	∑	R	D
+542	∑	R	D
+125	∏	R	D
+317	∏	R	D
+318	∏	R	D
+239	∞	R	11
+396	∞	R	8
+523	∞	R	8
+# fences and bars
+56	/	R	11
+521	/	R	11
+177	/	R	8
+113	|	R	11
+120	skip
+199	skip
+236	skip
+363	skip
+240	[	R	11
+289	]	R	11
+# greek (math italic)
+133	ϵ	I	11
+220	π	I	11
+341	α	I	11
+487	α	I	11
+225	α	I	8
+253	α	I	8
+304	α	I	8
+519	α	I	8
+522	α	I	8
+527	α	I	8
+330	β	I	11
+432	β	I	11
+497	β	I	8
+506	β	I	8
+356	ζ	I	11
+365	σ	I	11
+484	σ	I	11
+547	ϕ	I	11
+# punctuation
+311	!	R	11
+175	;	R	11
+38	,	R	11
+135	,	R	11
+178	,	R	11
+539	,	R	11
+540	,	R	11
+21	.	R	11
+151	′	R	8
+315	′	R	8
+# ligatures
+127	fi	R	11
+157	ffi	R	11
+267	ffi	R	11
+# title bold caps (ERDŐS / NIVEN papers)
+137	O	B	T
+152	E	B	T
+159	A	B	T
+160	T	B	T
+188	R	B	T
+189	B	B	T
+190	L	B	T
+231	M	B	T
+264	N	B	T
+268	R	B	T
+269	P	B	T
+274	C	B	T
+326	U	B	T
+421	Y	B	T
+# misc. mislabels
+75	1	R	6
+101	A	I	11
+181	A	I	11
+216	A	I	11
+442	skip
+446	skip
+40	p	I	11
+59	p	I	11
+291	p	I	11
+548	p	I	11
+64	p	I	8
+552	p	I	8
+# diagonal letters the slant detector calls italic
+29	v	R	11
+36	y	R	11
+104	y	R	11
+195	z	R	11
+99	v	R	9
+81	A	R	SC
+32	x	I	11
+168	x	I	11
+250	x	I	11
+# mislabels found on the masters sheet: pairs, script marks, italic i
+395	skip
+500	skip
+357	skip
+229	skip
+379	skip
+350	skip
+156	skip
+255	skip
+374	skip
+495	skip
+501	skip
+283	ö	R	11
+290	skip

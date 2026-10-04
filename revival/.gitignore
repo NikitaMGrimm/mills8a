@@ -1,0 +1,4 @@
+scans/
+work/
+labels.tsv
+__pycache__/

@@ -1,0 +1,15 @@
+#!/bin/sh
+# Rebuild the Mills 8A fonts from the scans.
+#   scans/*.pdf              1947 Bulletin AMS articles (600 dpi), see README
+#   scans/lanston1922-p49.jp2  from ./fetch-specimen.sh
+set -e
+cd "$(dirname "$0")"
+mkdir -p work fonts
+python3 segment.py        # glyph instances + OCR guesses
+python3 baselines.py      # robust per-line baselines
+python3 cluster.py        # group identical sorts
+python3 classify.py       # slant / weight / size measurements
+python3 assign.py         # labels: rules + overrides.tsv
+python3 masters.py        # average each sort at 4x
+python3 specimen.py       # 1922 alphabets for missing letters
+python3 build_font.py     # trace, space, assemble fonts/*.otf

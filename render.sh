@@ -22,6 +22,12 @@ if [ -d "$B/oldstandard" ]; then
 else
   echo "skipping Old Standard (run ./fetch-oldstandard.sh first)"
 fi
+if [ -f ../revival/fonts/Mills8A-Regular.otf ]; then
+  OPENTYPEFONTS="$PWD/../revival/fonts:" lualatex -interaction=nonstopmode -jobname=mills-8a \
+    '\def\useeighta{}\input{mills}' >/dev/null || { tail -30 mills-8a.log; exit 1; }
+  pdftoppm -r 200 -png -singlefile mills-8a.pdf mills-8a
+  echo out/mills-8a.pdf
+fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills
 pdftoppm -r 200 -png -singlefile mills-cm.pdf mills-cm
 echo "out/mills.pdf out/mills-cm.pdf"

@@ -4,7 +4,12 @@
 %   (none)              Mills Modern (pdflatex)
 %   \def\usecm{}        plain Computer Modern (pdflatex)
 %   \def\useoldstandard{} Old Standard text + math (lualatex)
+%   \def\useeighta{}    Mills 8A, the revival traced from 1947 scans (lualatex)
+\ifdefined\useeighta
+\documentclass[11pt]{article}
+\else
 \documentclass[10pt]{article}
+\fi
 \usepackage[leqno]{amsmath}
 \ifdefined\useoldstandard
   \usepackage{unicode-math}
@@ -14,15 +19,40 @@
     BoldItalicFont=OldStandard-BoldItalic.otf]
   \setmathfont{OldStandard-Math.otf}[Scale=1.06]
   \AtBeginDocument{\thickmuskip=3.5mu plus 2mu}
+\else\ifdefined\useeighta
+  % 11pt Monotype Modern 8A on 12pt, 317pt measure, as in the 1947 Bulletin
+  \usepackage{unicode-math}
+  \setmainfont{Mills8A-Regular.otf}[
+    ItalicFont=Mills8A-Italic.otf,
+    BoldFont=Mills8A-Regular.otf, BoldFeatures={FakeBold=2}]
+  \setmathfont{latinmodern-math.otf}
+  \setmathfont{Mills8A-Italic.otf}[range={it/{latin,Latin},
+    "1D6FC,"1D6FD,"1D701,"1D70B,"1D70E,"1D716,"1D719}]
+  \setmathfont{Mills8A-Regular.otf}[range={up/num,
+    "2B,"3D,"3C,"3E,"28,"29,"5B,"5D,"2F,"7C,"2212,"2266,"2267,"221E,"2192}]
+  \makeatletter
+  \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
+    \abovedisplayskip 6pt plus 2pt minus 2pt
+    \belowdisplayskip \abovedisplayskip
+    \abovedisplayshortskip 3pt plus 2pt
+    \belowdisplayshortskip 3pt plus 2pt}
+  \renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
+  \makeatother
+  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu}
 \else\ifdefined\usecm\else
   \usepackage{millsmodern}
-\fi\fi
+\fi\fi\fi
+\ifdefined\useeighta
+\usepackage[paperwidth=31pc,paperheight=50pc,textwidth=317pt,
+  top=4pc,bottom=4pc,footskip=2pc]{geometry}
+\else
 \usepackage[paperwidth=31pc,paperheight=50pc,textwidth=26pc,
   top=4pc,bottom=4pc,footskip=2pc]{geometry}
+\fi
 \ifdefined\pdfpkresolution\pdfpkresolution=1200 \fi
 \setlength\parindent{1.5em}
 \setlength\parskip{0pt}
-\linespread{1.04}
+\ifdefined\useeighta\else\linespread{1.04}\fi
 \pagestyle{empty}
 \ExplSyntaxOn
 \NewDocumentCommand\spaced{m}{% letterspaced title lines

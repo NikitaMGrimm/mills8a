@@ -53,6 +53,19 @@ downloaded from CTAN rather than committed:
 
 ![Old Standard close-up](closeup-oldstandard.png)
 
+## Option 3: Mills 8A, a revival traced from 1947 scans
+
+`revival/` reconstructs the actual typeface from scans of two 1947
+*Bulletin* papers (Erdős; Niven) plus the 1922 Lanston Monotype specimen
+book. Each glyph is the average of all its copies on the page, and the
+spacing is measured from the text (it lands on Monotype's 18-unit grid). The
+details are in [revival/README.md](revival/README.md).
+
+![Mills 8A](comparison-8a.png)
+
+`./render.sh` also writes `out/mills-8a.pdf` (LuaLaTeX) when
+`revival/fonts/` has been built.
+
 ## Build
 
 Requires TeX Live (`mf`, `pdflatex`; `lualatex` for Old Standard), `mftrace`,
