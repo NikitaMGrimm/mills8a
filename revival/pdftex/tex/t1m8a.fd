@@ -4,4 +4,6 @@
 \DeclareFontShape{T1}{m8a}{m}{it}{<-10> m8ari98t <10-> m8ari8t}{}
 \DeclareFontShape{T1}{m8a}{m}{sc}{<-> m8arc8t}{}
 \DeclareFontShape{T1}{m8a}{b}{n}{<-> m8ab8t}{}
+\DeclareFontShape{T1}{m8a}{b}{it}{<-> m8abi8t}{}
 \DeclareFontShape{T1}{m8a}{bx}{n}{<-> ssub * m8a/b/n}{}
+\DeclareFontShape{T1}{m8a}{bx}{it}{<-> ssub * m8a/b/it}{}

@@ -1,0 +1,58 @@
+% THIS FILE WAS AUTOMATICALLY GENERATED -- DO NOT EDIT
+
+%%AutoEnc_swirxu5fmuv7c5gvdsm25lft2e
+% Encoding created by otftotfm on Mon Oct  5 06:05:03 2026
+% Command line follows encoding
+/AutoEnc_swirxu5fmuv7c5gvdsm25lft2e [
+%00
+  /grave /acute /circumflex /tilde /dieresis /hungarumlaut /ring /caron
+  /breve /macron /dotaccent /cedilla /f_f /f_f_i /.notdef /.notdef
+%10
+  /.notdef /.notdef /.notdef /.notdef /.notdef /endash /emdash /.notdef
+  /.notdef /dotlessi /uni0237 /.notdef /fi /.notdef /.notdef /.notdef
+%20
+  /.notdef /exclam /.notdef /.notdef /.notdef /.notdef /.notdef /quoteright
+  /parenleft /parenright /.notdef /plus /comma /hyphen /period /slash
+%30
+  /zero /one /two /three /four /five /six /seven
+  /eight /nine /.notdef /semicolon /less /equal /greater /.notdef
+%40
+  /.notdef /A /B /C /D /E /F /G
+  /H /I /J /K /L /M /N /O
+%50
+  /P /Q /R /S /T /U /V /W
+  /X /Y /Z /bracketleft /.notdef /bracketright /.notdef /.notdef
+%60
+  /.notdef /a /b /c /d /e /f /g
+  /h /i /j /k /l /m /n /o
+%70
+  /p /q /r /s /t /u /v /w
+  /x /y /z /.notdef /bar /.notdef /.notdef /hyphen
+%80
+  /Abreve /.notdef /Cacute /Ccaron /Dcaron /Ecaron /.notdef /Gbreve
+  /Lacute /.notdef /.notdef /Nacute /Ncaron /.notdef /Ohungarumlaut /Racute
+%90
+  /Rcaron /Sacute /Scaron /Scedilla /Tcaron /uni0162 /Uhungarumlaut /Uring
+  /Ydieresis /Zacute /Zcaron /Zdotaccent /.notdef /Idotaccent /.notdef /.notdef
+%A0
+  /abreve /.notdef /cacute /ccaron /.notdef /ecaron /.notdef /gbreve
+  /lacute /.notdef /.notdef /nacute /ncaron /.notdef /ohungarumlaut /racute
+%B0
+  /rcaron /sacute /scaron /scedilla /.notdef /uni0163 /uhungarumlaut /uring
+  /ydieresis /zacute /zcaron /zdotaccent /.notdef /.notdef /.notdef /.notdef
+%C0
+  /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /.notdef /Ccedilla
+  /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis
+%D0
+  /.notdef /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /.notdef
+  /.notdef /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /.notdef /.notdef
+%E0
+  /agrave /aacute /acircumflex /atilde /adieresis /aring /.notdef /ccedilla
+  /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis
+%F0
+  /.notdef /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /.notdef
+  /.notdef /ugrave /uacute /ucircumflex /udieresis /yacute /.notdef /.notdef
+] def
+% Command line: 'otftotfm -e ec --no-type1 --no-updmap --force -fliga
+% /home/user/playground/millsmodern/revival/pdftex/../fonts/Mills8A-Bold.otf
+% m8ab8t'

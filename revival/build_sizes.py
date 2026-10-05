@@ -55,7 +55,7 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     for k, v in sorted(cmap.items(), reverse=True):   # plain letters win over
         names[v] = chr(k)                             # their math-italic code points
     keep = [n for n in base.getGlyphOrder()
-            if n in names or n in ("fi", "f_f", "f_f_i") or n.endswith(".sc")]
+            if n in names or n in ("fi", "fl", "f_f", "f_f_i", "f_f_l") or n.endswith(".sc")]
     u_print = 1000 / (em_pt * bf.PX_PER_PT)                   # units per scan px
     f = 11 / em_pt                                            # 11pt units -> these units
     top = TTFont(os.path.join(FONTS, "Mills8A-Regular.otf"))["CFF "].cff.topDictIndex[0]
@@ -119,10 +119,7 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
                 fsSelection=(0x01 if italic else 0) | (0x20 if "Bold" in style_name else 0) or 0x40,
                 usWeightClass=700 if "Bold" in style_name else 400)
     fb.setupPost(italicAngle=-14 if italic else 0)
-    if italic:
-        fb.updateHead(macStyle=2)
-    elif "Bold" in style_name:
-        fb.updateHead(macStyle=1)
+    fb.updateHead(macStyle=(2 if italic else 0) | (1 if "Bold" in style_name else 0))
     if features:
         addOpenTypeFeaturesFromString(fb.font, features)
     fb.save(out)
@@ -131,8 +128,9 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
 
 
 def liga(names):
-    rules = [r for r, need in (("sub f f i by f_f_i;", "f_f_i"), ("sub f f by f_f;", "f_f"),
-                               ("sub f i by fi;", "fi")) if need in names]
+    rules = [r for r, need in (("sub f f i by f_f_i;", "f_f_i"), ("sub f f l by f_f_l;", "f_f_l"),
+                               ("sub f f by f_f;", "f_f"), ("sub f i by fi;", "fi"),
+                               ("sub f l by fl;", "fl")) if need in names]
     if not rules:
         return ""
     return ("languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
@@ -151,6 +149,10 @@ def main():
           f"the rest thickened by {gb:.2f} px per edge")
     make(os.path.join(FONTS, "Mills8A-Bold.otf"), "Mills 8A", "Bold", reg, bold, 11, gb,
          features=liga(TTFont(reg).getGlyphOrder()))
+    # bold italic: no 1947 source at all; the italic thickened like the
+    # bold fill-ins
+    make(os.path.join(FONTS, "Mills8A-BoldItalic.otf"), "Mills 8A", "Bold Italic", ita, {}, 11,
+         gb, features=liga(TTFont(ita).getGlyphOrder()), italic=True)
 
     # 9pt: real sorts with their own spacing fit
     for style, base, name in (("R", reg, "Regular9"), ("I", ita, "Italic9")):

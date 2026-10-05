@@ -13,6 +13,7 @@ the page scans, and the spacing is measured from the text.
 | `Mills8A-Italic.otf` | 11 pt italic and Greek, f-ligatures, `rand` |
 | `Mills8A-Math.otf` | OpenType MATH font: the letters, figures, operators and **real script sorts** for indices, on Latin Modern Math |
 | `Mills8A-Bold.otf` | bold, from the 1947 title capitals |
+| `Mills8A-BoldItalic.otf` | bold italic: the italic thickened to the bold stems (synthesized) |
 | `Mills8A-Regular9.otf`, `Mills8A-Italic9.otf` | 9 pt cut for footnotes and references |
 
 ## Using it (LuaLaTeX)
@@ -62,8 +63,9 @@ What pdfLaTeX loses:
 
 - the random impressions: every letter is its averaged master;
 - the baseline wobble;
-- the 1947 display ∑ and ∏ (`cmex10`'s are used for big operators and
-  delimiters).
+- nothing in big operators: the virtual font `m8aex` is `cmex10` with the
+  1947 text ∑ and display ∑ and ∏ put in its slots (delimiters and the
+  other big operators stay Computer Modern's).
 
 Measured on the Mills page, both versions have the same darkness as the scan
 (ratio 0.99), the same line breaks and the same script sorts.
@@ -94,8 +96,9 @@ repository; put copies in `scans/` under these names.
 | `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, averages; keeps up to 8 single impressions per sort for `rand` |
 | `specimen.py` | cuts the 1922 alphabets at six sizes (659 impressions) |
 | `build_font.py` | potrace outlines, fitted spacing, ligatures, CFF OpenType text fonts (fontTools) |
+| `accents.py` | accented Latin-1 / Latin Extended-A letters, dotless *ı ȷ*, the missing punctuation |
 | `build_math.py` | the MATH font |
-| `build_sizes.py` | bold and 9 pt |
+| `build_sizes.py` | bold, bold italic and 9 pt |
 | `pdftex/build_pdftex.py` | the family as Type 1 / TFM fonts for pdfLaTeX |
 
 `scripts.py` is not part of the build: it proposes labels for script-size
@@ -144,6 +147,17 @@ and entered in `overrides.tsv`.
   script sorts have (2.1 px per edge before scaling). The remaining bold
   letters are regular ones thickened to the bold stems (1.1 px), and the
   remaining 9 pt glyphs are 11 pt ones thickened to 9 pt weight.
+- **Accents and punctuation** (`accents.py`): the dieresis is the 1947 one,
+  cut from *ö*; the other accents are Latin Modern's, thickened to the
+  hairline weight of the type and placed at Latin Modern's height above the
+  x-height (or cap height). Accented letters (Latin-1 and Latin
+  Extended-A, 148 per style except ogonek and the apostrophe-like carons)
+  are composed from these and the 1947 letters; *ı* and *ȷ* are the 1947
+  *i* and *j* without their dots. Colon, ellipsis and the quotes ‘ “ ” are
+  built from the 1947 period and ’; ? # % & * @ \ ^ _ { } ~ § † ‡ are
+  Latin Modern's, thickened.
+- **Bold italic** is the italic thickened to the bold stems; no bold italic
+  occurs in the scans.
 - **Constructed ligatures** (none of these occurs in the scans):
   - roman *ff*: the *ffi* sort cut after its second *f*, with the single *f*'s
     arm grafted on;
@@ -218,7 +232,8 @@ footnote marks as superior figures.
 - Few second-order script sorts (4): most scriptscript glyphs are
   thickened text glyphs.
 - Math symbols beyond the scans (∈, ⊂, ∫, arrows…) are Latin Modern's.
-- No italic small caps, no bold italic, and no accented letters beyond ö.
+- No italic small caps. Bold italic, the accents except the dieresis, and
+  some punctuation (? % & § …) are synthesized or Latin Modern's.
 - Constructed ligatures and the thickened sizes are reasoned
   reconstructions, not traced originals. More 1947 pages, especially with
   capitals, italic capitals, bold, footnotes, or words with *fl*/*ffl*,

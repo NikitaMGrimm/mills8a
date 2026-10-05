@@ -10,14 +10,15 @@ pdftex map file, .fd files and a small package, mills8a.sty.
     operators (OT1-like, family 0)  letters, figures, + = ( ) [ ] ...
     letters   (OML, family 1)       math italic and Greek
     symbols   (OMS, family 2)       − → ∞ ... and the TeX math parameters
-    largesymbols (OMX, family 3)    Computer Modern's cmex10
+    largesymbols (OMX, family 3)    cmex10 with the 1947 sum and product (VF)
   each at text (11pt), script (6.48pt) and scriptscript (5.51pt) size.  The
   script fonts are the ssty variants of Mills8A-Math.otf -- the real 1947
   script sorts where they exist -- so pdfLaTeX gets them through ordinary
   size-specific fonts (like cmmi7, cmmi5) rather than an OpenType feature.
 
-What does not carry over: the random impressions (one master per letter),
-the baseline wobble, and the 1947 display sum/product (cmex10's are used).
+Large symbols (OMX) are a virtual font: cmex10, except the summation and
+display product, which are the 1947 sorts.  What does not carry over: the
+random impressions (one master per letter) and the baseline wobble.
 
 Writes fonts/ (tfm, vf, pfb, enc, mills8a.map) and tex/ (mills8a.sty, *.fd).
 """
@@ -49,6 +50,7 @@ TEXT_FONTS = [
     ("Mills8A-Regular.otf", "m8arc8t", ["liga", "smcp"]),
     ("Mills8A-Italic.otf", "m8ari8t", ["liga"]),
     ("Mills8A-Bold.otf", "m8ab8t", ["liga"]),
+    ("Mills8A-BoldItalic.otf", "m8abi8t", ["liga"]),
     ("Mills8A-Regular9.otf", "m8ar98t", ["liga"]),
     ("Mills8A-Italic9.otf", "m8ari98t", ["liga"]),
 ]
@@ -262,6 +264,72 @@ def math_fonts():
     return lines
 
 
+# ------------------------------------------------------------------ large symbols
+
+BIG_OPS = {0o120: "summation", 0o130: "summation.v1", 0o131: "product.v1"}   # cmex slots
+
+
+def omx_font():
+    """m8aex: a virtual font that is cmex10 except for the summation (text
+    and display) and the display product, which are the 1947 sorts from
+    Mills8A-Math.otf, set from a small Type 1 font at their real 11pt size.
+    cmex10's size chains and extensible recipes are kept as they are."""
+    from fontTools.pens.boundsPen import BoundsPen
+    f = TTFont(os.path.join(SRC, "Mills8A-Math.otf"))
+    gs = f.getGlyphSet()
+    glyphs = {k: g for k, g in zip(range(len(BIG_OPS)), BIG_OPS.values()) if g in gs}
+    line = make_tex_font("m8aexops", f, glyphs, TEXT_PT, "MILLS8A-EXOPS",
+                         [("SLANT", 0), ("SPACE", 0), ("QUAD", 1000)])
+    k = TEXT_PT / 10.0                     # cmex10's design size is 10pt
+    dims = {}
+    for slot, g in zip(BIG_OPS, BIG_OPS.values()):
+        if g not in gs:
+            continue
+        bp = BoundsPen(gs)
+        gs[g].draw(bp)
+        b = bp.bounds
+        dims[slot] = (f["hmtx"][g][0] * k / 1000, max(0, b[3]) * k / 1000,
+                      max(0, -b[1]) * k / 1000, list(BIG_OPS.values()).index(g))
+    pl = run("tftopl", subprocess.run(["kpsewhich", "cmex10.tfm"], capture_output=True,
+                                      text=True).stdout.strip()).stdout
+    # top-level property lists start in column 0
+    items, cur = [], []
+    for ln in pl.splitlines():
+        if ln.startswith("(") and cur:
+            items.append("\n".join(cur))
+            cur = []
+        cur.append(ln)
+    items.append("\n".join(cur))
+    out = []
+    for it in items:
+        m = re.match(r"\(CHARACTER (C (\S)|O ([0-7]+))", it)
+        if not m:
+            out.append(it)
+            if it.startswith("(DESIGNUNITS") or it.startswith("(CHECKSUM"):
+                pass
+            continue
+        code = ord(m.group(2)) if m.group(2) else int(m.group(3), 8)
+        body = it.rstrip()
+        assert body.endswith(")")
+        body = body[:-1].rstrip()
+        if code in dims:
+            wd, ht, dp, slot = dims[code]
+            body = re.sub(r"\n\s*\(CHAR(WD|HT|DP|IC) R [-\d.]+\)", "", body)
+            body += (f"\n   (CHARWD R {wd:.6f})\n   (CHARHT R {ht:.6f})\n   (CHARDP R {dp:.6f})"
+                     f"\n   (MAP\n      (SELECTFONT D 1)\n      (SETCHAR O {slot:o})\n      )")
+        else:
+            body += f"\n   (MAP\n      (SELECTFONT D 0)\n      (SETCHAR O {code:o})\n      )"
+        out.append(body + "\n   )")
+    head_end = next(i for i, it in enumerate(out) if it.startswith("(CHARACTER"))
+    out.insert(head_end, "(MAPFONT D 0\n   (FONTNAME cmex10)\n   )\n(MAPFONT D 1\n"
+               f"   (FONTNAME m8aexops)\n   (FONTAT R {k:.4f})\n   )")
+    with open(os.path.join(OUT, "m8aex.vpl"), "w") as fh:
+        fh.write("\n".join(out) + "\n")
+    run("vptovf", "m8aex.vpl", "m8aex.vf", "m8aex.tfm", cwd=OUT)
+    os.remove(os.path.join(OUT, "m8aex.vpl"))
+    return [line]
+
+
 # ------------------------------------------------------------------ LaTeX
 
 FD = {
@@ -271,7 +339,9 @@ FD = {
 \DeclareFontShape{T1}{m8a}{m}{it}{<-10> m8ari98t <10-> m8ari8t}{}
 \DeclareFontShape{T1}{m8a}{m}{sc}{<-> m8arc8t}{}
 \DeclareFontShape{T1}{m8a}{b}{n}{<-> m8ab8t}{}
+\DeclareFontShape{T1}{m8a}{b}{it}{<-> m8abi8t}{}
 \DeclareFontShape{T1}{m8a}{bx}{n}{<-> ssub * m8a/b/n}{}
+\DeclareFontShape{T1}{m8a}{bx}{it}{<-> ssub * m8a/b/it}{}
 """,
     "omlm8am.fd": r"""\ProvidesFile{omlm8am.fd}[2026/10/05 Mills 8A math italic, pdfLaTeX]
 \DeclareFontFamily{OML}{m8am}{\skewchar\font=127 }
@@ -280,6 +350,10 @@ FD = {
     "ot1m8aop.fd": r"""\ProvidesFile{ot1m8aop.fd}[2026/10/05 Mills 8A math operators, pdfLaTeX]
 \DeclareFontFamily{OT1}{m8aop}{}
 \DeclareFontShape{OT1}{m8aop}{m}{n}{<-6> m8aopss <6-8> m8aops <8-> m8aop}{}
+""",
+    "omxm8aex.fd": r"""\ProvidesFile{omxm8aex.fd}[2026/10/05 Mills 8A large symbols, pdfLaTeX]
+\DeclareFontFamily{OMX}{m8aex}{}
+\DeclareFontShape{OMX}{m8aex}{m}{n}{<-> sfixed * m8aex}{}
 """,
     "omsm8asy.fd": r"""\ProvidesFile{omsm8asy.fd}[2026/10/05 Mills 8A math symbols, pdfLaTeX]
 \DeclareFontFamily{OMS}{m8asy}{\skewchar\font=48 }
@@ -296,7 +370,7 @@ FD = {
 \DeclareSymbolFont{operators}   {OT1}{m8aop}{m}{n}
 \DeclareSymbolFont{letters}     {OML}{m8am}{m}{it}
 \DeclareSymbolFont{symbols}     {OMS}{m8asy}{m}{n}
-\DeclareSymbolFont{largesymbols}{OMX}{cmex}{m}{n}
+\DeclareSymbolFont{largesymbols}{OMX}{m8aex}{m}{n}
 \DeclareMathSizes{11}{11}{6.48}{5.51}
 \DeclareMathSizes{10.95}{11}{6.48}{5.51}
 \endinput
@@ -307,7 +381,7 @@ FD = {
 def main():
     os.makedirs(OUT, exist_ok=True)
     os.makedirs(TEX, exist_ok=True)
-    lines = text_fonts() + math_fonts()
+    lines = text_fonts() + math_fonts() + omx_font()
     with open(os.path.join(OUT, "mills8a.map"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
     for fn, body in FD.items():

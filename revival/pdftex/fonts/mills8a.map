@@ -1,15 +1,10 @@
-m8ar8t--lcdfj Mills8A-RegularLCDFJ "" <Mills8A-RegularLCDFJ.pfb
-m8ar8t--base Mills8A-Regular "AutoEnc_bs77kfv7jnsqxlkgm3vtryzxuc ReEncodeFont" <[a_bs77kf.enc <Mills8A-Regular.pfb
-m8arc8t--lcdfj Mills8A-RegularLCDFJ "" <Mills8A-RegularLCDFJ.pfb
-m8arc8t--base Mills8A-Regular "AutoEnc_xmytvdlvw36ufqmvovudklhpeh ReEncodeFont" <[a_xmytvd.enc <Mills8A-Regular.pfb
-m8ari8t--lcdfj Mills8A-ItalicLCDFJ "" <Mills8A-ItalicLCDFJ.pfb
-m8ari8t--base Mills8A-Italic "AutoEnc_45i3gpvrwn36zn4v7fmjcr6bla ReEncodeFont" <[a_45i3gp.enc <Mills8A-Italic.pfb
-m8ab8t--lcdfj Mills8A-BoldLCDFJ "" <Mills8A-BoldLCDFJ.pfb
-m8ab8t--base Mills8A-Bold "AutoEnc_odq4vrfkm6gm3xilmfxdoz4tsh ReEncodeFont" <[a_odq4vr.enc <Mills8A-Bold.pfb
-m8ar98t--lcdfj Mills8A-Regular9LCDFJ "" <Mills8A-Regular9LCDFJ.pfb
-m8ar98t--base Mills8A-Regular9 "AutoEnc_odq4vrfkm6gm3xilmfxdoz4tsh ReEncodeFont" <[a_odq4vr.enc <Mills8A-Regular9.pfb
-m8ari98t--lcdfj Mills8A-Italic9LCDFJ "" <Mills8A-Italic9LCDFJ.pfb
-m8ari98t--base Mills8A-Italic9 "AutoEnc_hip6etowdwxmpb7vcrl3h6tfea ReEncodeFont" <[a_hip6et.enc <Mills8A-Italic9.pfb
+m8ar8t--base Mills8A-Regular "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-Regular.pfb
+m8arc8t--base Mills8A-Regular "AutoEnc_ab6gjlqjbqhrtnlbz5fmtd5a4e ReEncodeFont" <[a_ab6gjl.enc <Mills8A-Regular.pfb
+m8ari8t--base Mills8A-Italic "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-Italic.pfb
+m8ab8t--base Mills8A-Bold "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-Bold.pfb
+m8abi8t--base Mills8A-BoldItalic "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-BoldItalic.pfb
+m8ar98t--base Mills8A-Regular9 "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-Regular9.pfb
+m8ari98t--base Mills8A-Italic9 "AutoEnc_3o6wvbam6mmhcunaqsafcxenxd ReEncodeFont" <[a_3o6wvb.enc <Mills8A-Italic9.pfb
 m8ami Mills8A-TeX-m8ami "m8ami-enc ReEncodeFont" <m8ami.enc <m8ami.pfb
 m8aop Mills8A-TeX-m8aop "m8aop-enc ReEncodeFont" <m8aop.enc <m8aop.pfb
 m8asy Mills8A-TeX-m8asy "m8asy-enc ReEncodeFont" <m8asy.enc <m8asy.pfb
@@ -19,3 +14,4 @@ m8asys Mills8A-TeX-m8asys "m8asys-enc ReEncodeFont" <m8asys.enc <m8asys.pfb
 m8amiss Mills8A-TeX-m8amiss "m8amiss-enc ReEncodeFont" <m8amiss.enc <m8amiss.pfb
 m8aopss Mills8A-TeX-m8aopss "m8aopss-enc ReEncodeFont" <m8aopss.enc <m8aopss.pfb
 m8asyss Mills8A-TeX-m8asyss "m8asyss-enc ReEncodeFont" <m8asyss.enc <m8asyss.pfb
+m8aexops Mills8A-TeX-m8aexops "m8aexops-enc ReEncodeFont" <m8aexops.enc <m8aexops.pfb

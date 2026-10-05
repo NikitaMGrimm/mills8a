@@ -293,7 +293,7 @@ def specimen_scale(size):
     return _SCALE.get(size)
 
 
-DESCENDING = set("gjpqyQJ$7")
+DESCENDING = set("gjpqyQJ$7")             # (and $ hangs below the baseline)
 ROUND_BOTTOM = set("CGOQSUJcdeosabqu035689")
 
 
@@ -714,6 +714,7 @@ def main():
         fill = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         if style == "R":
             fill += "0123456789"
+        fill += "$"                              # in the specimen's figure lines
         for ch in fill:
             if ch not in masters:
                 sg = specimen_glyph(ch, style, stem)
