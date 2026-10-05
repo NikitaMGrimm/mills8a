@@ -53,6 +53,14 @@ TEXT_FONTS = [
     ("Mills8A-BoldItalic.otf", "m8abi8t", ["liga"]),
     ("Mills8A-Regular9.otf", "m8ar98t", ["liga"]),
     ("Mills8A-Italic9.otf", "m8ari98t", ["liga"]),
+    # the same with old-style figures (family m8aj, option osf)
+    ("Mills8A-Regular.otf", "m8arj8t", ["liga", "onum"]),
+    ("Mills8A-Regular.otf", "m8arcj8t", ["liga", "smcp", "onum"]),
+    ("Mills8A-Italic.otf", "m8arij8t", ["liga", "onum"]),
+    ("Mills8A-Bold.otf", "m8abj8t", ["liga", "onum"]),
+    ("Mills8A-BoldItalic.otf", "m8abij8t", ["liga", "onum"]),
+    ("Mills8A-Regular9.otf", "m8ar9j8t", ["liga", "onum"]),
+    ("Mills8A-Italic9.otf", "m8ari9j8t", ["liga", "onum"]),
 ]
 
 
@@ -379,6 +387,16 @@ FD = {
 \DeclareFontShape{T1}{m8a}{bx}{n}{<-> ssub * m8a/b/n}{}
 \DeclareFontShape{T1}{m8a}{bx}{it}{<-> ssub * m8a/b/it}{}
 """,
+    "t1m8aj.fd": r"""\ProvidesFile{t1m8aj.fd}[2026/10/05 Mills 8A text, old-style figures, T1, pdfLaTeX]
+\DeclareFontFamily{T1}{m8aj}{}
+\DeclareFontShape{T1}{m8aj}{m}{n}{<-10> m8ar9j8t <10-> m8arj8t}{}
+\DeclareFontShape{T1}{m8aj}{m}{it}{<-10> m8ari9j8t <10-> m8arij8t}{}
+\DeclareFontShape{T1}{m8aj}{m}{sc}{<-> m8arcj8t}{}
+\DeclareFontShape{T1}{m8aj}{b}{n}{<-> m8abj8t}{}
+\DeclareFontShape{T1}{m8aj}{b}{it}{<-> m8abij8t}{}
+\DeclareFontShape{T1}{m8aj}{bx}{n}{<-> ssub * m8aj/b/n}{}
+\DeclareFontShape{T1}{m8aj}{bx}{it}{<-> ssub * m8aj/b/it}{}
+""",
     "omlm8am.fd": r"""\ProvidesFile{omlm8am.fd}[2026/10/05 Mills 8A math italic, pdfLaTeX]
 \DeclareFontFamily{OML}{m8am}{\skewchar\font=127 }
 \DeclareFontShape{OML}{m8am}{m}{it}{<-6> m8amiss <6-8> m8amis <8-> m8ami}{}
@@ -408,7 +426,13 @@ FD = {
     "mills8a.sty": r"""\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mills8a}[2026/10/05 Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
 \RequirePackage[T1]{fontenc}
-\renewcommand\rmdefault{m8a}
+% osf: old-style figures in text (the 1947 Bulletin's running-head figures);
+% math keeps lining figures, as in print
+\newif\ifmills@osf
+\DeclareOption{osf}{\mills@osftrue}
+\DeclareOption{lf}{\mills@osffalse}
+\ProcessOptions\relax
+\ifmills@osf\renewcommand\rmdefault{m8aj}\else\renewcommand\rmdefault{m8a}\fi
 \renewcommand\encodingdefault{T1}
 \pdfmapfile{+mills8a.map}
 % math: one font per family and size; the script sizes are the 1947 script

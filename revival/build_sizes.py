@@ -65,7 +65,8 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     for k, v in sorted(cmap.items(), reverse=True):   # plain letters win over
         names[v] = chr(k)                             # their math-italic code points
     keep = [n for n in base.getGlyphOrder()
-            if n in names or n in ("fi", "fl", "f_f", "f_f_i", "f_f_l") or n.endswith(".sc")]
+            if n in names or n in ("fi", "fl", "f_f", "f_f_i", "f_f_l") or n.endswith(".sc")
+            or n.endswith(".osf")]
     u_print = 1000 / (em_pt * bf.PX_PER_PT)                   # units per scan px
     f = 11 / em_pt                                            # 11pt units -> these units
     top = TTFont(os.path.join(FONTS, "Mills8A-Regular.otf"))["CFF "].cff.topDictIndex[0]
@@ -176,6 +177,14 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
           f"{em_pt}pt{' bold' if 'Bold' in style_name else ''} sorts")
 
 
+def onum(names):
+    """onum feature for the old-style figures among names."""
+    pairs = [(n[:-4], n) for n in names if n.endswith(".osf") and n[:-4] in names]
+    if not pairs:
+        return ""
+    return "feature onum { " + " ".join(f"sub {a} by {b};" for a, b in pairs) + " } onum;\n"
+
+
 def liga(names):
     rules = [r for r, need in (("sub f f i by f_f_i;", "f_f_i"), ("sub f f l by f_f_l;", "f_f_l"),
                                ("sub f f by f_f;", "f_f"), ("sub f i by fi;", "fi"),
@@ -183,7 +192,7 @@ def liga(names):
     if not rules:
         return ""
     return ("languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
-            "feature liga { " + " ".join(rules) + " } liga;\n")
+            "feature liga { " + " ".join(rules) + " } liga;\n" + onum(names))
 
 
 def main():

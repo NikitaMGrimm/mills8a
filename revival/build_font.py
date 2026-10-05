@@ -314,12 +314,15 @@ def fit_spacing(style, size, widths):
             snapped = max(1, round(adv / unit)) * unit
             out[g] = (lsb + (snapped - adv) / 2, snapped)
         digits = [out[d][1] for d in "0123456789" if d in out]
-        if digits:                          # figures share one width
-            fw = np.median(digits)
+        if digits:                          # figures share one width, the
+            fw = np.median(digits)          # old-style ones too, centred
             for d in "0123456789":
                 if d in out:
                     lsb, adv = out[d]
                     out[d] = (lsb + (fw - adv) / 2, fw)
+            for d in "0123456789":
+                if d + ".osf" in widths:
+                    out[d + ".osf"] = ((fw - widths[d + ".osf"]) / 2, fw)
     # constructed ligatures, from the final widths of their parts
     for lig, src in (("fl", "fi"), ("ffl", "ffi")):
         # roman: the fi/ffi sort less its i, plus the l
@@ -620,6 +623,8 @@ def make_italic_ligature(M, first, second, spacing_dx):
 
 
 def glyph_name(g):
+    if g.endswith(".osf"):                    # old-style figures: one.osf ...
+        return UV2AGL[ord(g[0])] + ".osf"
     if len(g) > 1:
         return {"fi": "fi", "ffi": "f_f_i", "ff": "f_f", "fl": "fl", "ffl": "f_f_l"}[g]
     return UV2AGL.get(ord(g), "uni%04X" % ord(g))
@@ -860,7 +865,8 @@ def main():
             # italic has no figures or punctuation of its own here: use roman
             for name, gl in regular.items():
                 g = gl[4]
-                if name not in glyphs and len(g) == 1 and not g.isalpha():
+                if name not in glyphs and ((len(g) == 1 and not g.isalpha())
+                                           or g.endswith(".osf")):
                     glyphs[name] = gl
         extra = {}
         feats = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
@@ -897,6 +903,10 @@ def main():
                                     ("sub f l by fl;", "fl")) if g in glyphs]
             if rules:
                 feats += "feature liga { " + " ".join(rules) + " } liga;\n"
+        osf = [glyph_name(d) for d in "0123456789" if glyph_name(d + ".osf") in glyphs]
+        if osf:                             # old-style figures on request
+            feats += ("feature onum { " + " ".join(f"sub {n} by {n}.osf;" for n in osf)
+                      + " } onum;\n")
         feats += rand_feature(glyphs)
         assemble(glyphs, "Mills 8A", style_name,
                  os.path.join(FONTS, f"Mills8A-{style_name}.otf"), extra, feats)
