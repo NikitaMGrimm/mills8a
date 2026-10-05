@@ -7,8 +7,10 @@ typical one by FFT cross-correlation, i.e. to 1/UP px; pass 2 realigns all
 of them to the pass-1 mean and drops instances that overlap it poorly
 (broken or filled-in sorts, mislabels).
 
-Output: work/masters.pkl {(glyph, style, size): dict(img, base, n)} with img
-in [0,1] ink coverage at UP x 600 dpi, and work/masters.png for review.
+Output: work/masters.pkl {(glyph, style, size): dict(img, base, n, alts)}
+with img in [0,1] ink coverage at UP x 600 dpi, alts up to NALT single
+impressions aligned to img (for the OpenType rand feature), and
+work/masters.png for review.
 """
 import os
 import pickle
@@ -23,6 +25,7 @@ WORK = os.path.join(HERE, "work")
 UP = 4
 MAXSHIFT = 4 * UP                 # vertical search radius (UP px)
 MARGIN = 6 * UP                   # canvas margin around the largest instance
+NALT = 4                          # alternates (single impressions) per sort
 
 
 def canvas_geometry(members):
@@ -87,16 +90,25 @@ def build(members):
         acc += shift(im, *align(im, t_f))
     tmpl = acc / len(imgs)
     t_f = sfft.rfft2(tmpl)
-    acc, kept = np.zeros_like(tmpl), 0
+    acc, kept, aligned = np.zeros_like(tmpl), 0, []
     for im in imgs:
         s = shift(im, *align(im, t_f))
         if iou(s, tmpl) < 0.70:
             continue
         acc += s
         kept += 1
+        aligned.append(s)
     if kept == 0:
         return None
-    return acc / kept, kept, geo[2]
+    mean = acc / kept
+    # alternates: real single impressions, typical in shape (IoU >= 0.8 with
+    # the mean) and spread from light to heavy inking
+    cand = sorted((s for s in aligned if iou(s, mean) >= 0.80), key=lambda a: a.sum())
+    alts = []
+    if len(cand) >= 2 * NALT:
+        alts = [cand[int(q * (len(cand) - 1))].astype(np.float16)
+                for q in np.linspace(0.15, 0.85, NALT)]
+    return mean, kept, geo[2], alts
 
 
 def main():
@@ -110,8 +122,8 @@ def main():
         r = build(members)
         if r is None:
             continue
-        img, n, base = r
-        masters[key] = dict(img=img.astype(np.float32), base=base, n=n)
+        img, n, base, alts = r
+        masters[key] = dict(img=img.astype(np.float32), base=base, n=n, alts=alts)
     pickle.dump(masters, open(os.path.join(WORK, "masters.pkl"), "wb"))
     print(f"{len(masters)} masters")
     sheet(masters)

@@ -32,6 +32,11 @@ EM_PX = 11 * PX_PER_PT                      # 1x scan px per em
 U_PER_UPX = 1000 / (EM_PX * UP)             # font units per master px
 U_PER_PX = 1000 / EM_PX                     # font units per scan px
 
+# Extra ink (scan px at 600 dpi, per edge) on every outline.  The Erdos and
+# Niven pages the glyphs come from were printed a little lighter than the
+# Mills page: 0.5 px matches the darkness of its first paragraph (measured
+# against the same text set in these fonts).  MILLS8A_INK=0 = as measured.
+INK_PX = float(os.environ.get("MILLS8A_INK", "0.5"))
 SPACE = 322                                  # 6 units of 10.7 set, in font units
 MATH_IT_CAP, MATH_IT_LOW = 0x1D434, 0x1D44E
 GREEK_MATH_IT = {"α": 0x1D6FC, "β": 0x1D6FD, "ζ": 0x1D701, "π": 0x1D70B,
@@ -219,6 +224,9 @@ def fit_spacing(style, size, widths):
         if g not in out:
             sb = 3.5 if (len(g) == 1 and g.isupper()) else 2.5
             out[g] = (sb, w + 2 * sb)
+    if "ff" in widths and "ffi" in out and "i" in out:
+        # ff: the ffi sort less the width of the i it no longer carries
+        out["ff"] = (out["ffi"][0], out["ffi"][1] - out["i"][1])
     for g, (lsb_em, rsb_em) in SPACING_BY_HAND.get(style, {}).items():
         if g in widths:
             lsb, rsb = lsb_em * EM_PX, rsb_em * EM_PX
@@ -241,50 +249,98 @@ def fit_spacing(style, size, widths):
 
 # ---------------------------------------------------------------- specimen
 
-_SCALE = []
+_SCALE = {}
 
 
-def specimen_scale():
-    """1947 scan px per specimen px, calibrated on the letters present in
-    both sources: median ratio of their heights, less 2 px for the 1947
-    ink spread the thickening of the specimen glyphs does not add back."""
+def specimen_scale(size):
+    """1947 scan px per specimen px for the impressions of one point size,
+    calibrated on the letters present in both sources: median ratio of
+    their heights, less 2 px for the 1947 ink spread that the thickening of
+    the specimen glyphs does not add back.  Calibrating each size separately
+    absorbs both the page scale and the small optical-size differences."""
     if not _SCALE:
         sp = pickle.load(open(os.path.join(WORK, "specimen.pkl"), "rb"))["glyphs"]
         M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
-        r = []
+        r = defaultdict(list)
         for (g, s, z), m in M.items():
             if z == 11 and (g, s) in sp and len(g) == 1 and g.isalpha():
                 ys = np.nonzero((m["img"] > 0.5).any(1))[0]
-                ys2 = np.nonzero((sp[(g, s)]["cov"] > 0.5).any(1))[0]
-                r.append(((ys.max() - ys.min() + 1) / UP - 2) / (ys2.max() - ys2.min() + 1))
-        _SCALE.append(float(np.median(r)))
-        print(f"specimen scale {_SCALE[0]:.3f} from {len(r)} shared letters "
-              f"(= {PX_PER_PT / _SCALE[0]:.2f} specimen px per pt)")
-    return _SCALE[0]
+                for imp in sp[(g, s)]:
+                    ys2 = np.nonzero((imp["cov"] > 0.5).any(1))[0]
+                    if len(ys2):
+                        r[imp["size"]].append(((ys.max() - ys.min() + 1) / UP - 2)
+                                              / (ys2.max() - ys2.min() + 1))
+        for size, v in sorted(r.items()):
+            _SCALE[size] = float(np.median(v))
+            print(f"specimen {size}pt: scale {_SCALE[size]:.3f} from {len(v)} shared letters "
+                  f"(= {PX_PER_PT * 11 / size / _SCALE[size]:.2f} specimen px per pt)")
+    return _SCALE.get(size)
 
 
 DESCENDING = set("gjpqyQJ$")
 ROUND_BOTTOM = set("CGOQSUJcdeosabqu")
 
 
-def specimen_glyph(g, style, stem_target):
-    """A 1922 specimen glyph resampled to master scale and thickened to the
-    1947 ink weight (stem_target, in master px)."""
+_GROW = {}
+
+
+def specimen_grow(style, stem_target):
+    """How much to thicken specimen glyphs of a style: half the difference
+    between the 1947 stem and the averaged specimen I's stem.  Measured once
+    on I, because the most common run length of a diagonal letter (A, M, S,
+    W) is a hairline, which would make it far too bold."""
+    if style not in _GROW:
+        ref = specimen_glyph("I", "R" if style == "SC" else style, None, grow=0.0)
+        _GROW[style] = max(0.0, (stem_target - stem_width(ref[0])) / 2) if ref else 0.0
+        print(f"specimen {style}: thicken by {_GROW[style] / UP:.2f} scan px per side")
+    return _GROW[style]
+
+
+def specimen_glyph(g, style, stem_target, grow=None):
+    """A specimen glyph: all its 1922 impressions scaled to the 1947 11pt
+    master scale, aligned to sub-pixel accuracy and averaged as coverage
+    (so a hairline broken in one impression is carried by the others),
+    then thickened to the 1947 ink weight (stem_target, in master px)."""
+    from masters import align, shift
+    from scipy import fft as sfft
     sp = pickle.load(open(os.path.join(WORK, "specimen.pkl"), "rb"))
-    d = sp["glyphs"].get((g, style))
-    if d is None:
+    imps = sp["glyphs"].get((g, style))
+    if not imps:
         return None
-    f = UP * specimen_scale()
-    img = ndimage.zoom(d["cov"], f, order=1)
-    stem = stem_width(img)
-    grow = max(0.0, (stem_target - stem) / 2)
+    scaled = []
+    for imp in imps:
+        sc = specimen_scale(imp["size"])
+        if sc is None:
+            continue
+        f = UP * sc
+        scaled.append((ndimage.zoom(imp["cov"], f, order=1), imp["top"] * f))
+    if not scaled:
+        return None
+    # common canvas, baseline at row `base`
+    margin = 24
+    base = int(max(-t for _, t in scaled)) + margin
+    H = sfft.next_fast_len(base + int(max(t + im.shape[0] for im, t in scaled)) + margin)
+    W = sfft.next_fast_len(max(im.shape[1] for im, _ in scaled) + 2 * margin)
+    canv = []
+    for im, t in scaled:
+        c = np.zeros((H, W))
+        y = base + int(round(t))
+        c[y:y + im.shape[0], margin:margin + im.shape[1]] = im
+        canv.append(c)
+    # reference: the impression closest to 11pt
+    ref = min(range(len(imps)), key=lambda k: abs(imps[k]["size"] - 11)) if len(canv) == len(imps) else 0
+    t_f = sfft.rfft2(canv[ref])
+    acc = sum(shift(c, *align(c, t_f)) for c in canv) / len(canv)
+    t_f = sfft.rfft2(acc)
+    img = sum(shift(c, *align(c, t_f)) for c in canv) / len(canv)
+    # the light 1922 printing: an averaged coverage of ~0.35 is still ink
+    img = np.clip(img / 0.7, 0, 1)
+    if grow is None:
+        grow = specimen_grow(style, stem_target)
     if grow > 0:
         out = ndimage.distance_transform_edt(img <= 0.5)
-        img = np.clip((grow + 0.5 - out), 0, 1) if grow else img
-        img = np.maximum(img, (out <= grow).astype(float))
-    pad = 20
-    img = np.pad(img, pad)
-    top = d["top"] * f - pad
+        img = np.maximum(img, np.clip(grow + 0.5 - out, 0, 1))
+    top = -base
     if g not in DESCENDING:
         # light printing loses the bottoms of thin serifs, so the line's
         # baseline misplaces single letters: sit each one on the baseline
@@ -310,9 +366,46 @@ def stem_width(img):
 
 # ---------------------------------------------------------------- assembly
 
+def stems(img, base):
+    """Column runs of the vertical stems in the lower half of the x-height."""
+    xh = 41 * UP
+    band = img[base - xh // 2:base - xh // 8] > 0.5
+    col = band.mean(0) > 0.8
+    x = np.flatnonzero(np.diff(np.r_[0, col.astype(int), 0]))
+    return list(zip(x[0::2], x[1::2]))            # [start, stop)
+
+
+def make_ff(M):
+    """The ff ligature, which the 1947 pages never use: the ffi sort cut
+    between its second f and the i, with the arm and terminal of the single
+    f grafted onto the second stem (as on the Monotype ff matrix)."""
+    ffi, f = M.get(("ffi", "R", 11)), M.get(("f", "R", 11))
+    if ffi is None or f is None:
+        return None
+    s3, s1 = stems(ffi["img"], ffi["base"]), stems(f["img"], f["base"])
+    if len(s3) != 3 or len(s1) != 1:
+        print(f"ff: unexpected stems {s3} / {s1}; skipped")
+        return None
+    cut = (s3[1][1] + s3[2][0]) // 2
+    img = ffi["img"].copy()
+    img[:, cut:] = 0
+    # f's arm: everything right of its stem, placed against the 2nd stem
+    dy = ffi["base"] - f["base"]
+    dx = s3[1][1] - s1[0][1]
+    arm = np.zeros_like(img)
+    src = f["img"][:, s1[0][1]:]
+    for y in range(src.shape[0]):
+        yy = y + dy
+        if 0 <= yy < img.shape[0]:
+            x0 = s1[0][1] + dx
+            w = min(src.shape[1], img.shape[1] - x0)
+            arm[yy, x0:x0 + w] = src[y, :w]
+    return np.maximum(img, arm), -ffi["base"]
+
+
 def glyph_name(g):
     if len(g) > 1:
-        return {"fi": "fi", "ffi": "f_f_i"}[g]
+        return {"fi": "fi", "ffi": "f_f_i", "ff": "f_f"}[g]
     return UV2AGL.get(ord(g), "uni%04X" % ord(g))
 
 
@@ -332,24 +425,78 @@ def despeckle(img, frac=0.03):
     return out
 
 
+def traced(img, r0, r1, c0, c1, base, c0_ink, lsb):
+    """Trace img[r0:r1, c0:c1] (canvas with the baseline at row `base`) and
+    return (contours, dx, dy) placing canvas column c0_ink at the left side
+    bearing lsb (scan px).  Potrace coordinates are px from the padded
+    crop's bottom-left corner."""
+    contours = trace(np.pad(img[r0:r1, c0:c1], 2))
+    dx = (c0 - 2 - c0_ink) * U_PER_UPX + lsb * U_PER_PX
+    dy = (base - r1 - 2) * U_PER_UPX
+    return contours, dx, dy
+
+
+def embolden(img, px):
+    """Grow the ink by px scan px per edge, keeping the soft edge."""
+    if px <= 0:
+        return img
+    out = ndimage.distance_transform_edt(img <= 0.5)
+    return np.maximum(img, np.clip(px * UP + 0.5 - out, 0, 1))
+
+
+def alternate(alt):
+    """A single impression made traceable: the bilinear upsampling of a
+    1-bit scan still shows its pixel staircase, so smooth by ~1/4 scan px
+    before thresholding; keep the nicks and squash that are the point."""
+    return despeckle(ndimage.gaussian_filter(alt.astype(np.float32), 1.0))
+
+
 def build(style, masters, size=11, suffix=""):
+    """masters: {char: (img, top[, alts])}, img a coverage canvas whose row 0
+    lies `top` master px from the baseline (negative = above).  Returns
+    {glyph name: (contours, dx, dy, advance, char)}, alternates included as
+    name.r1, name.r2, ... with the master's metrics."""
     crops = {}
-    for g, (img, top) in masters.items():
-        img = despeckle(img)
+    for g, v in masters.items():
+        img, top = despeckle(v[0]), v[1]
         ys, xs = np.nonzero(img > 0.5)
         if len(ys):
-            crops[g] = (img[ys.min():ys.max() + 1, xs.min():xs.max() + 1], top + ys.min())
-    spacing = fit_spacing(style, size, {g: c.shape[1] / UP for g, (c, t) in crops.items()})
+            crops[g] = (img, -top, ys.min(), ys.max() + 1, xs.min(), xs.max() + 1,
+                        v[2] if len(v) > 2 else [])
+    spacing = fit_spacing(style, size, {g: (c[5] - c[4]) / UP for g, c in crops.items()})
     glyphs = {}                              # name -> (contours, dx, dy, adv, char)
-    for g, (crop, top) in crops.items():
+    grow = int(np.ceil(INK_PX * UP)) + 1
+    for g, (img, base, r0, r1, c0, c1, alts) in crops.items():
         lsb, adv = spacing[g]
-        contours = trace(np.pad(crop, 2))
-        # contour coords: crop px, y up from crop bottom (incl. 2px pad)
-        bottom_rel_base = (top + crop.shape[0]) / UP     # scan px below baseline (+ = below)
-        dx = lsb * U_PER_PX - 2 * U_PER_UPX
-        dy = -bottom_rel_base * U_PER_PX - 2 * U_PER_UPX
-        glyphs[glyph_name(g) + suffix] = (contours, dx, dy, adv * U_PER_PX, g)
+        name = glyph_name(g) + suffix
+        # spacing was measured on the ink as printed; extra ink grows the
+        # outline around the same position (window widened to hold it)
+        img = embolden(np.pad(img, grow), INK_PX)
+        base, r0, r1, c0, c1 = base + grow, r0, r1 + 2 * grow, c0, c1 + 2 * grow
+        glyphs[name] = (*traced(img, r0, r1, c0, c1, base, c0 + grow, lsb), adv * U_PER_PX, g)
+        for k, alt in enumerate(alts, 1):
+            a = embolden(np.pad(alternate(alt), grow), INK_PX)
+            m = 4 * UP + grow                # impressions may reach past the mean
+            ar0, ac0 = max(0, r0 - m), max(0, c0 - m)
+            ar1, ac1 = min(a.shape[0], r1 + m), min(a.shape[1], c1 + m)
+            if not (a[ar0:ar1, ac0:ac1] > 0.5).any():
+                continue
+            glyphs[f"{name}.r{k}"] = (*traced(a, ar0, ar1, ac0, ac1, base, c0 + grow, lsb),
+                                      adv * U_PER_PX, g)
     return glyphs
+
+
+def rand_feature(glyphs):
+    """GSUB 'rand': each glyph with traced impressions is replaced by one of
+    them at random (luaotfload picks per occurrence)."""
+    alts = defaultdict(list)
+    for name in glyphs:
+        base, dot, r = name.rpartition(".r")
+        if dot and r.isdigit():
+            alts[base].append(name)
+    rules = [f"  sub {b} from [{' '.join(sorted(v))}];" for b, v in sorted(alts.items())
+             if b in glyphs]
+    return "feature rand {\n" + "\n".join(rules) + "\n} rand;\n" if rules else ""
 
 
 def assemble(glyphs, family, style_name, out, extra_cmap=None, features=""):
@@ -366,7 +513,7 @@ def assemble(glyphs, family, style_name, out, extra_cmap=None, features=""):
     for name, (contours, dx, dy, a, g) in glyphs.items():
         cs[name] = charstring(contours, dx, dy, U_PER_UPX, a)
         adv[name] = round(a)
-        if len(g) == 1 and not name.endswith(".sc"):
+        if len(g) == 1 and "." not in name:
             cmap[ord(g)] = name
     cmap.update(extra_cmap or {})
     fb = FontBuilder(1000, isTTF=False)
@@ -397,7 +544,7 @@ def main():
     regular = {}
     M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
     for style, style_name in (("R", "Regular"), ("I", "Italic")):
-        masters = {g: (m["img"], -m["base"]) for (g, s, z), m in M.items()
+        masters = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == style and z == 11}
         # tops are relative to baseline in master px: img row 0 is at -base
         stem = stem_width(masters["I" if style == "R" else "l"][0])
@@ -409,9 +556,14 @@ def main():
                     img, top = sg
                     masters[ch] = (img, top * 1.0)
                     added.append(ch)
+        if style == "R" and "ff" not in masters:
+            ff = make_ff(M)
+            if ff is not None:
+                masters["ff"] = ff
+                added.append("ff")
         if style == "R" and "-" in masters and "–" not in masters:
             # en dash: the hyphen stretched to half an em of ink
-            img, top = masters["-"]
+            img, top = masters["-"][:2]
             ys, xs = np.nonzero(img > 0.5)
             crop = img[:, xs.min():xs.max() + 1]
             target = int(0.5 * EM_PX * UP)
@@ -429,10 +581,11 @@ def main():
                 g = gl[4]
                 if name not in glyphs and len(g) == 1 and not g.isalpha():
                     glyphs[name] = gl
-        extra, feats = {}, ""
+        extra = {}
+        feats = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
         if style == "R":
             # small caps: 1947 sorts where available, else the 1922 specimen
-            scm = {g: (m["img"], -m["base"]) for (g, s, z), m in M.items()
+            scm = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == "R" and z == "SC"}
             fill = ""
             for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
@@ -446,17 +599,19 @@ def main():
                 glyphs[name.lower()] = gl
             sc = [n[:-3] for n in glyphs if n.endswith(".sc")]
             subs = " ".join(f"sub {c} by {c}.sc;" for c in sc if c in glyphs)
-            feats = ("languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
-                     "feature liga { sub f f i by f_f_i; sub f i by fi; } liga;\n"
-                     f"feature smcp {{ {subs} }} smcp;\n")
+            feats += ("feature liga { sub f f i by f_f_i; sub f f by f_f; sub f i by fi; } liga;\n"
+                      f"feature smcp {{ {subs} }} smcp;\n")
         else:
             for name, (c, dx, dy, a, g) in glyphs.items():
+                if "." in name:
+                    continue
                 if len(g) == 1 and "A" <= g <= "Z":
                     extra[MATH_IT_CAP + ord(g) - 65] = name
                 elif len(g) == 1 and "a" <= g <= "z":
                     extra[0x210E if g == "h" else MATH_IT_LOW + ord(g) - 97] = name
                 elif g in GREEK_MATH_IT:
                     extra[GREEK_MATH_IT[g]] = name
+        feats += rand_feature(glyphs)
         assemble(glyphs, "Mills 8A", style_name,
                  os.path.join(FONTS, f"Mills8A-{style_name}.otf"), extra, feats)
 

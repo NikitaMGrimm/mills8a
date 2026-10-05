@@ -22,7 +22,8 @@
 \else\ifdefined\useeighta
   % 11pt Monotype Modern 8A on 12pt, 317pt measure, as in the 1947 Bulletin
   \usepackage{unicode-math}
-  \setmainfont{Mills8A-Regular.otf}[
+  % rand: each letter is one of several real 1947 impressions, at random
+  \setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
     ItalicFont=Mills8A-Italic.otf,
     BoldFont=Mills8A-Regular.otf, BoldFeatures={FakeBold=2}]
   \setmathfont{latinmodern-math.otf}
