@@ -290,3 +290,37 @@ erdos1947-006@2186,2432	)	R	S1
 erdos1947-007@921,1283	)	R	S1
 niven1947-000@2317,3096	skip
 niven1947-000@1918,3084	skip
+
+# 1943-47 scans (Post, Kleene, Eilenberg-Mac Lane, Doob, Kac, von Neumann-Goldstine): OCR misreads
+vonneumanngoldstine1947-013@1760,4868	≦	R	11
+kleene1943-011@2882,4800	ϕ	I	11
+vonneumanngoldstine1947-020@1653,985	÷	R	11
+vonneumanngoldstine1947-019@961,916	÷	R	11
+vonneumanngoldstine1947-015@2149,4959	÷	R	9
+kac1947-000@2944,2711	skip
+post1944-001@3106,4602	skip
+vonneumanngoldstine1947-051@3024,5023	skip
+doob1947-009@3016,3894	skip
+vonneumanngoldstine1947-026@1664,2272	skip
+post1944-012@1767,4369	skip
+vonneumanngoldstine1947-054@1449,3126	≦	R	11
+vonneumanngoldstine1947-048@1916,4657	∑	R	11
+vonneumanngoldstine1947-038@1759,2182	skip
+eilenbergmaclane1945-048@333,1273	⊗	R	11
+eilenbergmaclane1945-048@1706,3215	⊗	R	11
+doob1947-007@1140,983	skip
+vonneumanngoldstine1947-042@1519,4496	skip
+kleene1943-017@2244,2019	≃	R	11
+eilenbergmaclane1945-023@2316,3042	ξ	I	11
+eilenbergmaclane1945-013@1351,665	skip
+eilenbergmaclane1945-019@363,4146	ℭ	R	11
+eilenbergmaclane1945-028@948,2459	ℭ	R	11
+eilenbergmaclane1945-062@2107,1927	𝔖	R	11
+eilenbergmaclane1945-009@1522,2849	𝔖	R	11
+post1944-032@2109,1069	ö	I	11
+post1944-005@650,1911	ö	R	11
+post1944-008@1222,3963	ö	R	11
+post1944-016@2953,4932	ö	R	11
+vonneumanngoldstine1947-048@2491,2597	8	R	S1
+eilenbergmaclane1945-053@1726,2261	→	R	11
+vonneumanngoldstine1947-016@1590,939	skip

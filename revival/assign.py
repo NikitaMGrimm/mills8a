@@ -85,8 +85,9 @@ def main():
             if g is None or len(g) != 1 or cnt < 0.6 * c["n"]:
                 continue
             r = ref[(c["ocr1"], c["style"])]
-            if c["w"] > 1.35 * r["w"]:
-                continue               # two letters touching
+            if c["w"] / c["h"] > 1.35 * r["w"] / r["h"]:
+                continue               # two letters touching (the reference
+                                       # may be another size, e.g. small caps)
             style = "R" if g in ALWAYS_ROMAN else c["style"]
             size = size_class(c["h"], r["h"])
             if style == "R" and g.isascii() and g.isupper() and g not in "JQ":

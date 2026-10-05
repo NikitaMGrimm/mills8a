@@ -35,7 +35,7 @@ WORK = os.path.join(HERE, "work")
 FONTS = os.path.join(HERE, "fonts")
 UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
-OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑"
+OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑⊗÷≃{}:*ℭ𝔖"
 MIN_MATH_LSB = 20                     # units, for math italic letters
 
 
