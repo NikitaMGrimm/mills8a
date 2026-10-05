@@ -37,7 +37,7 @@ U_PER_PX = 1000 / EM_PX                     # font units per scan px
 # Niven pages the glyphs come from were printed a little lighter than the
 # Mills page: 0.5 px matches the darkness of its first paragraph (measured
 # against the same text set in these fonts).  MILLS8A_INK=0 = as measured.
-INK_PX = float(os.environ.get("MILLS8A_INK", "1.0"))
+INK_PX = float(os.environ.get("MILLS8A_INK", "0.7"))
 SPACE = 322                                  # 6 units of 10.7 set, in font units
 MATH_IT_CAP, MATH_IT_LOW = 0x1D434, 0x1D44E
 GREEK_MATH_IT = {"α": 0x1D6FC, "β": 0x1D6FD, "ζ": 0x1D701, "π": 0x1D70B,
@@ -119,7 +119,8 @@ SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 # letter and its terminal over the next.  (The math italic f in
 # Mills8A-Math.otf gets a positive left side bearing instead; see
 # build_math.py.)
-SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07)},
+SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07),
+                         "A": (-0.02, 0.025)},     # fitted 0.12 em right: pairs with spaces
                    "R": {"—": (0.02, 0.02)}}     # the em dash is constructed
 
 

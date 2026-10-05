@@ -565,3 +565,12 @@ courant1943-017@2506,4648	skip
 eilenbergmaclane1945-038@1678,2978	skip
 lewy1946-018@1931,4873	skip
 lewy1946-025@3004,4699	skip
+# the swash z is the italic, the plain z the roman (re-clustered with the 1940-48 pages); a barred Z
+lewy1946-018@1508,3880	z	I	11
+lewy1946-004@2006,2994	z	I	11
+vonkarman1940-068@2166,2676	z	I	9
+post1944-031@1808,4737	z	I	9
+vonneumanngoldstine1947-030@1439,3824	z	R	11
+doob1947-001@2557,4720	z	R	11
+kleene1943-002@765,2798	z	R	11
+vonneumanngoldstine1947-050@2746,4716	skip
