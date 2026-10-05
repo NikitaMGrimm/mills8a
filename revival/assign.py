@@ -95,6 +95,12 @@ def main():
                 h = c["h"]
                 size = (11 if 56 <= h <= 65 else "SC" if 42 <= h <= 49 else
                         9 if 50 <= h <= 55 else "S1" if 33 <= h <= 41 else None)
+            if style == "R" and g in "0123456789":
+                # figures: absolute height, as for capitals (relative to a
+                # reference cluster that is itself 9pt they would pass as 11pt)
+                h = c["h"]
+                size = (11 if 55 <= h <= 64 else 9 if 46 <= h <= 54 else
+                        "S1" if 33 <= h <= 40 else "S2" if 28 <= h <= 32 else None)
             if size is None:
                 continue
             lab = (g, style, size)

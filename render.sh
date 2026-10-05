@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 KIND=${1:-type1}
 B=$PWD/build
 mkdir -p out
-export TEXINPUTS="$PWD/tex:" TFMFONTS="$B/tfm:" PKFONTS="$B/pk:"
+export TEXINPUTS="$PWD/tex:" LUAINPUTS="$PWD/tex:" TFMFONTS="$B/tfm:" PKFONTS="$B/pk:"
 export T1FONTS="$B/type1:" ENCFONTS="$B/type1:"
 MAP=""
 [ "$KIND" = type1 ] && MAP='\pdfmapfile{+millsmodern.map}' && export TEXFONTMAPS="$B/type1:"

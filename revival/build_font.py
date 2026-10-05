@@ -112,8 +112,11 @@ def charstring(contours, dx, dy, scale, adv):
 
 SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 # Side bearings (em) fixed by hand where the scans cannot measure them:
-# the italic f is a kerned sort hanging over both neighbours.
-SPACING_BY_HAND = {"I": {"f": (-0.02, -0.07)}}
+# the italic f is a kerned sort, its descender tucked under the preceding
+# letter and its terminal over the next.  (The math italic f in
+# Mills8A-Math.otf gets a positive left side bearing instead; see
+# build_math.py.)
+SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07)}}
 
 
 def fit_spacing(style, size, widths):
@@ -246,6 +249,17 @@ def fit_spacing(style, size, widths):
                 if d in out:
                     lsb, adv = out[d]
                     out[d] = (lsb + (fw - adv) / 2, fw)
+    # constructed ligatures, from the final widths of their parts
+    for lig, src in (("fl", "fi"), ("ffl", "ffi")):
+        # roman: the fi/ffi sort less its i, plus the l
+        if style == "R" and lig in widths and src in out and "i" in out and "l" in out:
+            out[lig] = (out[src][0], out[src][1] - out["i"][1] + out["l"][1])
+    if style == "I":
+        # italic: the f (or ff) advance plus the last letter's
+        for lig, first, last in (("fi", "f", "i"), ("fl", "f", "l"),
+                                 ("ffi", "ff", "i"), ("ffl", "ff", "l")):
+            if lig in widths and first in out and last in out:
+                out[lig] = (out[first][0], out[first][1] + out[last][1])
     return out
 
 
@@ -279,7 +293,7 @@ def specimen_scale(size):
     return _SCALE.get(size)
 
 
-DESCENDING = set("gjpqyQJ$")
+DESCENDING = set("gjpqyQJ$7")
 ROUND_BOTTOM = set("CGOQSUJcdeosabqu035689")
 
 
@@ -478,9 +492,65 @@ def make_ff_italic(M):
     return np.maximum(out, second), -base
 
 
+def paste(dst, dst_base, src, src_base, x0):
+    """Max-composite src onto dst, baselines aligned, src column 0 at x0;
+    dst is widened on the right if needed."""
+    dy = dst_base - src_base
+    need = x0 + src.shape[1]
+    if need > dst.shape[1]:
+        dst = np.pad(dst, ((0, 0), (0, need - dst.shape[1])))
+    for y in range(src.shape[0]):
+        yy = y + dy
+        if 0 <= yy < dst.shape[0]:
+            dst[yy, x0:x0 + src.shape[1]] = np.maximum(dst[yy, x0:x0 + src.shape[1]], src[y])
+    return dst
+
+
+LIG_DX = {}         # (style, ligature) -> x offset of its last letter (master px)
+
+
+def make_l_ligature(M, base_lig, name):
+    """fl / ffl, which the 1947 pages never use: the fi / ffi sort cut
+    between its last f and the i, and the 1947 l set with its stem where the
+    i's stem stood (its ascender meets the f's arm, as on the matrix)."""
+    lig, l = M.get((base_lig, "R", 11)), M.get(("l", "R", 11))
+    if lig is None or l is None:
+        return None
+    sl, s1 = stems(lig["img"], lig["base"]), stems(l["img"], l["base"])
+    if len(sl) != len(base_lig) or len(s1) != 1:
+        print(f"{name}: unexpected stems {sl} / {s1}; skipped")
+        return None
+    cut = (sl[-2][1] + sl[-1][0]) // 2
+    img = lig["img"].copy()
+    img[:, cut:] = 0
+    x0 = sl[-1][0] - s1[0][0]                # l stem onto the i stem
+    LIG_DX[("R", name)] = (sl[-1][0], s1[0][0])
+    return paste(img, lig["base"], despeckle(l["img"]), l["base"], x0), -lig["base"]
+
+
+def make_italic_ligature(M, first, second, spacing_dx):
+    """Italic f-ligatures (none in the scans): the second letter set at the
+    first's advance, and the f terminal trimmed wherever it comes within 2
+    scan px of the second letter above the x-height."""
+    a, b = M.get((first, "I", 11)) if len(first) == 1 else first, M.get((second, "I", 11))
+    if a is None or b is None:
+        return None
+    img, base = (despeckle(a["img"]), a["base"]) if isinstance(a, dict) else a
+    sec = np.zeros((img.shape[0], img.shape[1] + spacing_dx + b["img"].shape[1]))
+    sec = paste(sec, base, despeckle(b["img"]), b["base"], spacing_dx)
+    out = np.zeros_like(sec)
+    out[:, :img.shape[1]] = img
+    xh = 41 * UP
+    for r in range(0, max(0, base - xh + 2 * UP)):
+        x = np.flatnonzero(sec[r] > 0.5)
+        if len(x):
+            out[r, max(0, x.min() - 2 * UP):] = 0
+    return np.maximum(out, sec), base
+
+
 def glyph_name(g):
     if len(g) > 1:
-        return {"fi": "fi", "ffi": "f_f_i", "ff": "f_f"}[g]
+        return {"fi": "fi", "ffi": "f_f_i", "ff": "f_f", "fl": "fl", "ffl": "f_f_l"}[g]
     return UV2AGL.get(ord(g), "uni%04X" % ord(g))
 
 
@@ -626,7 +696,25 @@ def main():
         # tops are relative to baseline in master px: img row 0 is at -base
         stem = stem_width(masters["I" if style == "R" else "l"][0])
         added = []
-        for ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz":
+        if style == "R":
+            # lining figures share one height (the 7 even dips below the
+            # baseline); a 1947 figure clearly shorter than the others is
+            # a smaller size that slipped through: use the specimen's
+            def fig_h(img):
+                ys = np.nonzero((img > 0.5).any(1))[0]
+                return ys.max() - ys.min() + 1
+            hs = {d: fig_h(masters[d][0]) for d in "0123456789" if d in masters}
+            if hs:
+                med = np.median(list(hs.values()))
+                for d, hh in hs.items():
+                    if hh < 0.95 * med:
+                        del masters[d]
+                        print(f"figure {d}: 1947 sort {hh / med:.0%} of the others' height; "
+                              "taking the specimen's")
+        fill = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+        if style == "R":
+            fill += "0123456789"
+        for ch in fill:
             if ch not in masters:
                 sg = specimen_glyph(ch, style, stem)
                 if sg is not None:
@@ -638,6 +726,34 @@ def main():
             if ff is not None:
                 masters["ff"] = ff
                 added.append("ff")
+        if style == "R":
+            for lig, src in (("fl", "fi"), ("ffl", "ffi")):
+                if lig not in masters:
+                    r = make_l_ligature(M, src, lig)
+                    if r is not None:
+                        masters[lig] = r
+                        added.append(lig)
+        if style == "I" and "f" in masters and "i" in masters and "l" in masters:
+            # place each last letter one f (ff) advance after the first,
+            # using the spacing the font will have
+            def ink_left(img):
+                return np.nonzero((despeckle(img) > 0.5).any(0))[0].min()
+            widths = {g: (np.ptp(np.nonzero((despeckle(v[0]) > 0.5).any(0))[0]) + 1) / UP
+                      for g, v in masters.items()}
+            sp = fit_spacing("I", 11, widths)
+            for lig, first, last in (("fi", "f", "i"), ("fl", "f", "l"),
+                                     ("ffi", "ff", "i"), ("ffl", "ff", "l")):
+                if lig in masters or first not in masters or first not in sp:
+                    continue
+                fimg, ftop = masters[first][0], masters[first][1]
+                limg, ltop = masters[last][0], masters[last][1]
+                x0 = int(round(ink_left(fimg) + (sp[first][1] - sp[first][0] + sp[last][0]) * UP
+                               - ink_left(limg)))
+                r = make_italic_ligature({(last, "I", 11): dict(img=limg, base=-ltop)},
+                                         (despeckle(fimg), -ftop), last, x0)
+                if r is not None:
+                    masters[lig] = (r[0], -r[1])
+                    added.append(lig)
         if style == "R" and "ff" not in masters:
             ff = make_ff(M)
             if ff is not None:
@@ -681,7 +797,8 @@ def main():
                 glyphs[name.lower()] = gl
             sc = [n[:-3] for n in glyphs if n.endswith(".sc")]
             subs = " ".join(f"sub {c} by {c}.sc;" for c in sc if c in glyphs)
-            feats += ("feature liga { sub f f i by f_f_i; sub f f by f_f; sub f i by fi; } liga;\n"
+            feats += ("feature liga { sub f f i by f_f_i; sub f f l by f_f_l; sub f f by f_f; "
+                      "sub f i by fi; sub f l by fl; } liga;\n"
                       f"feature smcp {{ {subs} }} smcp;\n")
         else:
             for name, (c, dx, dy, a, g) in glyphs.items():
@@ -693,8 +810,12 @@ def main():
                     extra[0x210E if g == "h" else MATH_IT_LOW + ord(g) - 97] = name
                 elif g in GREEK_MATH_IT:
                     extra[GREEK_MATH_IT[g]] = name
-        if style == "I" and "f_f" in glyphs:
-            feats += "feature liga { sub f f by f_f; } liga;\n"
+        if style == "I":
+            rules = [r for r, g in (("sub f f i by f_f_i;", "f_f_i"), ("sub f f l by f_f_l;", "f_f_l"),
+                                    ("sub f f by f_f;", "f_f"), ("sub f i by fi;", "fi"),
+                                    ("sub f l by fl;", "fl")) if g in glyphs]
+            if rules:
+                feats += "feature liga { " + " ".join(rules) + " } liga;\n"
         feats += rand_feature(glyphs)
         assemble(glyphs, "Mills 8A", style_name,
                  os.path.join(FONTS, f"Mills8A-{style_name}.otf"), extra, feats)

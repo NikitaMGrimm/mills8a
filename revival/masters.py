@@ -25,7 +25,8 @@ WORK = os.path.join(HERE, "work")
 UP = 4
 MAXSHIFT = 4 * UP                 # vertical search radius (UP px)
 MARGIN = 6 * UP                   # canvas margin around the largest instance
-NALT = 4                          # alternates (single impressions) per sort
+NALT = 8                          # alternates (single impressions) per frequent sort;
+                                  # half as many for sorts with 8-15 clean impressions
 
 
 def canvas_geometry(members):
@@ -80,7 +81,7 @@ def stroke(bm):
     return 2 * np.percentile(edt[edt > 0], 95)
 
 
-def build(members, drop_bold=False):
+def build(members, drop_bold=False, bold_out=None):
     # drop instances whose vertical position disagrees with the majority
     # (a wrong baseline on a display-math line)
     tops = np.array([m["bbox"][1] - m["baseline_ref"] for m in members])
@@ -92,6 +93,8 @@ def build(members, drop_bold=False):
         # varies by ~10%
         w = np.array([stroke(m["bitmap"]) for m in members])
         light = np.percentile(w, 25)
+        if bold_out is not None:
+            bold_out.extend(m for m, x in zip(members, w) if x > 1.18 * light)
         members = [m for m, x in zip(members, w) if x <= 1.18 * light] or members
     geo = canvas_geometry(members)
     imgs = [p for p in (place(m, geo) for m in members) if p is not None]
@@ -118,10 +121,9 @@ def build(members, drop_bold=False):
     # alternates: real single impressions, typical in shape (IoU >= 0.8 with
     # the mean) and spread from light to heavy inking
     cand = sorted((s for s in aligned if iou(s, mean) >= 0.80), key=lambda a: a.sum())
-    alts = []
-    if len(cand) >= 2 * NALT:
-        alts = [cand[int(q * (len(cand) - 1))].astype(np.float16)
-                for q in np.linspace(0.15, 0.85, NALT)]
+    k = NALT if len(cand) >= 2 * NALT else NALT // 2 if len(cand) >= NALT else 0
+    alts = [cand[int(q * (len(cand) - 1))].astype(np.float16)
+            for q in np.linspace(0.1, 0.9, k)] if k else []
     return mean, kept, geo[2], alts
 
 
@@ -130,14 +132,44 @@ def main():
     clusters = {c["id"]: c for c in pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))}
     sorts = pickle.load(open(os.path.join(WORK, "sorts.pkl"), "rb"))
     masters = {}
+    bold = {}                  # bold title capitals found inside roman sorts
+    members_of = {}
     for key, cids in sorted(sorts.items(), key=lambda kv: str(kv[0])):
         members = [inst[i] for c in cids for i in clusters[c]["members"]]
-        members = [m for m in members if m["baseline_ref"] is not None]
-        r = build(members, drop_bold=key[1] == "R" and key[0].isupper())
+        members_of.setdefault(key, [])
+        for m in members:
+            if m["baseline_ref"] is None:
+                continue
+            # an impression OCR confidently read as another letter goes to
+            # that letter's sort (bold E and F can share a cluster)
+            ch = m["ch"]
+            if (ch and len(ch) == 1 and ch.isalpha() and len(key[0]) == 1 and key[0].isalpha()
+                    and ch != key[0] and m["conf"] > 90 and ch.isupper() == key[0].isupper()):
+                members_of.setdefault((ch,) + key[1:], []).append(m)
+            else:
+                members_of[key].append(m)
+    for key, members in members_of.items():
+        if not members:
+            continue
+        out = [] if key[1] == "R" and key[2] == 11 and key[0].isupper() else None
+        r = build(members, drop_bold=key[1] == "R" and key[0].isupper(), bold_out=out)
+        if out:
+            bold.setdefault(key[0], []).extend(out)
         if r is None:
             continue
         img, n, base, alts = r
         masters[key] = dict(img=img.astype(np.float32), base=base, n=n, alts=alts)
+    # bold sorts: the title-capital clusters plus the bold impressions
+    # separated from the roman capitals
+    for g, extra in bold.items():
+        key = (g, "B", "T")
+        members = members_of.get(key, []) + extra
+        if len(members) < 2:
+            continue
+        r = build(members)
+        if r is not None:
+            img, n, base, alts = r
+            masters[key] = dict(img=img.astype(np.float32), base=base, n=n, alts=alts)
     pickle.dump(masters, open(os.path.join(WORK, "masters.pkl"), "wb"))
     print(f"{len(masters)} masters")
     sheet(masters)

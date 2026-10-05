@@ -23,9 +23,14 @@
   % 11pt Monotype Modern 8A on 12pt, 317pt measure, as in the 1947 Bulletin
   \usepackage{unicode-math}
   % rand: each letter is one of several real 1947 impressions, at random
+  % letterpress baseline wobble measured on the 1947 pages (0.08pt sd)
+  \directlua{require("mills8a-jitter").enable(0.08, 1947)}
+  % 9pt cuts below 10pt (footnotes); bold = the 1947 title capitals
   \setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
+    SizeFeatures={{Size=-10, Font=Mills8A-Regular9.otf}, {Size=10-}},
     ItalicFont=Mills8A-Italic.otf,
-    BoldFont=Mills8A-Regular.otf, BoldFeatures={FakeBold=2}]
+    ItalicFeatures={SizeFeatures={{Size=-10, Font=Mills8A-Italic9.otf}, {Size=10-}}},
+    BoldFont=Mills8A-Bold.otf]
   % Mills 8A Math: 1947 letters, operators and script sorts on Latin Modern Math
   \setmathfont{Mills8A-Math.otf}
   \makeatletter

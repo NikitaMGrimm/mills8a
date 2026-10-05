@@ -36,6 +36,7 @@ FONTS = os.path.join(HERE, "fonts")
 UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
 OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑"
+MIN_MATH_LSB = 20                     # units, for math italic letters
 
 
 def lm_path():
@@ -223,6 +224,15 @@ def main():
         our_gs[style][src].draw(pen)
         cs[target] = pen.getCharString(private, gsubrs)
         adv[target] = a
+        if style == "I" and bounds(cs[target])[0] < MIN_MATH_LSB:
+            # text italic f hangs left over the preceding letter (a kerned
+            # sort); in math it would eat the space before f(x)
+            d = MIN_MATH_LSB - bounds(cs[target])[0]
+            pen = T2CharStringPen(a + d, our_gs[style])
+            from fontTools.pens.transformPen import TransformPen
+            our_gs[style][src].draw(TransformPen(pen, (1, 0, 0, 1, d, 0)))
+            cs[target] = pen.getCharString(private, gsubrs)
+            a = adv[target] = round(a + d)
         replaced += 1
         variants = ssty.get(target)
         if not variants:

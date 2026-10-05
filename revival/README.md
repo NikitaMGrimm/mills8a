@@ -1,11 +1,40 @@
 # Mills 8A: a revival of Monotype Modern 8A from 1947 scans
 
-`fonts/Mills8A-Regular.otf` and `fonts/Mills8A-Italic.otf` are traced from
-the type of the *Bulletin of the AMS*, 1947, which was 11 pt Monotype
-Modern 8A on 12 pt leading. Nothing is drawn by hand: every master glyph is
-the average of the copies of that sort found on the page scans.
+A font family traced from the type of the *Bulletin of the AMS*, 1947,
+which was 11 pt Monotype Modern 8A on 12 pt leading. Nothing is drawn by
+hand: every master glyph is the average of the copies of that sort found on
+the page scans, and the spacing is measured from the text.
 
 ![comparison](../comparison-8a.png)
+
+| font | what it is |
+|---|---|
+| `Mills8A-Regular.otf` | 11 pt roman, figures, punctuation, small caps (`smcp`), f-ligatures (`liga`), random impressions (`rand`) |
+| `Mills8A-Italic.otf` | 11 pt italic and Greek, f-ligatures, `rand` |
+| `Mills8A-Math.otf` | OpenType MATH font: the letters, figures, operators and **real script sorts** for indices, on Latin Modern Math |
+| `Mills8A-Bold.otf` | bold, from the 1947 title capitals |
+| `Mills8A-Regular9.otf`, `Mills8A-Italic9.otf` | 9 pt cut for footnotes and references |
+
+## Using it (LuaLaTeX)
+
+```latex
+\usepackage{unicode-math}
+\setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
+  SizeFeatures={{Size=-10, Font=Mills8A-Regular9.otf}, {Size=10-}},
+  ItalicFont=Mills8A-Italic.otf,
+  ItalicFeatures={SizeFeatures={{Size=-10, Font=Mills8A-Italic9.otf}, {Size=10-}}},
+  BoldFont=Mills8A-Bold.otf]
+\setmathfont{Mills8A-Math.otf}
+\directlua{require("mills8a-jitter").enable(0.08, 1947)}   % optional, tex/
+```
+
+Set it 11 on 12 pt. `tex/mills.tex` (`\useeighta`) is a complete example. It
+also sets the Mills paper's display-style script positions and fixed
+leading (see *Scripts* below).
+
+LuaLaTeX is needed for the randomness: XeLaTeX loads the fonts, but its
+HarfBuzz shaping gives every repeat of a word the same impressions, and
+pdfLaTeX can't use OpenType features at all.
 
 ## Sources
 
@@ -16,92 +45,142 @@ the average of the copies of that sort found on the page scans.
 - `scans/lanston1922-p49.jp2`, `-p51.jp2`: *The Monotype Specimen Book of
   Type Faces*, Lanston Monotype, 1922, pp. 49 and 51, "No. 8A" at 9, 10,
   11, 12, 14 and 18 pt. Public domain; get them with `./fetch-specimen.sh`.
+- Latin Modern Math (GUST Font License), the base of `Mills8A-Math.otf`.
 
 The two *Bulletin* PDFs are 600 dpi bilevel scans. They're not in the
 repository; put copies in `scans/` under these names.
 
-## Pipeline (`./build.sh`, ~1.5 min)
+## Pipeline (`./build.sh`, about 2 min)
 
 | step | what it does |
 |---|---|
-| `segment.py` | connected components + Tesseract hOCR → ~10,600 glyph instances with OCR guesses and line baselines |
+| `segment.py` | connected components + Tesseract hOCR → ~11,400 glyph instances. Side-by-side pieces in one OCR box (a letter and its subscript) become separate instances |
 | `baselines.py` | re-estimates each line's baseline from the letters sitting on it (display math throws Tesseract's off) |
 | `cluster.py` | groups baseline-aligned instances whose shapes overlap (IoU ≥ 0.72) |
-| `classify.py` | measures slant (roman/italic), stroke weight (bold) and relative size |
-| `assign.py` | labels each group as (glyph, style, size): rules plus hand corrections in `overrides.tsv` |
-| `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, averages (8,936 instances in 234 masters) |
+| `classify.py` | measures slant, stroke weight and size |
+| `assign.py` | labels each group (glyph, style, size): rules plus hand corrections in `overrides.tsv`, which name one impression per group (`page@x,y`, see `okey.py`) so re-clustering doesn't invalidate them |
+| `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, averages; keeps up to 8 single impressions per sort for `rand` |
 | `specimen.py` | cuts the 1922 alphabets at six sizes (659 impressions) |
-| `build_font.py` | potrace outlines, fits spacing, builds CFF OpenType fonts with fontTools |
+| `build_font.py` | potrace outlines, fitted spacing, ligatures, CFF OpenType text fonts (fontTools) |
+| `build_math.py` | the MATH font |
+| `build_sizes.py` | bold and 9 pt |
+
+`scripts.py` is not part of the build: it proposes labels for script-size
+groups by template matching (`work/scripts.png`), which were checked by eye
+and entered in `overrides.tsv`.
 
 ## Measured facts about the 1947 type
 
 - **Size:** 11 pt on 12 pt. The x-height is 0.40 em and the cap height
-  0.61 em in the specimen; the scans add about 2 px of ink spread per edge
-  at 600 dpi.
+  0.61 em; the scans add about 2 px of ink spread per edge at 600 dpi.
 - **Spacing:** Monotype never letterspaces within a word, so the distance
   between ink edges of neighbours is P[a] + L[b]. A least-squares fit over
-  about 4,300 letter pairs leaves 0.86 px RMS. The advances land on a grid
-  of **4.9 px ≈ 1/18 of a 10.6–10.7 pt set** (three independent fits:
-  roman, italic, small caps), which is the Monotype unit system. Lowercase
-  widths come out at, e.g., e = 8, n = 10, m = 15, i = 5, w = 13 units.
-- **Word space:** a median of 0.36 em ink to ink, which is 6 units (a third
-  of the set) once the side bearings are subtracted.
-- **The 1922 specimen** is set 11 on 12 too: matching its letters against
-  the 1947 masters gives 5.89 px/pt, against 5.83 for 1 pt leading.
+  about 5,000 letter pairs leaves 0.85 px RMS. The advances land on a grid
+  of **4.9 px ≈ 1/18 of a 10.6–10.7 pt set** (fitted independently for
+  roman, italic and small caps), the Monotype unit system: e = 8, n = 10,
+  m = 15, i = 5, w = 13 units.
+- **No kerning:** of 145 frequent letter pairs, none deviates from the
+  fitted spacing by more than 1.5 px (0.016 em, under a third of a unit), so
+  the fonts have no kerning table, as Monotype had none.
+- **Word space:** 6 units (a third of the set).
+- **Scripts:** two levels. First-order indices and exponents are **58.9%**
+  of the body, second-order **50.1%** (heights with ink spread removed).
+  On the Erdős pages superscripts are raised 274 units and subscripts
+  lowered 88; on the Mills page, displays raise exponents to cap height
+  (0.66 em) and subscripts sit 0.14 em down. Compositors differed.
+- **Baseline wobble:** impressions of flat-bottomed letters scatter by 1.0 px
+  (0.12 pt) around their line, about 0.08 pt once measurement noise is
+  allowed for.
+- **The 1922 specimen** is set 11 on 12 too: each size calibrates to
+  5.9–6.1 px/pt against the 1947 letters.
 
 ## What comes from where
 
-- **1947 masters:** all roman lowercase, figures, punctuation, roman caps
-  F H I L N T W, 18 small caps, italic lowercase except *j q*, italic caps
-  *A B D F M N T*, Greek *α β ζ π σ ϕ ϵ*, and + − = < > ≦ ≧ ∞ → ∑ ( ) [ ] / |,
-  plus the fi and ffi ligatures.
-- **1922 specimen:** the remaining capitals, small caps and italic letters.
-  Each is the average of all its impressions (up to six sizes, each scaled
-  by its own calibration), so a hairline broken in one impression is
-  carried by the others, then thickened to the 1947 stem weight (measured
-  once on *I*).
-- **Built:** *ff*, from the 1947 *ffi* sort cut after the second *f*, with
-  the single *f*'s arm grafted on (no *ff* occurs in the scans); its width
-  is the *ffi* width less the *i* width. The en dash is a stretched hyphen.
-- **Built, italic:** *ff*, from two italic *f* masters placed so the
-  crossbars run on, with the first *f*'s terminal trimmed clear of the second
-  ascender.
-- **By hand:** the italic *f*'s overhang (`SPACING_BY_HAND`).
+- **1947 masters:** all roman lowercase, figures (except 7), punctuation,
+  roman caps F H I L N T W, 18 small caps, italic lowercase except *j q*,
+  italic caps *A B D F M N T*, Greek *α β ζ π σ ϕ ϵ*, + − = < > ≦ ≧ ∞ → ∑ ( ) [ ] / |,
+  the fi and ffi ligatures, 15 bold capitals (A B C E F I L M N O P R T U Y),
+  46 script sorts and 36 + 10 9 pt sorts.
+- **1922 specimen:** the remaining capitals, small caps, italic letters and
+  the 7. Each is the average of all its impressions (up to six sizes, each
+  scaled by its own calibration), so a hairline broken in one is carried by
+  the others.
+- **Thickened, for the sizes the scans lack:** script variants without a real
+  script sort are the text glyph thickened to the stroke weight the real
+  script sorts have (2.1 px per edge before scaling). The remaining bold
+  letters are regular ones thickened to the bold stems (1.1 px), and the
+  remaining 9 pt glyphs are 11 pt ones thickened to 9 pt weight.
+- **Constructed ligatures** (none of these occurs in the scans):
+  - roman *ff*: the *ffi* sort cut after its second *f*, with the single *f*'s
+    arm grafted on;
+  - roman *fl* and *ffl*: the *fi* / *ffi* sort less its *i*, with the 1947
+    *l* set on the *i*'s stem;
+  - italic *ff*: two italic *f*s with their crossbars running on;
+  - italic *fi*, *fl*, *ffi*, *ffl*: the last letter one *f* advance on, with
+    the *f*'s terminal trimmed clear.
+- **By hand:** the italic *f*'s overhang (`SPACING_BY_HAND`, −0.10 em, as on a
+  kerned sort; the math italic *f* keeps a positive side bearing), and the
+  en dash (a stretched hyphen).
 
-Two clean-ups keep sparse sorts consistent with the frequent ones:
+Clean-ups that keep sparse sorts consistent with the frequent ones:
 
-- **Bold title capitals** have the 11 pt cap height and so join the roman
-  capital sorts. Impressions whose stroke width is 18% or more above the
-  sort's lighter quartile are dropped (ink varies by about 10%, bold adds
-  about 25%). Half the roman I impressions came from bold titles.
-- **Baseline snapping:** a sort seen fewer than 30 times inherits the
-  baseline errors of its few lines, so it's placed where the frequent
-  letters sit (flat bottoms like *n h H T*, or round ones like *o c e s*).
+- **Bold title capitals** have the 11 pt cap height and so land in the roman
+  capital sorts; impressions with strokes ≥ 18% heavier than the sort's
+  lighter quartile are moved to bold sorts.
+- **Impressions OCR read as another letter** with high confidence move to
+  that letter's sort (bold E and F shared a cluster).
+- **Figures** are sized by absolute height, and a figure clearly shorter
+  than the others is replaced by the specimen's.
+- **Baseline snapping:** a sort seen fewer than 30 times is placed where the
+  frequent letters sit, flat or round-bottomed; real script sorts sit on
+  their own baseline.
+
+## The math font
+
+`Mills8A-Math.otf` keeps Latin Modern Math's MATH table, extensible
+delimiters and all symbols the scans don't have. On top of that:
+
+- Math italic and upright letters, Greek, figures and operators are the
+  Mills 8A glyphs (141 replaced).
+- The `ssty` script (`.st`) and scriptscript (`.sts`) variants are the
+  **real 1947 script sorts** where they exist. Otherwise they're the text
+  glyphs thickened to the script sorts' weight, so scaled-down letters
+  don't come out light.
+- The display ∑ and ∏ are the 1947 display sorts.
+- `ScriptPercentScaleDown` 59, `ScriptScriptPercentScaleDown` 50 and the
+  superscript and subscript shifts come from the Erdős measurements.
+- Italic corrections and accent positions are computed from the new
+  outlines; Latin Modern's cut-in kerns for the replaced glyphs are dropped.
+
+`tex/mills.tex` overrides the display-style script positions with the Mills
+paper's (`\Umathsupshiftup\displaystyle=0.66em`, subscripts 0.14em), set in
+`\everydisplay` because loading the math fonts resets them. It also keeps a
+fixed 12 pt line pitch (`\lineskiplimit=-3pt`) as on a metal page, and sets
+footnote marks as superior figures.
 
 ## Texture and weight
 
 - **Random impressions (`rand`).** Averaging keeps each letter's ink but
-  removes the variation between impressions (fill-in, nicks, squash). So
-  every sort with enough copies (132 of them) also gets four alternates
-  traced from **single 1947 impressions**: typical in shape (IoU ≥ 0.8 with
-  the mean) and spread from light to heavy inking. They're registered in the
-  OpenType `rand` feature; with `\setmainfont{Mills8A-Regular.otf}[RawFeature=+rand]`
-  luaotfload picks one per occurrence. Without `rand` you get the averaged
-  master.
+  removes the variation between impressions (fill-in, nicks, squash). Sorts
+  with at least 16 clean impressions get **8 alternates** traced from single
+  1947 impressions (84 sorts), and those with 8–15 get 4 (61 sorts). They're
+  typical in shape (IoU ≥ 0.8 with the mean) and spread from light to heavy
+  inking. luaotfload picks one per occurrence.
+- **Baseline wobble** (`tex/mills8a-jitter.lua`, optional): a random
+  vertical offset per glyph, 0.08 pt standard deviation as measured, fixed
+  seed for reproducible output. Math is not touched.
 - **Ink (`MILLS8A_INK`, default 0.5).** The Erdős and Niven pages were
-  printed a little lighter than the Mills page. Per letter, a rendered glyph
-  carries the same ink as the average 1947 copy (within ~1%), but the Mills
-  paragraph is ~7% darker. 0.5 scan px of extra ink per edge matches it
-  (darkness ratio 0.99, same text, same scale). `MILLS8A_INK=0 ./build.sh`
-  gives the type as measured.
+  printed a little lighter than the Mills page. 0.5 scan px of extra ink per
+  edge matches the Mills paragraph's darkness (ratio 0.99, same text and
+  scale). `MILLS8A_INK=0 ./build.sh` gives the type as measured.
 
-## Not done yet
+## Limits
 
-- Script sizes. The scans have 8 pt and 6 pt sorts (sizes `8`, `6` in
-  `work/masters.pkl`) that could become `ssty` variants in a real OpenType
-  MATH font. For now, unicode-math scales the 11 pt glyphs, which look
-  lighter than the 1947 superscripts.
-- Bold (titles), and the 9 pt footnote size.
-- A MATH table. In LaTeX the fonts are used as `unicode-math` ranges over
-  Latin Modern Math (see `tex/mills.tex`, `\useeighta`).
-- Kerning, and accented letters beyond ö.
+- Few second-order script sorts (4): most scriptscript glyphs are
+  thickened text glyphs.
+- Math symbols beyond the scans (∈, ⊂, ∫, arrows…) are Latin Modern's.
+- No italic small caps, no bold italic, and no accented letters beyond ö.
+- Constructed ligatures and the thickened sizes are reasoned
+  reconstructions, not traced originals. More 1947 pages, especially with
+  capitals, italic capitals, bold, footnotes, or words with *fl*/*ffl*,
+  would replace them.
