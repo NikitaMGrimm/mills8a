@@ -37,6 +37,13 @@ if [ -f ../revival/pdftex/fonts/mills8a.map ]; then
   pdftoppm -r 200 -png -singlefile mills-8a-pdf.pdf mills-8a-pdf
   echo out/mills-8a-pdf.pdf
 fi
+if [ -f mills-8a.pdf ] && [ -f mills-8a-pdf.pdf ]; then
+  for t in compare compare-scan; do
+    pdflatex -interaction=nonstopmode "$t.tex" >/dev/null || { tail -30 $t.log; exit 1; }
+  done
+  pdfunite compare.pdf compare-scan.pdf mills-8a.pdf mills-8a-pdf.pdf mills-compare.pdf
+  echo out/mills-compare.pdf
+fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills
 pdftoppm -r 200 -png -singlefile mills-cm.pdf mills-cm
 echo "out/mills.pdf out/mills-cm.pdf"
