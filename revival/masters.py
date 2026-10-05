@@ -170,7 +170,8 @@ def main():
             ch = m["ch"]
             # (only into a sort that exists on its own: across many pages
             # the misreads alone would otherwise make sorts of their own)
-            if (ch and len(ch) == 1 and ch.isalpha() and len(key[0]) == 1 and key[0].isalpha()
+            if (ch and len(ch) == 1 and ch.isascii() and ch.isalpha()
+                    and len(key[0]) == 1 and key[0].isascii() and key[0].isalpha()
                     and ch != key[0] and m["conf"] > 90 and ch.isupper() == key[0].isupper()
                     and (ch,) + key[1:] in sorts):
                 members_of.setdefault((ch,) + key[1:], []).append(m)
