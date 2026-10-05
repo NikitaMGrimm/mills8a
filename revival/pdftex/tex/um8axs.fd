@@ -1,0 +1,3 @@
+\ProvidesFile{um8axs.fd}[2026/10/05 Mills 8A extra relations, pdfLaTeX]
+\DeclareFontFamily{U}{m8axs}{}
+\DeclareFontShape{U}{m8axs}{m}{n}{<-6> m8axsss <6-8> m8axss <8-> m8axs}{}

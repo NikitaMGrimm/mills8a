@@ -12,4 +12,16 @@
 \DeclareSymbolFont{largesymbols}{OMX}{m8aex}{m}{n}
 \DeclareMathSizes{11}{11}{6.48}{5.51}
 \DeclareMathSizes{10.95}{11}{6.48}{5.51}
+% the 1947 sorts for relations the standard layouts have no slot for;
+% set at the start of the document so they win over amssymb's
+\DeclareSymbolFont{millsextra}{U}{m8axs}{m}{n}
+\def\mills@rel#1#2{\mathchardef#1=\numexpr"3000+\symmillsextra*"100+#2\relax}
+\AtBeginDocument{%
+  \mills@rel\neq0 \let\ne\neq
+  \mills@rel\leqq1 \mills@rel\geqq2 \mills@rel\cong3 }
+% section, dagger, double dagger and pilcrow from the 1947 text font
+\DeclareTextCommand{\textsection}{T1}{{\usefont{U}{m8asym}{m}{n}\char0}}
+\DeclareTextCommand{\textdagger}{T1}{{\usefont{U}{m8asym}{m}{n}\char1}}
+\DeclareTextCommand{\textdaggerdbl}{T1}{{\usefont{U}{m8asym}{m}{n}\char2}}
+\DeclareTextCommand{\textparagraph}{T1}{{\usefont{U}{m8asym}{m}{n}\char3}}
 \endinput
