@@ -1,7 +1,13 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mills8a}[2026/10/05 Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
 \RequirePackage[T1]{fontenc}
-\renewcommand\rmdefault{m8a}
+% osf: old-style figures in text (the 1947 Bulletin's running-head figures);
+% math keeps lining figures, as in print
+\newif\ifmills@osf
+\DeclareOption{osf}{\mills@osftrue}
+\DeclareOption{lf}{\mills@osffalse}
+\ProcessOptions\relax
+\ifmills@osf\renewcommand\rmdefault{m8aj}\else\renewcommand\rmdefault{m8a}\fi
 \renewcommand\encodingdefault{T1}
 \pdfmapfile{+mills8a.map}
 % math: one font per family and size; the script sizes are the 1947 script
