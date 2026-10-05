@@ -40,7 +40,9 @@ INK_PX = float(os.environ.get("MILLS8A_INK", "0.5"))
 SPACE = 322                                  # 6 units of 10.7 set, in font units
 MATH_IT_CAP, MATH_IT_LOW = 0x1D434, 0x1D44E
 GREEK_MATH_IT = {"α": 0x1D6FC, "β": 0x1D6FD, "ζ": 0x1D701, "π": 0x1D70B,
-                 "σ": 0x1D70E, "ϕ": 0x1D719, "ϵ": 0x1D716, "ξ": 0x1D709}
+                 "σ": 0x1D70E, "ϕ": 0x1D719, "ϵ": 0x1D716, "ξ": 0x1D709,
+                 "γ": 0x1D6FE, "η": 0x1D702, "κ": 0x1D705, "λ": 0x1D706, "μ": 0x1D707,
+                 "χ": 0x1D712, "ψ": 0x1D713, "ω": 0x1D714}
 
 
 # ---------------------------------------------------------------- outlines

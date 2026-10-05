@@ -11,7 +11,7 @@ import os
 import pickle
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +46,47 @@ def stroke(mean):
     return 2 * np.percentile(edt[bm], 90)
 
 
+REF = {s: ImageFont.truetype(os.path.join(HERE, "ref", f"Mills8A-{n}-ref.otf"), 400)
+       for s, n in (("R", "Regular"), ("I", "Italic"))}
+_tpl = {}
+
+
+def template(g, style):
+    """Ink of glyph g in the reference font, cropped to its bounding box."""
+    if (g, style) not in _tpl:
+        im = Image.new("L", (700, 700), 0)
+        ImageDraw.Draw(im).text((150, 100), g, fill=255, font=REF[style])
+        a = np.array(im) > 127
+        ys, xs = np.nonzero(a)
+        _tpl[(g, style)] = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1] if len(ys) else None
+    return _tpl[(g, style)]
+
+
+def template_iou(mean, g, style, shift=2):
+    """IoU of a cluster's shape with glyph g of the reference font scaled to
+    the cluster's height (keeping the reference's proportions), best over
+    small shifts."""
+    t = template(g, style)
+    bm = mean > 0.5
+    ys, xs = np.nonzero(bm)
+    if t is None or len(ys) == 0:
+        return 0.0
+    bm = bm[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    h = bm.shape[0]
+    w = max(1, int(round(t.shape[1] * h / t.shape[0])))
+    tt = np.array(Image.fromarray(t.astype(np.uint8) * 255).resize((w, h), Image.BILINEAR)) > 127
+    H, W = h + 2 * shift, max(w, bm.shape[1]) + 2 * shift
+    A = np.zeros((H, W), bool)
+    A[shift:shift + h, shift:shift + bm.shape[1]] = bm
+    best = 0.0
+    for dy in range(2 * shift + 1):
+        for dx in range(W - w + 1):
+            B = np.zeros((H, W), bool)
+            B[dy:dy + h, dx:dx + w] = tt
+            best = max(best, np.count_nonzero(A & B) / max(1, np.count_nonzero(A | B)))
+    return best
+
+
 def main():
     cl = pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))
     rows = []
@@ -64,6 +105,15 @@ def main():
 
     for c in rows:
         c["style"] = "I" if c["slant"] >= 8 else "R"
+        # letters: compare with the roman and italic of the reference fonts
+        # (the slant measure takes the diagonals of a roman v w y A V W X Y
+        # for italic); a letter matching neither is held back ("?") for
+        # labelling by hand: x, Omega, Fraktur
+        g = c["ocr1"]
+        if g and len(g) == 1 and g.isascii() and g.isalpha():
+            ir, ii = (template_iou(c["mean"], g, s) for s in "RI")
+            c["tpl"] = (ir, ii)
+            c["style"] = "?" if max(ir, ii) < 0.55 else "R" if ir >= ii else "I"
     # Body reference per (ocr label, style): the most populous cluster.
     ref = {}
     for c in rows:

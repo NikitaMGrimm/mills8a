@@ -324,3 +324,136 @@ post1944-016@2953,4932	ö	R	11
 vonneumanngoldstine1947-048@2491,2597	8	R	S1
 eilenbergmaclane1945-053@1726,2261	→	R	11
 vonneumanngoldstine1947-016@1590,939	skip
+
+# 1943-47 scans: clusters matching neither the roman nor the italic reference (classify.py)
+post1944-002@2018,4115	fi	R	11
+kleene1943-000@563,4410	fi	R	11
+vonneumanngoldstine1947-024@1463,3656	fi	R	11
+post1944-009@2970,1604	fi	R	11
+post1944-009@2988,4897	fi	R	11
+post1944-013@2576,1106	fi	R	11
+kleene1943-026@2238,4782	fi	R	9
+kleene1943-008@1933,4347	fi	I	11
+post1944-012@2465,4351	h	R	11
+post1944-011@3016,899	h	R	11
+kleene1943-026@2901,3899	d	R	11
+post1944-009@2049,3950	0	R	S1
+eilenbergmaclane1945-042@3044,4118	0	R	S1
+post1944-032@1141,2461	1	R	S1
+eilenbergmaclane1945-051@1231,2162	1	R	S1
+eilenbergmaclane1945-062@1918,1927	𝔄	R	11
+eilenbergmaclane1945-062@3043,3169	𝔄	R	11
+eilenbergmaclane1945-018@1765,2872	𝔅	R	11
+eilenbergmaclane1945-017@3085,752	𝔅	R	11
+eilenbergmaclane1945-033@3073,3651	𝔊	R	11
+eilenbergmaclane1945-051@2682,2281	𝔇	R	11
+vonneumanngoldstine1947-014@1332,1440	α	I	11
+post1944-012@603,4236	α	I	11
+post1944-030@491,1671	α	I	11
+eilenbergmaclane1945-062@831,3646	α	I	9
+post1944-012@2253,3039	α	I	9
+post1944-019@1827,4742	α	I	9
+eilenbergmaclane1945-062@1848,4344	α	I	9
+eilenbergmaclane1945-031@1133,3226	α	I	9
+eilenbergmaclane1945-062@541,1703	α	I	9
+vonneumanngoldstine1947-058@1803,4542	α	I	9
+doob1947-002@1973,902	Ω	R	11
+vonneumanngoldstine1947-014@2141,3956	ff	R	11
+doob1947-004@1645,3527	ff	R	11
+vonneumanngoldstine1947-000@1812,2024	ff	R	9
+post1944-028@2555,3714	ff	I	11
+eilenbergmaclane1945-057@1030,3627	ffi	R	11
+post1944-014@3004,899	ffi	R	11
+vonneumanngoldstine1947-028@1705,2237	×	R	11
+vonneumanngoldstine1947-048@2182,4679	×	R	11
+vonneumanngoldstine1947-015@1490,3882	×	R	11
+vonneumanngoldstine1947-015@2298,3881	×	R	11
+vonneumanngoldstine1947-014@1720,1420	β	I	11
+eilenbergmaclane1945-018@1926,1343	β	I	11
+vonneumanngoldstine1947-020@2877,2708	β	I	11
+eilenbergmaclane1945-014@1997,3217	β	I	11
+vonneumanngoldstine1947-052@2183,1788	β	I	11
+vonneumanngoldstine1947-025@1682,1454	λ	I	11
+eilenbergmaclane1945-051@238,2382	λ	I	11
+eilenbergmaclane1945-002@1445,3997	λ	I	11
+vonneumanngoldstine1947-066@2231,4832	λ	I	11
+doob1947-014@1762,1320	ω	I	11
+eilenbergmaclane1945-051@871,3158	ω	I	9
+doob1947-010@2926,3999	∈	R	11
+post1944-015@1462,2311	∈	R	11
+doob1947-005@2052,3415	∈	R	11
+vonneumanngoldstine1947-052@1754,5030	μ	I	11
+post1944-002@1061,4637	μ	I	11
+vonneumanngoldstine1947-061@887,3673	μ	I	11
+vonneumanngoldstine1947-019@1711,4285	γ	I	11
+eilenbergmaclane1945-054@1353,1291	γ	I	11
+eilenbergmaclane1945-054@204,840	γ	I	11
+kleene1943-008@2785,3883	x	I	11
+vonneumanngoldstine1947-021@1017,4195	η	I	11
+vonneumanngoldstine1947-020@1064,4839	η	I	11
+eilenbergmaclane1945-023@1400,3315	η	I	11
+eilenbergmaclane1945-062@1064,2829	ξ	I	11
+vonneumanngoldstine1947-021@1007,1300	ξ	I	11
+vonneumanngoldstine1947-062@2590,1818	ξ	I	11
+vonneumanngoldstine1947-000@1020,1111	J	R	11
+post1944-032@726,1064	J	R	11
+post1944-025@2354,3115	I	I	11
+eilenbergmaclane1945-038@2930,923	⊂	R	11
+eilenbergmaclane1945-035@1957,3499	∪	R	11
+post1944-026@1394,2132	κ	I	11
+eilenbergmaclane1945-054@1272,1294	κ	I	9
+eilenbergmaclane1945-060@1309,446	κ	I	9
+kleene1943-001@3565,4405	ψ	I	11
+eilenbergmaclane1945-042@1838,3656	ϕ	I	11
+eilenbergmaclane1945-042@1256,2828	ϕ	I	11
+eilenbergmaclane1945-039@241,3092	χ	I	11
+vonneumanngoldstine1947-032@1914,2598	ζ	I	11
+vonneumanngoldstine1947-008@1894,2302	Δ	R	11
+post1944-018@483,4812	Π	R	11
+vonneumanngoldstine1947-061@1693,2018	skip
+vonneumanngoldstine1947-066@1783,1310	skip
+vonneumanngoldstine1947-048@1710,1577	skip
+post1944-012@494,1092	skip
+vonneumanngoldstine1947-060@1450,4794	skip
+post1944-014@504,4297	skip
+doob1947-001@1073,4289	skip
+post1944-012@2193,3102	skip
+post1944-026@1928,4019	skip
+vonneumanngoldstine1947-059@1501,1220	skip
+kleene1943-030@1983,2185	skip
+vonneumanngoldstine1947-058@2322,3855	skip
+post1944-011@2469,3048	skip
+vonneumanngoldstine1947-062@1605,1804	skip
+post1944-015@2493,3099	skip
+vonneumanngoldstine1947-017@1552,3742	skip
+vonneumanngoldstine1947-018@937,2811	skip
+vonneumanngoldstine1947-061@1404,976	skip
+vonneumanngoldstine1947-046@1224,4850	skip
+vonneumanngoldstine1947-018@2171,911	skip
+vonneumanngoldstine1947-057@1818,1434	skip
+vonneumanngoldstine1947-055@1562,4568	skip
+post1944-019@755,4737	skip
+eilenbergmaclane1945-018@1807,235	skip
+vonneumanngoldstine1947-000@2144,1957	skip
+kleene1943-006@520,5093	skip
+vonneumanngoldstine1947-058@849,717	skip
+vonneumanngoldstine1947-067@2172,713	skip
+post1944-001@674,4949	skip
+vonneumanngoldstine1947-012@1347,5086	skip
+post1944-004@1798,712	skip
+eilenbergmaclane1945-051@1387,3133	skip
+vonneumanngoldstine1947-067@1118,713	skip
+vonneumanngoldstine1947-038@1315,712	skip
+vonneumanngoldstine1947-067@2822,714	skip
+vonneumanngoldstine1947-003@520,5052	skip
+vonneumanngoldstine1947-067@1667,713	skip
+vonneumanngoldstine1947-018@1176,714	skip
+post1944-001@1356,716	skip
+kleene1943-025@1733,2361	skip
+post1944-027@1224,1155	skip
+vonneumanngoldstine1947-067@1798,712	skip
+eilenbergmaclane1945-027@835,2203	skip
+kleene1943-006@3004,5097	skip
+eilenbergmaclane1945-055@1016,3093	skip
+vonneumanngoldstine1947-033@3064,728	skip
+vonneumanngoldstine1947-000@2091,2541	skip

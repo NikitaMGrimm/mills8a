@@ -84,6 +84,8 @@ def main():
             g, cnt = c["ocr"][0]
             if g is None or len(g) != 1 or cnt < 0.6 * c["n"]:
                 continue
+            if c["style"] == "?":
+                continue               # matches neither roman nor italic: by hand
             r = ref[(c["ocr1"], c["style"])]
             if c["w"] / c["h"] > 1.35 * r["w"] / r["h"]:
                 continue               # two letters touching (the reference
