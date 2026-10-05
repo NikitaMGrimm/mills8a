@@ -124,10 +124,21 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     # upward; scale them about the baseline to the real sorts' median cap
     # height (capitals) and x-height (lowercase)
     real_n = {n for n in keep if names.get(n) in real}
+    # the stem equalisation moves the outline a little: real flat-topped
+    # capitals back to their median cap height
+    tops = {n: bounds(cs[n])[3] for n in real_n if names[n] in "BDEFHIKLMNPRTXZ"}
+    if len(tops) >= 5:
+        med = float(np.median(list(tops.values())))
+        for n, t in tops.items():
+            k = med / t
+            if abs(k - 1) > 0.01:
+                adv[n] = round(adv[n] * k)
+                cs[n] = scaled(cs[n], k, adv[n], private, gsubrs)
     for group, flat in ((string.ascii_uppercase, "BDEFHIKLMNPRTXZ"),
                         (string.ascii_lowercase, "vwxz")):
         tops_r = [bounds(cs[n])[3] for n in real_n if names[n] in flat]
-        synth = [n for n in keep if names.get(n, "") in group and n not in real_n and n in cs]
+        synth = [n for n in keep if len(names.get(n, "")) == 1 and names[n] in group
+                 and n not in real_n and n in cs]
         tops_s = [bounds(cs[n])[3] for n in synth if names[n] in flat]
         if len(tops_r) >= 3 and tops_s:
             k = float(np.median(tops_r)) / float(np.median(tops_s))

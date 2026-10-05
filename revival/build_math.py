@@ -351,7 +351,7 @@ def main():
                     cs[v] = shifted(cs[v], sb2 - b2[0], private, gsubrs, adv[v])
     # for pdfLaTeX (TeX centres a math accent by its advance): spacing copies
     # of the combining accents, and the bar of \mapsto
-    for cp in (0x300, 0x301, 0x302, 0x303, 0x304, 0x306, 0x307, 0x308, 0x30A, 0x30C):
+    for cp in (0x300, 0x301, 0x302, 0x303, 0x304, 0x306, 0x307, 0x308, 0x30A, 0x30C, 0x20D7):
         src = lm_cmap.get(cp)
         if not src:
             continue

@@ -256,6 +256,8 @@ def math_fonts():
         g = {s: glyph_for(f, cmap, ssty, cp, level) for s, cp in OML.items()}
         g = {s: n for s, n in g.items() if n}
         g[0x7F] = glyph_for(f, cmap, ssty, 0x2040, level) or g.get(0x3B)   # tie / skewchar
+        if "tex.acc.20D7" in f.getGlyphOrder():
+            g[0x7E] = "tex.acc.20D7"                                    # \vec
         lines.append(make_tex_font(f"m8ami{suffix}", f, g, size, "MILLS8A-MATHITALIC",
                                    [("SLANT", 0.25), ("SPACE", 0), ("XHEIGHT", 440),
                                     ("QUAD", 1000)], ic=ic, acc=acc, skewchar=0x7F))
