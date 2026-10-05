@@ -12,6 +12,7 @@ with img in [0,1] ink coverage at UP x 600 dpi, alts up to NALT single
 impressions aligned to img (for the OpenType rand feature), and
 work/masters.png for review.
 """
+import json
 import os
 import pickle
 
@@ -40,16 +41,36 @@ def canvas_geometry(members):
     return h, w, base
 
 
+def _docweight():
+    p = os.path.join(WORK, "docweight.json")
+    return json.load(open(p)) if os.path.exists(p) else {}
+
+
+DOCWEIGHT = _docweight()           # extra ink per edge (scan px) of each scan, see docweight.py
+
+
+def disk(r):
+    y, x = np.mgrid[-r:r + 1, -r:r + 1]
+    return x * x + y * y <= r * r + r
+
+
 def place(inst, geo):
     H, W, base = geo
     bm = inst["bitmap"].astype(float)
     up = ndimage.zoom(np.pad(bm, 1), UP, order=1)[UP:-UP, UP:-UP]
+    # bring a heavier or lighter scan to the reference weight
+    r = int(round(DOCWEIGHT.get(inst["page"].rsplit("-", 1)[0], 0.0) * UP))
+    k = max(0, -r)                    # growth beyond the bitmap's box
+    if r > 0:
+        up = ndimage.grey_erosion(up, footprint=disk(r))
+    elif r < 0:
+        up = ndimage.grey_dilation(np.pad(up, k), footprint=disk(k))
     can = np.zeros((H, W))
-    y = base + int(round((inst["bbox"][1] - inst["baseline_ref"]) * UP))
+    y = base + int(round((inst["bbox"][1] - inst["baseline_ref"]) * UP)) - k
     h, w = up.shape
-    if y < 0 or y + h > H or MARGIN + w > W:
+    if y < 0 or y + h > H or MARGIN - k + w > W:
         return None
-    can[y:y + h, MARGIN:MARGIN + w] = up
+    can[y:y + h, MARGIN - k:MARGIN - k + w] = up
     return can
 
 

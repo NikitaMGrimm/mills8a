@@ -7,6 +7,7 @@ cd "$(dirname "$0")"
 mkdir -p work fonts
 python3 segment.py        # glyph instances + OCR guesses
 python3 baselines.py      # robust per-line baselines
+python3 docweight.py     # stroke weight of each scan vs. the Erdős paper
 python3 cluster.py        # group identical sorts
 python3 classify.py       # slant / weight / size measurements
 python3 assign.py         # labels: rules + overrides.tsv
