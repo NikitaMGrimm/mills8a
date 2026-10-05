@@ -143,7 +143,7 @@ def main():
     ita = os.path.join(FONTS, "Mills8A-Italic.otf")
 
     # bold: thicken by half the measured difference of bold and roman stems
-    bf.normalize_cap_heights(M, "B", "T")
+    bf.normalize_cap_heights(M, "B", "T", ref=("R", 11))
     bold = {g: m for (g, s, z), m in M.items() if s == "B" and z == "T" and m["n"] >= 2}
     gb = measured_grow(M, "B", "T", "ABEILMNPRT", 1.0)
     print(f"bold: {len(bold)} real capitals ({''.join(sorted(bold))}); "

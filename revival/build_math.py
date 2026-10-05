@@ -151,6 +151,62 @@ def bounds(cs):
 
 # ---------------------------------------------------------------- assembly
 
+def pair_gaps():
+    """{(a, b): (median over papers of the median ink gap, in font units; count)} for neighbouring 11 pt
+    math italic letters and roman parentheses in the scans."""
+    import json
+    inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
+    sorts = pickle.load(open(os.path.join(WORK, "sorts.pkl"), "rb"))
+    clusters = pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))
+    p = os.path.join(WORK, "docscale.json")
+    scale = json.load(open(p)) if os.path.exists(p) else {}
+    lab = {}
+    for (g, s, z), cids in sorts.items():
+        if z == 11 and ((s == "I" and len(g) == 1 and g.isalpha()) or (s == "R" and g in "()")):
+            for c in cids:
+                for i in clusters[c]["members"]:
+                    lab[i] = g
+    byline = defaultdict(list)
+    for i, g in enumerate(inst):
+        if g["line"] >= 0 and i in lab:
+            byline[(g["page"], g["line"])].append(i)
+    gaps = defaultdict(lambda: defaultdict(list))
+    for ids in byline.values():
+        ids.sort(key=lambda i: inst[i]["bbox"][0])
+        for a, b in zip(ids, ids[1:]):
+            doc = inst[a]["page"].rsplit("-", 1)[0]
+            gap = scale.get(doc, 1.0) * (inst[b]["bbox"][0] - inst[a]["bbox"][2])
+            if -10 < gap < 20:                   # wider: a space between
+                gaps[(lab[a], lab[b])][doc].append(gap)
+    # one vote per paper: compositors differed (Kleene's quantifiers (x)
+    # are set tight and are most of the (x pairs)
+    out = {}
+    for k, per in gaps.items():
+        meds = [np.median(v) for v in per.values() if len(v) >= 3]
+        if meds:
+            out[k] = (float(np.median(meds)) * bf.U_PER_PX, sum(len(v) for v in per.values()))
+    return out
+
+
+def shifted(cs, dx, private, gsubrs, adv):
+    """The charstring moved right by dx with a new advance."""
+    from fontTools.pens.transformPen import TransformPen
+    pen = T2CharStringPen(adv, None)
+    cs.draw(TransformPen(pen, (1, 0, 0, 1, dx, 0)))
+    return pen.getCharString(private, gsubrs)
+
+
+def wmedian(pairs):
+    """Median of values weighted by counts: [(value, count)]."""
+    pairs = sorted(pairs)
+    tot, acc = sum(n for _, n in pairs), 0
+    for v, n in pairs:
+        acc += n
+        if acc >= tot / 2:
+            return v
+    return 0.0
+
+
 def main():
     M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
     k = script_scales(M)
@@ -277,6 +333,73 @@ def main():
             for n in [target] + [v for v in variants if v in cs]:
                 bb = bounds(cs[n])
                 accents[n] = round((bb[0] + bb[2]) / 2)
+    # spacing around parentheses from print (f(x) is set tight in 1947).
+    # 1) italic correction: the gaps from a letter to a following "(" or ")",
+    #    weighted by how often each occurs;
+    # 2) ")" left side bearing, for letters the italic correction cannot
+    #    bring closer, and the "(" right side bearing: the median gap, over
+    #    letters, after it;
+    # 3) letters still further from a preceding "(" than in print (f, A:
+    #    kerned sorts) get a smaller left side bearing, down to -20 units.
+    G = pair_gaps()
+    letters = {n: ch for n, (st, ch) in targets.items() if st == "I" and n in cs}
+    if "parenleft" in cs and "parenright" in cs:
+        lp, rp = "parenleft", "parenright"
+        tuned = []
+        for n, ch in letters.items():
+            # each printed pair after the letter implies an italic correction
+            bb = bounds(cs[n])
+            implied = []
+            for p_, pg in (("(", lp), (")", rp)):
+                g = G.get((ch, p_))
+                if g and g[1] >= 10:
+                    implied.append((g[0] + bb[2] - adv[n] - bounds(cs[pg])[0], g[1]))
+            if implied:
+                v = max(0, round(wmedian(implied)))
+                tuned.append(f"{ch}{v - italic_ic.get(n, 0):+d}")
+                italic_ic[n] = v
+        print("italic corrections from print, change: " + " ".join(tuned))
+        # ")": letters whose italic correction is already 0 and still sit
+        # further from a following ")" than in print (x, e, h ...) want a
+        # smaller left side bearing on the parenthesis
+        d = []
+        for n, ch in letters.items():
+            g = G.get((ch, ")"))
+            if g and g[1] >= 10 and italic_ic.get(n, 0) == 0:
+                bb = bounds(cs[n])
+                d.append((adv[n] - bb[2] + bounds(cs[rp])[0] - g[0], g[1]))
+        if d:
+            dr = max(0, round(wmedian(d)))
+            adv[rp] -= dr
+            cs[rp] = shifted(cs[rp], -dr, private, gsubrs, adv[rp])
+            print(f'")" left side bearing {-dr:+d} units')
+        # "(" before a letter
+        d = []
+        for n, ch in letters.items():
+            g = G.get(("(", ch))
+            if g and g[1] >= 10:
+                ours = adv[lp] - bounds(cs[lp])[2] + bounds(cs[n])[0]
+                d.append((ours - g[0], g[1]))
+        if d:
+            dl = round(wmedian(d))
+            adv[lp] = adv[lp] - dl
+            cs[lp] = shifted(cs[lp], 0, private, gsubrs, adv[lp])
+            print(f'"(" advance {-dl:+d} units')
+        kerned = []
+        for n, ch in letters.items():
+            g = G.get(("(", ch))
+            if g and g[1] >= 30:
+                bb = bounds(cs[n])
+                ours = adv[lp] - bounds(cs[lp])[2] + bb[0]
+                extra = ours - g[0]
+                new_lsb = max(-20, bb[0] - extra)
+                if bb[0] - new_lsb > 15:
+                    dx = round(new_lsb - bb[0])
+                    adv[n] += dx
+                    cs[n] = shifted(cs[n], dx, private, gsubrs, adv[n])
+                    kerned.append(f"{ch}{dx:+d}")
+        if kerned:
+            print("left side bearings from print: " + " ".join(kerned))
     print(f"replaced {replaced} glyphs; real script sorts used: "
           f"{real['S1']} first-order, {real['S2']} second-order")
 

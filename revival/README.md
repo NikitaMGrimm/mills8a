@@ -151,9 +151,9 @@ and entered in `overrides.tsv`.
 ## What comes from where
 
 - **1943–47 masters:** every 11 pt roman and italic letter and figure, the
-  punctuation, 21 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ χ ψ ω ϕ ϵ*
-  and Δ Π Ω, + − × ÷ = < > ≦ ≧ ≤ ≃ ∞ → ∈ ⊂ ∪ ⊗ ∑ ∏ ( ) [ ] { } / | § & * !,
-  Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖, the roman *fi ff ffi* and italic *fi ff* ligatures,
+  punctuation, 21 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ τ χ ψ ω ϕ ϵ*
+  and Δ Π Ω, + − × ÷ = ≠ ≡ ≅ < > ≦ ≧ ≤ ≃ ∞ → ← ∈ ⊂ ∪ ∩ ⊗ ∂ ∑ ∏ ( ) [ ] { } / | § & * !,
+  the display ∑ ∏ ∫, calligraphic 𝒜 𝒞, Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛, the roman *fi ff ffi* and italic *fi ff* ligatures,
   20 bold capitals, 55 + 8 script sorts and 73 + 43 9 pt sorts.
 - **1922 specimen:** only small caps J Q W X Z, $, and the *fl ffl*
   (roman) and *fl ffi ffl* (italic) ligatures, which the scans lack. Each is
@@ -186,6 +186,18 @@ and entered in `overrides.tsv`.
   en dash (a stretched hyphen).
 
 Clean-ups that keep sparse sorts consistent with the frequent ones:
+
+- **Heights.** Each sort sits at the average height of its impressions
+  (aligning to a template impression had carried it to that one
+  impression's baseline error), and flat-topped capitals are scaled to the
+  median cap height of their style (bold title capitals come from papers
+  set at slightly different sizes).
+- **Math spacing from print.** The math italic letters' italic corrections
+  come from the gaps measured before "(" and ")" in the scans (one vote per
+  paper), the parentheses' inner side bearings from the remaining
+  difference, and letters that print tucked under a "(" (*f*, *A*, *D*, *L*)
+  get a left side bearing down to −20 units. *f*(*x*) is set tight, as in
+  1947.
 
 - **Bold title capitals** have the 11 pt cap height and so land in the roman
   capital sorts; impressions with strokes ≥ 18% heavier than the sort's
@@ -247,7 +259,8 @@ footnote marks as superior figures.
 
 - Few second-order script sorts (8): most scriptscript glyphs are
   thickened text glyphs.
-- Math symbols beyond the scans (∫, ∂, most arrows…) are Latin Modern's.
+- Math symbols beyond the scans (the text-size ∫, most arrows and operators)
+  are Latin Modern's.
 - No italic small caps. Bold italic, the bold lowercase, the accents except
   the dieresis, and some punctuation (? % …) are synthesized or Latin
   Modern's.

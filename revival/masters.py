@@ -197,8 +197,8 @@ def main():
     for key, members in members_of.items():
         if not members:
             continue
-        out = [] if key[1] == "R" and key[2] == 11 and key[0].isupper() else None
-        r = build(members, drop_bold=key[1] == "R" and key[0].isupper(), bold_out=out)
+        out = [] if key[1] == "R" and key[2] == 11 and key[0].isascii() and key[0].isupper() else None
+        r = build(members, drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(), bold_out=out)
         if out:
             bold.setdefault(key[0], []).extend(out)
         if r is None:

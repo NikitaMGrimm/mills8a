@@ -127,37 +127,53 @@ DOCSCALE = json.load(open(_ds)) if os.path.exists(_ds) else {}   # see docweight
 
 
 FLAT_TOPPED = set("BDEFHIKLMNPRTUVWXYZ")
+FLAT_BOTH = set("BDEFHIKLMPRTXYZ")           # flat top and flat (serif) bottom
 
 
-def normalize_cap_heights(M, style, size, tol=0.01):
+def normalize_cap_heights(M, style, size, ref=None, tol=0.01):
     """Capitals of one size share a cap height in metal type, but a sort
     averaged from few impressions (or, for bold, from titles of several
     papers set at slightly different sizes) can come out up to 4% off.
-    Scale each flat-topped capital about its baseline to the median cap
-    height of its style and size when it is off by more than tol.  Round
-    and pointed tops (A C G J O Q S) keep their overshoot."""
-    def height(m):
+    Measured as ink extent (the baselines of title lines are noisy), each
+    flat-topped capital is scaled about its baseline to the median extent of
+    the letters flat at both ends; N U V W, which go below the line,
+    keep the proportion they have in the reference style ref (style, size).
+    Round and pointed tops (A C G J O Q S) keep their overshoot."""
+    def extent(m):
         ys = np.nonzero((m["img"] > 0.5).any(1))[0]
-        return m["base"] - ys.min() if len(ys) else None
-    keys = [k for k in M if k[1] == style and k[2] == size and k[0] in FLAT_TOPPED]
-    hs = {k: height(M[k]) for k in keys}
-    hs = {k: h for k, h in hs.items() if h}
-    if len(hs) < 5:
+        return ys.max() - ys.min() + 1 if len(ys) else None
+    def extents(st, sz):
+        e = {k[0]: extent(M[k]) for k in M if k[1] == st and k[2] == sz and k[0] in FLAT_TOPPED}
+        return {g: h for g, h in e.items() if h}
+    hs = extents(style, size)
+    flat = [h for g, h in hs.items() if g in FLAT_BOTH]
+    if len(flat) < 5:
         return
-    target = float(np.median(list(hs.values())))
+    target = float(np.median(flat))
+    rel = {}
+    if ref:
+        r = extents(*ref)
+        rflat = [h for g, h in r.items() if g in FLAT_BOTH]
+        if len(rflat) >= 5:
+            rel = {g: h / float(np.median(rflat)) for g, h in r.items() if g not in FLAT_BOTH}
     fixed = []
-    for k, h in hs.items():
-        f = target / h
+    for g, h in hs.items():
+        if g in FLAT_BOTH:
+            f = target / h
+        elif g in rel:
+            f = target * rel[g] / h
+        else:
+            continue
         if abs(f - 1) <= tol:
             continue
-        m = M[k]
+        m = M[(g, style, size)]
         m["img"] = ndimage.zoom(m["img"], f, order=1)
         m["alts"] = [ndimage.zoom(a.astype(np.float32), f, order=1).astype(np.float16)
                      for a in m.get("alts", [])]
         m["base"] = int(round(m["base"] * f))
-        fixed.append(f"{k[0]}{(f - 1) * 100:+.1f}%")
+        fixed.append(f"{g}{(f - 1) * 100:+.1f}%")
     if fixed:
-        print(f"  {style}{size} cap height {target / UP:.1f} px: scaled " + " ".join(fixed))
+        print(f"  {style}{size} capitals {target / UP:.1f} px tall: scaled " + " ".join(fixed))
 
 
 def fit_spacing(style, size, widths):
@@ -745,7 +761,7 @@ def main():
     for style in "RI":
         snap_sparse_to_baseline(M, style)
     for style, style_name in (("R", "Regular"), ("I", "Italic")):
-        normalize_cap_heights(M, style, 11)
+        normalize_cap_heights(M, style, 11, ref=("R", 11) if style == "I" else None)
         masters = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == style and z == 11}
         # tops are relative to baseline in master px: img row 0 is at -base
@@ -839,7 +855,7 @@ def main():
         feats = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
         if style == "R":
             # small caps: 1947 sorts where available, else the 1922 specimen
-            normalize_cap_heights(M, "R", "SC")
+            normalize_cap_heights(M, "R", "SC", ref=("R", 11))
             scm = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == "R" and z == "SC"}
             fill = ""

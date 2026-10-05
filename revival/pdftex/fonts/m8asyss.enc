@@ -16,7 +16,7 @@
 /uni2218
 /bulletoperator
 /uni224D
-/equivalence
+/equivalence.sts
 /reflexsubset
 /reflexsuperset
 /lessequal
@@ -31,7 +31,7 @@
 /greatermuch
 /uni227A
 /uni227B
-/arrowleft
+/arrowleft.sts
 /arrowright.sts
 /arrowup
 /arrowdown
@@ -91,7 +91,7 @@
 /u1D4B4.sts
 /u1D4B5.sts
 /union.sts
-/intersection
+/intersection.sts
 /uni228E
 /logicaland
 /logicalor
