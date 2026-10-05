@@ -140,17 +140,26 @@ def build(members, drop_bold=False, bold_out=None):
         acc += shift(im, *align(im, t_f))
     tmpl = acc / len(imgs)
     t_f = sfft.rfft2(tmpl)
-    acc, kept, aligned = np.zeros_like(tmpl), 0, []
+    acc, kept, aligned, dys = np.zeros_like(tmpl), 0, [], []
     for im in imgs:
-        s = shift(im, *align(im, t_f))
+        dy, dx = align(im, t_f)
+        s = shift(im, dy, dx)
         if iou(s, tmpl) < 0.70:
             continue
         acc += s
         kept += 1
         aligned.append(s)
+        dys.append(dy)
     if kept == 0:
         return None
     mean = acc / kept
+    # the alignment carried every impression to the template's height, i.e.
+    # to one impression's baseline error; put the sort back at the average
+    # height of its impressions (the pdfLaTeX fonts, which cannot randomise,
+    # showed it: n r R up to 2 px high, k E I low)
+    back = -int(round(np.mean(dys)))
+    mean = np.roll(mean, back, axis=0)
+    aligned = [np.roll(a, back, axis=0) for a in aligned]
     # alternates: real single impressions, typical in shape (IoU >= 0.8 with
     # the mean) and spread from light to heavy inking
     cand = sorted((s for s in aligned if iou(s, mean) >= 0.80), key=lambda a: a.sum())
