@@ -1,0 +1,15 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{mills8a}[2026/10/05 Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
+\RequirePackage[T1]{fontenc}
+\renewcommand\rmdefault{m8a}
+\renewcommand\encodingdefault{T1}
+\pdfmapfile{+mills8a.map}
+% math: one font per family and size; the script sizes are the 1947 script
+% sorts (measured at 58.9% and 50.1% of the 11pt body)
+\DeclareSymbolFont{operators}   {OT1}{m8aop}{m}{n}
+\DeclareSymbolFont{letters}     {OML}{m8am}{m}{it}
+\DeclareSymbolFont{symbols}     {OMS}{m8asy}{m}{n}
+\DeclareSymbolFont{largesymbols}{OMX}{cmex}{m}{n}
+\DeclareMathSizes{11}{11}{6.48}{5.51}
+\DeclareMathSizes{10.95}{11}{6.48}{5.51}
+\endinput

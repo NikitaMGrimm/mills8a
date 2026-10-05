@@ -21,11 +21,13 @@ the page scans, and the spacing is measured from the text.
 \usepackage{unicode-math}
 \setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
   SizeFeatures={{Size=-10, Font=Mills8A-Regular9.otf}, {Size=10-}},
+  SmallCapsFont=Mills8A-Regular.otf, SmallCapsFeatures={RawFeature=+smcp},
   ItalicFont=Mills8A-Italic.otf,
   ItalicFeatures={SizeFeatures={{Size=-10, Font=Mills8A-Italic9.otf}, {Size=10-}}},
   BoldFont=Mills8A-Bold.otf]
 \setmathfont{Mills8A-Math.otf}
-\directlua{require("mills8a-jitter").enable(0.08, 1947)}   % optional, tex/
+\DeclareMathSizes{11}{11}{6.48}{5.51}   % the measured script sizes
+\directlua{require("mills8a-jitter").enable(0.04, 1947)}   % optional, tex/
 ```
 
 Set it 11 on 12 pt. `tex/mills.tex` (`\useeighta`) is a complete example. It
@@ -33,8 +35,38 @@ also sets the Mills paper's display-style script positions and fixed
 leading (see *Scripts* below).
 
 LuaLaTeX is needed for the randomness: XeLaTeX loads the fonts, but its
-HarfBuzz shaping gives every repeat of a word the same impressions, and
-pdfLaTeX can't use OpenType features at all.
+HarfBuzz shaping gives every repeat of a word the same impressions.
+
+### pdfLaTeX
+
+`pdftex/` has the same family as standard pdfLaTeX fonts: Type 1 outlines,
+TFM metrics, virtual fonts, `.fd` files and a map file.
+
+```latex
+\usepackage{mills8a}        % T1 text, small caps, bold, 9pt, and math
+```
+
+with `pdftex/tex` on `TEXINPUTS` and `pdftex/fonts` on `TFMFONTS`, `VFFONTS`,
+`T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see `render.sh`).
+
+The f-ligatures are in the TFM ligature tables (`otftotfm`), and small
+caps are a separate font. Math uses one font per family and size, as TeX
+always has: operators, math italic and symbols each come at 11 pt, 6.48 pt and
+5.51 pt. The script fonts are cut from `Mills8A-Math.otf`'s script variants,
+so **the real 1947 script sorts work in pdfLaTeX too**, the way `cmmi7` and
+`cmmi5` always did. The TeX math parameters (script shifts and so on) are
+the symbol font's fontdimens; `mills.tex` sets the Mills display
+superscript shift with `\fontdimen13\textfont2`.
+
+What pdfLaTeX loses:
+
+- the random impressions: every letter is its averaged master;
+- the baseline wobble;
+- the 1947 display ∑ and ∏ (`cmex10`'s are used for big operators and
+  delimiters).
+
+Measured on the Mills page, both versions have the same darkness as the scan
+(ratio 0.99), the same line breaks and the same script sorts.
 
 ## Sources
 
@@ -64,6 +96,7 @@ repository; put copies in `scans/` under these names.
 | `build_font.py` | potrace outlines, fitted spacing, ligatures, CFF OpenType text fonts (fontTools) |
 | `build_math.py` | the MATH font |
 | `build_sizes.py` | bold and 9 pt |
+| `pdftex/build_pdftex.py` | the family as Type 1 / TFM fonts for pdfLaTeX |
 
 `scripts.py` is not part of the build: it proposes labels for script-size
 groups by template matching (`work/scripts.png`), which were checked by eye
@@ -89,8 +122,9 @@ and entered in `overrides.tsv`.
   lowered 88; on the Mills page, displays raise exponents to cap height
   (0.66 em) and subscripts sit 0.14 em down. Compositors differed.
 - **Baseline wobble:** impressions of flat-bottomed letters scatter by 1.0 px
-  (0.12 pt) around their line, about 0.08 pt once measurement noise is
-  allowed for.
+  around their line (40% exactly on it, 87% within 1 px, 98% within 2 px),
+  independently of their neighbours. The random impressions already give
+  0.89 px; another 0.04 pt per glyph matches the rest.
 - **The 1922 specimen** is set 11 on 12 too: each size calibrates to
   5.9–6.1 px/pt against the 1947 letters.
 
@@ -148,7 +182,10 @@ delimiters and all symbols the scans don't have. On top of that:
   don't come out light.
 - The display ∑ and ∏ are the 1947 display sorts.
 - `ScriptPercentScaleDown` 59, `ScriptScriptPercentScaleDown` 50 and the
-  superscript and subscript shifts come from the Erdős measurements.
+  superscript and subscript shifts come from the Erdős measurements. Note
+  that LaTeX's `unicode-math` takes script sizes from the LaTeX size table,
+  so documents need `\DeclareMathSizes{11}{11}{6.48}{5.51}`; without it,
+  scripts come out 8 pt, 23% too large.
 - Italic corrections and accent positions are computed from the new
   outlines; Latin Modern's cut-in kerns for the replaced glyphs are dropped.
 
@@ -167,8 +204,10 @@ footnote marks as superior figures.
   typical in shape (IoU ≥ 0.8 with the mean) and spread from light to heavy
   inking. luaotfload picks one per occurrence.
 - **Baseline wobble** (`tex/mills8a-jitter.lua`, optional): a random
-  vertical offset per glyph, 0.08 pt standard deviation as measured, fixed
-  seed for reproducible output. Math is not touched.
+  vertical offset per glyph, 0.04 pt standard deviation. Measured on the
+  same letters at 600 dpi, rendered text then scatters like the scan
+  (0.99 px against 1.00; 38/87/99% within 0/1/2 px against 40/87/98%).
+  Fixed seed for reproducible output. Math is not touched.
 - **Ink (`MILLS8A_INK`, default 0.5).** The Erdős and Niven pages were
   printed a little lighter than the Mills page. 0.5 scan px of extra ink per
   edge matches the Mills paragraph's darkness (ratio 0.99, same text and

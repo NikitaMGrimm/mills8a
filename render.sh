@@ -28,6 +28,15 @@ if [ -f ../revival/fonts/Mills8A-Regular.otf ]; then
   pdftoppm -r 200 -png -singlefile mills-8a.pdf mills-8a
   echo out/mills-8a.pdf
 fi
+if [ -f ../revival/pdftex/fonts/mills8a.map ]; then
+  P=$PWD/../revival/pdftex
+  TEXINPUTS="$P/tex:$TEXINPUTS" TFMFONTS="$P/fonts:" VFFONTS="$P/fonts:" T1FONTS="$P/fonts:" \
+  ENCFONTS="$P/fonts:" TEXFONTMAPS="$P/fonts:" \
+    pdflatex -interaction=nonstopmode -jobname=mills-8a-pdf '\def\useeightapdf{}\input{mills}' >/dev/null \
+    || { tail -30 mills-8a-pdf.log; exit 1; }
+  pdftoppm -r 200 -png -singlefile mills-8a-pdf.pdf mills-8a-pdf
+  echo out/mills-8a-pdf.pdf
+fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills
 pdftoppm -r 200 -png -singlefile mills-cm.pdf mills-cm
 echo "out/mills.pdf out/mills-cm.pdf"

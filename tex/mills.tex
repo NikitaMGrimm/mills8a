@@ -5,6 +5,8 @@
 %   \def\usecm{}        plain Computer Modern (pdflatex)
 %   \def\useoldstandard{} Old Standard text + math (lualatex)
 %   \def\useeighta{}    Mills 8A, the revival traced from 1947 scans (lualatex)
+%   \def\useeightapdf{} Mills 8A through standard pdfLaTeX fonts (pdflatex)
+\ifdefined\useeightapdf\def\useeighta{}\def\eightapdf{}\fi
 \ifdefined\useeighta
 \documentclass[11pt]{article}
 \else
@@ -19,20 +21,44 @@
     BoldItalicFont=OldStandard-BoldItalic.otf]
   \setmathfont{OldStandard-Math.otf}[Scale=1.06]
   \AtBeginDocument{\thickmuskip=3.5mu plus 2mu}
+\else\ifdefined\eightapdf
+  % Mills 8A with standard pdfLaTeX fonts: Type 1 + TFM, script sizes as
+  % separate fonts (revival/pdftex); no random impressions, no wobble
+  \usepackage{mills8a}
+  \makeatletter
+  \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
+    \abovedisplayskip 6pt plus 2pt minus 2pt
+    \belowdisplayskip \abovedisplayskip
+    \abovedisplayshortskip 3pt plus 2pt
+    \belowdisplayshortskip 3pt plus 2pt}
+  \renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
+  \renewcommand\@makefnmark{\hbox{\raise0.42em\hbox{$\scriptstyle\@thefnmark$}}}
+  % display exponents at cap height, as on the Mills page: TeX's sup1
+  % (display superscript shift) is \fontdimen13 of the symbol font
+  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
+    \check@mathfonts\fontdimen13\textfont2=7.26pt}
+  \makeatother
+  \lineskiplimit=-3pt
 \else\ifdefined\useeighta
   % 11pt Monotype Modern 8A on 12pt, 317pt measure, as in the 1947 Bulletin
   \usepackage{unicode-math}
   % rand: each letter is one of several real 1947 impressions, at random
-  % letterpress baseline wobble measured on the 1947 pages (0.08pt sd)
-  \directlua{require("mills8a-jitter").enable(0.08, 1947)}
+  % letterpress baseline wobble: 0.04pt sd on top of the random impressions
+  % matches the 1947 scatter of letters around their line (see the .lua file)
+  \directlua{require("mills8a-jitter").enable(0.04, 1947)}
   % 9pt cuts below 10pt (footnotes); bold = the 1947 title capitals
   \setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
     SizeFeatures={{Size=-10, Font=Mills8A-Regular9.otf}, {Size=10-}},
+    SmallCapsFont=Mills8A-Regular.otf, SmallCapsFeatures={RawFeature=+smcp},
     ItalicFont=Mills8A-Italic.otf,
     ItalicFeatures={SizeFeatures={{Size=-10, Font=Mills8A-Italic9.otf}, {Size=10-}}},
     BoldFont=Mills8A-Bold.otf]
   % Mills 8A Math: 1947 letters, operators and script sorts on Latin Modern Math
   \setmathfont{Mills8A-Math.otf}
+  % script sizes measured on the 1947 sorts (58.9% and 50.1% of the body);
+  % unicode-math takes them from LaTeX's size table, not from the font
+  \DeclareMathSizes{11}{11}{6.48}{5.51}
+  \DeclareMathSizes{10.95}{11}{6.48}{5.51}
   \makeatletter
   \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
     \abovedisplayskip 6pt plus 2pt minus 2pt
@@ -63,7 +89,7 @@
     \everydisplay\expandafter{\the\everydisplay\millsscripts}}
 \else\ifdefined\usecm\else
   \usepackage{millsmodern}
-\fi\fi\fi
+\fi\fi\fi\fi
 \ifdefined\useeighta
 \usepackage[paperwidth=31pc,paperheight=50pc,textwidth=317pt,
   top=4pc,bottom=4pc,footskip=2pc]{geometry}

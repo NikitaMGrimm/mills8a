@@ -3,8 +3,8 @@
 Fonts written to fonts/:
   Mills8A-Regular.otf  roman, figures, punctuation, math operators and
                        relations, fi/ffi ligatures (liga), small caps (smcp)
-  Mills8A-Italic.otf   italic letters and Greek, also encoded at the Unicode
-                       math-italic code points (U+1D434...) for unicode-math
+  Mills8A-Italic.otf   italic letters and Greek (math italic is in
+                       Mills8A-Math.otf, built by build_math.py)
 
 Units: 1000 per em of 11pt.  The 1947 scans are 600 dpi, so one em is
 11 * 600/72.27 = 91.3 px, and a master pixel (4x) is 1000/365.3 units.
@@ -800,16 +800,8 @@ def main():
             feats += ("feature liga { sub f f i by f_f_i; sub f f l by f_f_l; sub f f by f_f; "
                       "sub f i by fi; sub f l by fl; } liga;\n"
                       f"feature smcp {{ {subs} }} smcp;\n")
-        else:
-            for name, (c, dx, dy, a, g) in glyphs.items():
-                if "." in name:
-                    continue
-                if len(g) == 1 and "A" <= g <= "Z":
-                    extra[MATH_IT_CAP + ord(g) - 65] = name
-                elif len(g) == 1 and "a" <= g <= "z":
-                    extra[0x210E if g == "h" else MATH_IT_LOW + ord(g) - 97] = name
-                elif g in GREEK_MATH_IT:
-                    extra[GREEK_MATH_IT[g]] = name
+        # (math italic code points live in Mills8A-Math.otf; the text italic
+        # maps only plain letters, so copied text is plain text)
         if style == "I":
             rules = [r for r, g in (("sub f f i by f_f_i;", "f_f_i"), ("sub f f l by f_f_l;", "f_f_l"),
                                     ("sub f f by f_f;", "f_f"), ("sub f i by fi;", "fi"),
