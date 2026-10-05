@@ -487,3 +487,46 @@ erdos1947-006@1813,2671	ν	I	11
 post1944-013@2891,5103	ν	I	11
 post1944-032@1910,1831	ω	I	11
 vonneumanngoldstine1947-013@2804,4951	skip
+
+# math symbols among the unlabelled clusters (n >= 8, and the display integral)
+vonneumanngoldstine1947-022@2307,2073	≠	R	11
+eilenbergmaclane1945-035@1294,3502	∩	R	11
+eilenbergmaclane1945-020@1611,4407	≅	R	11
+eilenbergmaclane1945-055@1685,3072	∂	R	11
+eilenbergmaclane1945-048@1894,3525	→	R	11
+kleene1943-029@2300,4786	→	R	11
+eilenbergmaclane1945-045@496,3268	←	R	11
+eilenbergmaclane1945-018@1310,601	←	R	11
+kleene1943-016@1408,3801	≡	R	11
+doob1947-009@1445,1117	≡	R	11
+kleene1943-015@895,3069	≡	R	11
+kleene1943-009@3166,1006	≡	R	11
+vonneumanngoldstine1947-061@1264,3650	≧	R	11
+post1944-028@1594,5026	≧	R	11
+erdos1947-003@2106,905	≦	R	11
+vonneumanngoldstine1947-023@1279,4017	≦	R	11
+doob1947-002@2316,1921	≦	R	11
+erdos1947-005@949,1200	≦	R	11
+doob1947-002@1248,2270	∈	R	11
+eilenbergmaclane1945-051@1380,2137	⊗	R	11
+eilenbergmaclane1945-038@1584,2946	𝔊	R	11
+eilenbergmaclane1945-013@361,2965	𝔛	R	11
+vonneumanngoldstine1947-033@2062,4842	𝒞	R	11
+vonneumanngoldstine1947-041@1764,1839	𝒞	R	11
+vonneumanngoldstine1947-070@626,4328	𝒜	R	11
+kleene1943-030@901,4472	ϕ	I	11
+vonneumanngoldstine1947-062@1247,1519	ξ	I	11
+vonneumanngoldstine1947-038@2096,1752	ξ	I	11
+post1944-019@1162,924	σ	I	11
+vonneumanngoldstine1947-052@2035,906	β	I	11
+post1944-029@587,1802	β	I	11
+eilenbergmaclane1945-021@2373,1155	τ	I	11
+vonneumanngoldstine1947-006@996,1983	η	I	11
+eilenbergmaclane1945-040@1536,1974	χ	I	11
+eilenbergmaclane1945-021@1171,1134	ζ	I	11
+vonneumanngoldstine1947-021@1883,1487	∑	R	D
+vonneumanngoldstine1947-015@1695,3441	∑	R	D
+kac1947-004@1556,3307	∫	R	D
+eilenbergmaclane1945-046@2159,610	∞	R	S1
+eilenbergmaclane1945-043@1713,3619	∞	R	S1
+kac1947-003@1148,892	∞	R	S1

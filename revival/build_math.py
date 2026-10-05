@@ -9,7 +9,7 @@ every symbol the 1947 scans do not contain.  On top of it:
   are the real first- and second-order script sorts of the 1947 pages
   where they exist (sizes S1, S2 in work/masters.pkl), otherwise the text
   glyph thickened to the stroke weight the real script sorts have;
-* the display summation and product are the 1947 display sorts;
+* the display summation, product and integral are the 1947 display sorts;
 * script sizes and positions are measured from the scans
   (ScriptPercentScaleDown, ScriptScriptPercentScaleDown, superscript and
   subscript shifts).
@@ -35,7 +35,7 @@ WORK = os.path.join(HERE, "work")
 FONTS = os.path.join(HERE, "fonts")
 UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
-OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊"
+OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊≠∩≅∂←≡𝔛𝒞𝒜"
 MIN_MATH_LSB = 20                     # units, for math italic letters
 
 
@@ -282,7 +282,7 @@ def main():
 
     # display operators: the 1947 display sorts as first size variant
     mvar = lm["MATH"].table.MathVariants
-    for ch, lmname in (("∑", "summation"), ("∏", "product")):
+    for ch, lmname in (("∑", "summation"), ("∏", "product"), ("∫", "integral")):
         mkey = (ch, "R", "D")
         if mkey not in M:
             continue

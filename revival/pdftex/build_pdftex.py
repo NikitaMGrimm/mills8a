@@ -266,7 +266,8 @@ def math_fonts():
 
 # ------------------------------------------------------------------ large symbols
 
-BIG_OPS = {0o120: "summation", 0o130: "summation.v1", 0o131: "product.v1"}   # cmex slots
+BIG_OPS = {0o120: "summation", 0o130: "summation.v1", 0o131: "product.v1",
+           0o132: "integral.v1"}   # cmex slots
 
 
 def omx_font():
