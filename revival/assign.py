@@ -65,12 +65,27 @@ def main():
     # Reference (body-size) cluster per OCR label and style, ignoring the
     # clusters corrected by hand (those are often mislabelled symbols).
     ref = {}
+    # for letters, only full-size clusters can be the reference: a letter
+    # used mostly as an index (italic j) has its most common cluster at
+    # script size, against which the text size measured as display
+    tallest = {}
+    for c in rows:
+        if c["id"] not in ov and c["n"] >= 5:
+            key = (c["ocr1"], c["style"])
+            tallest[key] = max(tallest.get(key, 0), c["h"])
     for c in rows:
         if c["id"] in ov:
             continue
         key = (c["ocr1"], c["style"])
+        g = c["ocr1"]
+        if g and len(g) == 1 and g.isalpha() and c["h"] < 0.85 * tallest.get(key, 0):
+            continue
         if key not in ref or c["n"] > ref[key]["n"]:
             ref[key] = c
+    for c in rows:                      # labels with no full-size cluster
+        key = (c["ocr1"], c["style"])
+        if c["id"] not in ov and (key not in ref or c["n"] > ref[key]["n"] and key not in tallest):
+            ref.setdefault(key, c)
 
     sorts = {}
     for c in rows:
