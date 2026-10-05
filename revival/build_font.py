@@ -126,6 +126,40 @@ _ds = os.path.join(WORK, "docscale.json")
 DOCSCALE = json.load(open(_ds)) if os.path.exists(_ds) else {}   # see docweight.py
 
 
+FLAT_TOPPED = set("BDEFHIKLMNPRTUVWXYZ")
+
+
+def normalize_cap_heights(M, style, size, tol=0.01):
+    """Capitals of one size share a cap height in metal type, but a sort
+    averaged from few impressions (or, for bold, from titles of several
+    papers set at slightly different sizes) can come out up to 4% off.
+    Scale each flat-topped capital about its baseline to the median cap
+    height of its style and size when it is off by more than tol.  Round
+    and pointed tops (A C G J O Q S) keep their overshoot."""
+    def height(m):
+        ys = np.nonzero((m["img"] > 0.5).any(1))[0]
+        return m["base"] - ys.min() if len(ys) else None
+    keys = [k for k in M if k[1] == style and k[2] == size and k[0] in FLAT_TOPPED]
+    hs = {k: height(M[k]) for k in keys}
+    hs = {k: h for k, h in hs.items() if h}
+    if len(hs) < 5:
+        return
+    target = float(np.median(list(hs.values())))
+    fixed = []
+    for k, h in hs.items():
+        f = target / h
+        if abs(f - 1) <= tol:
+            continue
+        m = M[k]
+        m["img"] = ndimage.zoom(m["img"], f, order=1)
+        m["alts"] = [ndimage.zoom(a.astype(np.float32), f, order=1).astype(np.float16)
+                     for a in m.get("alts", [])]
+        m["base"] = int(round(m["base"] * f))
+        fixed.append(f"{k[0]}{(f - 1) * 100:+.1f}%")
+    if fixed:
+        print(f"  {style}{size} cap height {target / UP:.1f} px: scaled " + " ".join(fixed))
+
+
 def fit_spacing(style, size, widths):
     """Side bearings and advances (scan px) from within-word letter pairs.
 
@@ -711,6 +745,7 @@ def main():
     for style in "RI":
         snap_sparse_to_baseline(M, style)
     for style, style_name in (("R", "Regular"), ("I", "Italic")):
+        normalize_cap_heights(M, style, 11)
         masters = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == style and z == 11}
         # tops are relative to baseline in master px: img row 0 is at -base
@@ -804,6 +839,7 @@ def main():
         feats = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
         if style == "R":
             # small caps: 1947 sorts where available, else the 1922 specimen
+            normalize_cap_heights(M, "R", "SC")
             scm = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == "R" and z == "SC"}
             fill = ""
