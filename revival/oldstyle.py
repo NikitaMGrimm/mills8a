@@ -3,7 +3,8 @@
 The Bulletin sets the year in its running heads in old-style figures
 ("1947]", "1944]"); its page numbers, the text and the Transactions use
 lining figures, and the 1922 specimen shows lining figures only.  So the
-scans hold real old-style 1, 4, 7 and 9, in the ~8 pt type of the heads.
+scans hold the real old-style figures of their years (1940-1948: all ten),
+in the ~8 pt type of the heads.
 
 * Real: the year tokens are the four glyphs before the "]" that opens the
   running head of odd pages; their digits are known from the paper's year.
@@ -26,8 +27,14 @@ import masters as ms
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
 UP = ms.UP
-YEAR = {"post1944": "1944", "doob1947": "1947", "kac1947": "1947", "erdos1947": "1947",
-        "vonneumanngoldstine1947": "1947", "niven1947": "1947"}
+# Bulletin papers carry their year in old-style figures in the running heads;
+# the year is the scan's file name's last four digits.  The Transactions
+# (Kleene, Eilenberg-Mac Lane) set it in lining figures.
+TRANSACTIONS = {"kleene1943", "eilenbergmaclane1945"}
+
+
+def year_of(doc):
+    return None if doc in TRANSACTIONS or not doc[-4:].isdigit() else doc[-4:]
 XLETTERS = set("unearmovcs")
 
 
@@ -44,7 +51,7 @@ def year_tokens(inst):
     got, head_x = defaultdict(list), []
     for p, (_, key) in first_line.items():
         doc = p.rsplit("-", 1)[0]
-        if doc not in YEAR:
+        if not year_of(doc):
             continue
         ids = sorted(lines[key], key=lambda i: inst[i]["bbox"][0])
         head_x += [inst[i]["bitmap"].shape[0] for i in ids
@@ -55,7 +62,7 @@ def year_tokens(inst):
         h = [inst[i]["bitmap"].shape[0] for i in first]
         gap = inst[first[4]]["bbox"][0] - inst[first[3]]["bbox"][2]
         if h[4] > max(h[:4]) and gap < 15:              # 4 figures, then "]"
-            for d, i in zip(YEAR[doc], first[:4]):
+            for d, i in zip(year_of(doc), first[:4]):
                 got[d].append(inst[i])
     return got, float(np.median(head_x))
 

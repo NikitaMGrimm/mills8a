@@ -12,7 +12,7 @@ python3 cluster.py        # group identical sorts
 python3 classify.py       # slant / weight / size measurements
 python3 assign.py         # labels: rules + overrides.tsv
 python3 masters.py        # average each sort at 4x
-python3 oldstyle.py       # old-style figures: 1 4 7 9 from the running heads, the rest built
+python3 oldstyle.py       # old-style figures from the years in the Bulletin running heads
 python3 specimen.py       # 1922 alphabets for missing letters
 python3 build_font.py     # trace, space, assemble fonts/*.otf
 python3 accents.py        # accented letters, dotless i/j, punctuation fills
