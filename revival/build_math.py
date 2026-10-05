@@ -299,7 +299,7 @@ def main():
         for lvl, vname in zip(("S1", "S2"), variants):
             kk = k[lvl]
             mkey = (ch, style, lvl)
-            if mkey in M and M[mkey]["n"] >= 2:
+            if mkey in M and M[mkey]["n"] >= 5:      # fewer: often misfiled impressions
                 # a real script sort: its ink at real size, side bearings
                 # scaled from the text glyph by the ratio of ink widths
                 contours, dx, dy, w_real = outline_from_master(M[mkey], bf.INK_PX)

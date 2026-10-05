@@ -530,3 +530,8 @@ kac1947-004@1556,3307	∫	R	D
 eilenbergmaclane1945-046@2159,610	∞	R	S1
 eilenbergmaclane1945-043@1713,3619	∞	R	S1
 kac1947-003@1148,892	∞	R	S1
+# script-size arrows (subscripts like n→∞), first labelled 11 pt
+eilenbergmaclane1945-045@496,3268	←	R	S1
+eilenbergmaclane1945-018@1310,601	←	R	S1
+eilenbergmaclane1945-048@1894,3525	→	R	S1
+kleene1943-029@2300,4786	→	R	S1
