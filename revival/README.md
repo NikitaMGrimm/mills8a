@@ -68,7 +68,10 @@ What pdfLaTeX loses:
   other big operators stay Computer Modern's).
 
 Measured on the Mills page, both versions have the same darkness as the scan
-(ratio 0.99), the same line breaks and the same script sorts.
+(ratio 1.01–1.02) and the same script sorts. The text width matches the scan
+within 0.2% (an unjustified line, "where *K* is a fixed positive integer.",
+is 0.518 of the measure in both); line breaks still differ in places, as
+TeX justifies differently from the 1947 compositor.
 
 ## Sources
 
@@ -76,24 +79,38 @@ Measured on the Mills page, both versions have the same darkness as the scan
   multiplicative functions*, Bull. AMS 53 (1947). 9 pages.
 - `scans/niven1947.pdf`: I. Niven, *A simple proof that π is irrational*,
   Bull. AMS 53 (1947). 1 page.
+- `scans/post1944.pdf`: E. L. Post, *Recursively enumerable sets of positive
+  integers and their decision problems*, Bull. AMS 50 (1944). 33 pages.
+- `scans/doob1947.pdf`: J. L. Doob, *Probability in function space*, Bull.
+  AMS 53 (1947). 16 pages.
+- `scans/kac1947.pdf`: M. Kac, *On the notion of recurrence in discrete
+  stochastic processes*, Bull. AMS 53 (1947). 9 pages.
+- `scans/vonneumanngoldstine1947.pdf`: J. von Neumann and H. H. Goldstine,
+  *Numerical inverting of matrices of high order*, Bull. AMS 53 (1947).
+  79 pages.
+- `scans/kleene1943.pdf`: S. C. Kleene, *Recursive predicates and
+  quantifiers*, Trans. AMS 53 (1943). 33 pages.
+- `scans/eilenbergmaclane1945.pdf`: S. Eilenberg and S. Mac Lane, *General
+  theory of natural equivalences*, Trans. AMS 58 (1945). 64 pages.
 - `scans/lanston1922-p49.jp2`, `-p51.jp2`: *The Monotype Specimen Book of
   Type Faces*, Lanston Monotype, 1922, pp. 49 and 51, "No. 8A" at 9, 10,
   11, 12, 14 and 18 pt. Public domain; get them with `./fetch-specimen.sh`.
 - Latin Modern Math (GUST Font License), the base of `Mills8A-Math.otf`.
 
-The two *Bulletin* PDFs are 600 dpi bilevel scans. They're not in the
+The AMS PDFs are 600 dpi bilevel scans (244 pages). They're not in the
 repository; put copies in `scans/` under these names.
 
-## Pipeline (`./build.sh`, about 2 min)
+## Pipeline (`./build.sh`, about 1 h 15 min on 4 cores; OCR and clustering are most of it)
 
 | step | what it does |
 |---|---|
-| `segment.py` | connected components + Tesseract hOCR → ~11,400 glyph instances. Side-by-side pieces in one OCR box (a letter and its subscript) become separate instances |
+| `segment.py` | connected components + Tesseract hOCR → ~440,000 glyph instances. Side-by-side pieces in one OCR box (a letter and its subscript) become separate instances |
 | `baselines.py` | re-estimates each line's baseline from the letters sitting on it (display math throws Tesseract's off) |
+| `docweight.py` | each scan's type size and stroke weight against the Erdős paper (ink-corrected widths and heights, and stroke widths, of the same letters). The *Transactions* type is ~3.5% smaller at the same 12 pt line pitch; Post's scan is ~0.5 px per edge heavier |
 | `cluster.py` | groups baseline-aligned instances whose shapes overlap (IoU ≥ 0.72) |
-| `classify.py` | measures slant, stroke weight and size |
+| `classify.py` | measures slant, stroke weight and size; a letter's roman or italic style comes from comparing it with the reference fonts in `ref/` (built from the hand-checked first scans), since the slant measure takes the diagonals of a roman *v w y A V W X Y* for italic. Letters matching neither (×, Ω, Fraktur) are left to `overrides.tsv` |
 | `assign.py` | labels each group (glyph, style, size): rules plus hand corrections in `overrides.tsv`, which name one impression per group (`page@x,y`, see `okey.py`) so re-clustering doesn't invalidate them |
-| `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, averages; keeps up to 8 single impressions per sort for `rand` |
+| `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, resamples each scan to the Erdős size and weight, averages up to 400 impressions per sort; keeps up to 8 single impressions per sort for `rand` |
 | `specimen.py` | cuts the 1922 alphabets at six sizes (659 impressions) |
 | `build_font.py` | potrace outlines, fitted spacing, ligatures, CFF OpenType text fonts (fontTools) |
 | `accents.py` | accented Latin-1 / Latin Extended-A letters, dotless *ı ȷ*, the missing punctuation |
@@ -133,15 +150,15 @@ and entered in `overrides.tsv`.
 
 ## What comes from where
 
-- **1947 masters:** all roman lowercase, figures (except 7), punctuation,
-  roman caps F H I L N T W, 18 small caps, italic lowercase except *j q*,
-  italic caps *A B D F M N T*, Greek *α β ζ π σ ϕ ϵ*, + − = < > ≦ ≧ ∞ → ∑ ( ) [ ] / |,
-  the fi and ffi ligatures, 15 bold capitals (A B C E F I L M N O P R T U Y),
-  46 script sorts and 36 + 10 9 pt sorts.
-- **1922 specimen:** the remaining capitals, small caps, italic letters and
-  the 7. Each is the average of all its impressions (up to six sizes, each
-  scaled by its own calibration), so a hairline broken in one is carried by
-  the others.
+- **1943–47 masters:** every 11 pt roman and italic letter and figure, the
+  punctuation, 21 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ χ ψ ω ϕ ϵ*
+  and Δ Π Ω, + − × ÷ = < > ≦ ≧ ≤ ≃ ∞ → ∈ ⊂ ∪ ⊗ ∑ ∏ ( ) [ ] { } / | § & * !,
+  Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖, the roman *fi ff ffi* and italic *fi ff* ligatures,
+  20 bold capitals, 55 + 8 script sorts and 73 + 43 9 pt sorts.
+- **1922 specimen:** only small caps J Q W X Z, $, and the *fl ffl*
+  (roman) and *fl ffi ffl* (italic) ligatures, which the scans lack. Each is
+  the average of all its impressions (up to six sizes, each scaled by its
+  own calibration), so a hairline broken in one is carried by the others.
 - **Thickened, for the sizes the scans lack:** script variants without a real
   script sort are the text glyph thickened to the stroke weight the real
   script sorts have (2.1 px per edge before scaling). The remaining bold
@@ -158,12 +175,10 @@ and entered in `overrides.tsv`.
   Latin Modern's, thickened.
 - **Bold italic** is the italic thickened to the bold stems; no bold italic
   occurs in the scans.
-- **Constructed ligatures** (none of these occurs in the scans):
-  - roman *ff*: the *ffi* sort cut after its second *f*, with the single *f*'s
-    arm grafted on;
+- **Constructed ligatures**, used only where the scans and the specimen both
+  lack one:
   - roman *fl* and *ffl*: the *fi* / *ffi* sort less its *i*, with the 1947
     *l* set on the *i*'s stem;
-  - italic *ff*: two italic *f*s with their crossbars running on;
   - italic *fi*, *fl*, *ffi*, *ffl*: the last letter one *f* advance on, with
     the *f*'s terminal trimmed clear.
 - **By hand:** the italic *f*'s overhang (`SPACING_BY_HAND`, −0.10 em, as on a
@@ -222,19 +237,19 @@ footnote marks as superior figures.
   same letters at 600 dpi, rendered text then scatters like the scan
   (0.99 px against 1.00; 38/87/99% within 0/1/2 px against 40/87/98%).
   Fixed seed for reproducible output. Math is not touched.
-- **Ink (`MILLS8A_INK`, default 0.5).** The Erdős and Niven pages were
-  printed a little lighter than the Mills page. 0.5 scan px of extra ink per
-  edge matches the Mills paragraph's darkness (ratio 0.99, same text and
+- **Ink (`MILLS8A_INK`, default 1.0).** The averaged masters are lighter
+  than the Mills page: averaging many impressions keeps the typical edge,
+  not the ink squeeze. 1.0 scan px of extra ink per edge matches the Mills
+  paragraph's darkness (ratio 1.01 LuaLaTeX, 1.02 pdfLaTeX; same text and
   scale). `MILLS8A_INK=0 ./build.sh` gives the type as measured.
 
 ## Limits
 
-- Few second-order script sorts (4): most scriptscript glyphs are
+- Few second-order script sorts (8): most scriptscript glyphs are
   thickened text glyphs.
-- Math symbols beyond the scans (∈, ⊂, ∫, arrows…) are Latin Modern's.
-- No italic small caps. Bold italic, the accents except the dieresis, and
-  some punctuation (? % & § …) are synthesized or Latin Modern's.
-- Constructed ligatures and the thickened sizes are reasoned
-  reconstructions, not traced originals. More 1947 pages, especially with
-  capitals, italic capitals, bold, footnotes, or words with *fl*/*ffl*,
-  would replace them.
+- Math symbols beyond the scans (∫, ∂, most arrows…) are Latin Modern's.
+- No italic small caps. Bold italic, the bold lowercase, the accents except
+  the dieresis, and some punctuation (? % …) are synthesized or Latin
+  Modern's.
+- The italic *ff* and *fi* rest on 8 and 49 impressions; their spacing is
+  derived from *f* and the last letter rather than measured.

@@ -1,15 +1,15 @@
 /m8asyss-enc [
 /minus.sts
 /uni22C5
-/multiply
+/multiply.sts
 /asteriskmath
-/divide
+/divide.sts
 /uni22C4
 /plusminus
 /minusplus
 /circleplus
 /uni2296
-/circlemultiply
+/circlemultiply.sts
 /circledivide
 /circledot
 /uni25EF
@@ -25,7 +25,7 @@
 /uni2AB0
 /similar
 /approxequal
-/propersubset
+/propersubset.sts
 /propersuperset
 /lessmuch
 /greatermuch
@@ -38,7 +38,7 @@
 /arrowboth
 /uni2197
 /uni2198
-/similar_equal
+/similar_equal.sts
 /arrowdblleft
 /arrowdblright
 /arrowdblup
@@ -49,7 +49,7 @@
 /proportional.sts
 /minute.sts
 /infinity.sts
-/element
+/element.sts
 /suchthat
 /uni25B3
 /uni25BD
@@ -90,7 +90,7 @@
 /u1D4B3.sts
 /u1D4B4.sts
 /u1D4B5.sts
-/union
+/union.sts
 /intersection
 /uni228E
 /logicaland
@@ -101,8 +101,8 @@
 /uni230B
 /uni2308
 /uni2309
-/braceleft
-/braceright
+/braceleft.sts
+/braceright.sts
 /uni27E8
 /uni27E9
 /bar.sts

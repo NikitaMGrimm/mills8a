@@ -37,7 +37,7 @@ U_PER_PX = 1000 / EM_PX                     # font units per scan px
 # Niven pages the glyphs come from were printed a little lighter than the
 # Mills page: 0.5 px matches the darkness of its first paragraph (measured
 # against the same text set in these fonts).  MILLS8A_INK=0 = as measured.
-INK_PX = float(os.environ.get("MILLS8A_INK", "0.5"))
+INK_PX = float(os.environ.get("MILLS8A_INK", "1.0"))
 SPACE = 322                                  # 6 units of 10.7 set, in font units
 MATH_IT_CAP, MATH_IT_LOW = 0x1D434, 0x1D44E
 GREEK_MATH_IT = {"α": 0x1D6FC, "β": 0x1D6FD, "ζ": 0x1D701, "π": 0x1D70B,
@@ -221,12 +221,15 @@ def fit_spacing(style, size, widths):
         print(f"{style}{size}: {keep.sum()} of {len(pairs)} pairs, rms "
               f"{np.sqrt(np.mean(res[keep] ** 2)):.2f} px, spacing measured for {len(out)} glyphs")
         # the Monotype unit: the size that puts well-measured advances on integers
-        well = [out[g][1] for g in out if nf[g] >= 5 and ns[g] >= 5]
+        well_measured = {g for g in out if nf[g] >= 5 and ns[g] >= 5}
+        lig_measured = {g for g in out if nf[g] >= 30 and ns[g] >= 30}
+        well = [out[g][1] for g in well_measured]
     else:
-        well = []
+        well, well_measured, lig_measured = [], set(), set()
     unit = None
     if len(well) >= 8:
-        cands = np.arange(4.5, 5.5, 0.002)
+        k = size / 11 if isinstance(size, (int, float)) else 1.0    # 9 pt: a smaller unit
+        cands = np.arange(4.5 * k, 5.5 * k, 0.002)
         cost = [np.mean((np.array(well) / u - np.round(np.array(well) / u)) ** 2) for u in cands]
         unit = cands[int(np.argmin(cost))]
         print(f"  Monotype unit {unit:.3f} px = {unit * 18 / PX_PER_PT:.2f} pt set, "
@@ -236,13 +239,21 @@ def fit_spacing(style, size, widths):
         if g not in out:
             sb = 3.5 if (len(g) == 1 and g.isupper()) else 2.5
             out[g] = (sb, w + 2 * sb)
-    if "ff" in widths and "ffi" in out and "i" in out:
+    if "ff" in widths and "ffi" in lig_measured and "i" in out and "ff" not in lig_measured:
         # ff: the ffi sort less the width of the i it no longer carries
         out["ff"] = (out["ffi"][0], out["ffi"][1] - out["i"][1])
     for g, (lsb_em, rsb_em) in SPACING_BY_HAND.get(style, {}).items():
         if g in widths:
             lsb, rsb = lsb_em * EM_PX, rsb_em * EM_PX
             out[g] = (lsb, lsb + widths[g] + rsb)
+    # f-ligatures seen too rarely to measure (the italic ff and fi occur a
+    # few times): the left bearing of f and the right bearing of the last
+    # letter, as the sort is cast
+    for lig, last in (("ff", "f"), ("fi", "i"), ("ffi", "i"), ("fl", "l"), ("ffl", "l")):
+        if (lig in widths and "f" in out and last in out and last in widths
+                and lig not in lig_measured):
+            rsb = out[last][1] - out[last][0] - widths[last]
+            out[lig] = (out["f"][0], out["f"][0] + widths[lig] + rsb)
     if style in FF_DX and "ff" in widths and "f" in out:
         out["ff"] = (out["f"][0], out["f"][1] + FF_DX[style] / UP)
     if unit:

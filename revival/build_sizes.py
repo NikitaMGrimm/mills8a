@@ -161,10 +161,9 @@ def main():
         g9 = measured_grow(M, style, 9, "nmhuoeadlri1234", 9 / 11)
         widths = {g: (np.ptp(np.nonzero((bf.despeckle(m["img"]) > 0.5).any(0))[0]) + 1) / UP
                   for g, m in real.items()}
-        # roman 9pt has enough footnote and reference lines for its own fit;
-        # italic 9pt has too few pairs, so it keeps the 11pt italic's side
-        # bearings (scaled with the font)
-        sp = bf.fit_spacing(style, 9, widths) if widths and style == "R" else {}
+        # both have enough footnote and reference lines for their own fit
+        # (glyphs without measured pairs keep the 11pt side bearings, scaled)
+        sp = bf.fit_spacing(style, 9, widths) if widths else {}
         sp = {g: v for g, v in sp.items() if g in real}
         print(f"9pt {style}: {len(real)} real sorts; the rest thickened by {g9:.2f} px per edge")
         make(os.path.join(FONTS, f"Mills8A-{name}.otf"), "Mills 8A", name, base, real, 9, g9,

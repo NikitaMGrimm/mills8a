@@ -16,6 +16,7 @@ import pickle
 import re
 import subprocess
 import sys
+from multiprocessing.pool import ThreadPool
 
 import numpy as np
 from PIL import Image
@@ -35,12 +36,18 @@ def page_images():
     return sorted(glob.glob(os.path.join(WORK, "pages", "*.png")))
 
 
-def ocr(png):
+def run_tesseract(png):
     base = png[:-4]
     if not os.path.exists(base + ".hocr"):
         subprocess.run(["tesseract", png, base, "--dpi", "600",
                         "-c", "hocr_char_boxes=1", "hocr"],
-                       check=True, capture_output=True)
+                       check=True, capture_output=True,
+                       env=dict(os.environ, OMP_THREAD_LIMIT="1"))
+
+
+def ocr(png):
+    base = png[:-4]
+    run_tesseract(png)
     text = open(base + ".hocr", encoding="utf-8").read()
     lines, chars = [], []
     # Lines and the characters inside them, in document order.
@@ -166,6 +173,8 @@ def segment_page(png):
 
 def main():
     pages = page_images()
+    with ThreadPool(os.cpu_count()) as pool:        # one Tesseract per core
+        pool.map(run_tesseract, pages)
     allinst = []
     for p in pages:
         inst = segment_page(p)
