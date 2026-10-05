@@ -535,3 +535,10 @@ eilenbergmaclane1945-045@496,3268	←	R	S1
 eilenbergmaclane1945-018@1310,601	←	R	S1
 eilenbergmaclane1945-048@1894,3525	→	R	S1
 kleene1943-029@2300,4786	→	R	S1
+# roman and italic z were crossed (the reference fonts had them swapped too); a k filed as script x
+kleene1943-006@3133,1268	z	I	11
+post1944-031@1808,4737	z	I	11
+vonneumanngoldstine1947-007@1539,4958	z	I	11
+vonneumanngoldstine1947-009@2173,2877	z	R	11
+vonneumanngoldstine1947-030@1439,3824	z	R	11
+erdos1947-001@2024,2098	skip

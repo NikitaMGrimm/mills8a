@@ -855,7 +855,6 @@ def main():
         feats = "languagesystem DFLT dflt;\nlanguagesystem latn dflt;\n"
         if style == "R":
             # small caps: 1947 sorts where available, else the 1922 specimen
-            normalize_cap_heights(M, "R", "SC", ref=("R", 11))
             scm = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == "R" and z == "SC"}
             fill = ""
@@ -866,6 +865,12 @@ def main():
                         scm[ch] = sg
                         fill += ch
             print(f"small caps: {len(scm)}, from 1922 specimen: {fill}")
+            # one cap height for 1947 and specimen small caps alike
+            tmp = {(g, "SC*", 0): dict(img=v[0], base=-v[1], alts=list(v[2]) if len(v) > 2 else [])
+                   for g, v in scm.items()}
+            tmp.update({k: v for k, v in M.items() if k[1:] == ("R", 11)})
+            normalize_cap_heights(tmp, "SC*", 0, ref=("R", 11))
+            scm = {k[0]: (v["img"], -v["base"], v["alts"]) for k, v in tmp.items() if k[1] == "SC*"}
             for name, gl in build("R", scm, size="SC", suffix=".sc").items():
                 glyphs[name.lower()] = gl
             sc = [n[:-3] for n in glyphs if n.endswith(".sc")]

@@ -97,7 +97,10 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
                 continue
             contours, dx, dy = o
             gu = g11 * bf.U_PER_PX
-            cs[n] = charstring(contours, dx + gu, dy, bf.U_PER_UPX, a + 2 * gu, private, gsubrs)
+            # thickening grows every edge, the bottom too: lift the glyph by
+            # as much so it stays on the baseline
+            cs[n] = charstring(contours, dx + gu, dy + gu, bf.U_PER_UPX, a + 2 * gu, private,
+                               gsubrs)
             adv[n] = round(a + 2 * gu)
     order = [".notdef", "space"] + [n for n in keep if n not in (".notdef", "space")]
     pen = T2CharStringPen(500, None)
@@ -156,6 +159,8 @@ def main():
          gb, features=liga(TTFont(ita).getGlyphOrder()), italic=True)
 
     # 9pt: real sorts with their own spacing fit
+    for style in "RI":
+        bf.normalize_cap_heights(M, style, 9, ref=("R", 11))
     for style, base, name in (("R", reg, "Regular9"), ("I", ita, "Italic9")):
         real = {g: m for (g, s, z), m in M.items() if s == style and z == 9 and m["n"] >= 3
                 and len(g) == 1}
