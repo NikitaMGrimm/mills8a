@@ -38,6 +38,12 @@ leading (see *Scripts* below).
 LuaLaTeX is needed for the randomness: XeLaTeX loads the fonts, but its
 HarfBuzz shaping gives every repeat of a word the same impressions.
 
+### Old-style figures
+
+LuaLaTeX: `Numbers=OldStyle` (the `onum` feature). pdfLaTeX:
+`\usepackage[osf]{mills8a}` (family `m8aj`). All ten are 1940s sorts from the
+Bulletin's running heads; math keeps lining figures, as in print.
+
 ### pdfLaTeX
 
 `pdftex/` has the same family as standard pdfLaTeX fonts: Type 1 outlines,
@@ -88,6 +94,19 @@ TeX justifies differently from the 1947 compositor.
 - `scans/vonneumanngoldstine1947.pdf`: J. von Neumann and H. H. Goldstine,
   *Numerical inverting of matrices of high order*, Bull. AMS 53 (1947).
   79 pages.
+- `scans/vonkarman1940.pdf`: Th. von Kármán, *The engineer grapples with
+  nonlinear problems*, Bull. AMS 46 (1940). 69 pages.
+- `scans/wright1942.pdf`: S. Wright, *Statistical genetics and evolution*,
+  Bull. AMS 48 (1942). 24 pages.
+- `scans/courant1943.pdf`: R. Courant, *Variational methods for the
+  solution of problems of equilibrium and vibrations*, Bull. AMS 49 (1943).
+  23 pages.
+- `scans/feller1945.pdf`: W. Feller, *The fundamental limit theorems in
+  probability*, Bull. AMS 51 (1945). 33 pages.
+- `scans/lewy1946.pdf`: H. Lewy, *Water waves on sloping beaches*, Bull. AMS
+  52 (1946). 39 pages.
+- `scans/neugebauer1948.pdf`: O. Neugebauer, *Mathematical methods in
+  ancient astronomy*, Bull. AMS 54 (1948). 29 pages.
 - `scans/kleene1943.pdf`: S. C. Kleene, *Recursive predicates and
   quantifiers*, Trans. AMS 53 (1943). 33 pages.
 - `scans/eilenbergmaclane1945.pdf`: S. Eilenberg and S. Mac Lane, *General
@@ -97,7 +116,8 @@ TeX justifies differently from the 1947 compositor.
   11, 12, 14 and 18 pt. Public domain; get them with `./fetch-specimen.sh`.
 - Latin Modern Math (GUST Font License), the base of `Mills8A-Math.otf`.
 
-The AMS PDFs are 600 dpi bilevel scans (244 pages). They're not in the
+The AMS PDFs are 600 dpi bilevel scans (461 pages; the 1940-48 papers were
+added for the old-style figures of their years). They're not in the
 repository; put copies in `scans/` under these names.
 
 ## Pipeline (`./build.sh`, about 1 h 15 min on 4 cores; OCR and clustering are most of it)
@@ -111,6 +131,8 @@ repository; put copies in `scans/` under these names.
 | `classify.py` | measures slant, stroke weight and size; a letter's roman or italic style comes from comparing it with the reference fonts in `ref/` (built from the hand-checked first scans), since the slant measure takes the diagonals of a roman *v w y A V W X Y* for italic. Letters matching neither (×, Ω, Fraktur) are left to `overrides.tsv` |
 | `assign.py` | labels each group (glyph, style, size): rules plus hand corrections in `overrides.tsv`, which name one impression per group (`page@x,y`, see `okey.py`) so re-clustering doesn't invalidate them |
 | `masters.py` | upsamples every instance 4×, aligns to 1/4 px by FFT cross-correlation, resamples each scan to the Erdős size and weight, averages up to 400 impressions per sort; keeps up to 8 single impressions per sort for `rand` |
+| `oldstyle.py` | old-style figures: the Bulletin sets the year in its running heads ("1947]") in old-style figures; 1940-1948 give all ten, averaged from 10-161 impressions each, scaled from the ~8 pt head to the text x-height and brought to the 11 pt stem |
+| `check_fonts.py` | consistency checks over all fonts: baselines, x- and cap heights, side bearings, figure widths, script sorts against their text glyphs |
 | `specimen.py` | cuts the 1922 alphabets at six sizes (659 impressions) |
 | `build_font.py` | potrace outlines, fitted spacing, ligatures, CFF OpenType text fonts (fontTools) |
 | `accents.py` | accented Latin-1 / Latin Extended-A letters, dotless *ı ȷ*, the missing punctuation |
@@ -249,10 +271,10 @@ footnote marks as superior figures.
   same letters at 600 dpi, rendered text then scatters like the scan
   (0.99 px against 1.00; 38/87/99% within 0/1/2 px against 40/87/98%).
   Fixed seed for reproducible output. Math is not touched.
-- **Ink (`MILLS8A_INK`, default 1.0).** The averaged masters are lighter
+- **Ink (`MILLS8A_INK`, default 0.7).** The averaged masters are lighter
   than the Mills page: averaging many impressions keeps the typical edge,
-  not the ink squeeze. 1.0 scan px of extra ink per edge matches the Mills
-  paragraph's darkness (ratio 1.01 LuaLaTeX, 1.02 pdfLaTeX; same text and
+  not the ink squeeze. 0.7 scan px of extra ink per edge matches the Mills
+  paragraph's darkness (ratio 1.02 LuaLaTeX, 1.01 pdfLaTeX; same text and
   scale). `MILLS8A_INK=0 ./build.sh` gives the type as measured.
 
 ## Limits

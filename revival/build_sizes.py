@@ -79,7 +79,7 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     if len(real) >= 5:
         st = {c: stroke(m["img"] > 0.5) / bf.UP for c, m in real.items()}
         med = float(np.median(list(st.values())))
-        ink = {c: bf.INK_PX + (med - v) / 2 for c, v in st.items()}
+        ink = {c: max(0.0, bf.INK_PX + (med - v) / 2) for c, v in st.items()}
     for n in keep:
         ch = names.get(n)
         a = base["hmtx"][n][0]
