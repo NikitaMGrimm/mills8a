@@ -157,10 +157,12 @@ def sheet(masters, cols=14, cell=150):
             continue
         B = m["base"]
         win = np.zeros((above + below, width))
-        y0 = max(0, B - above)
-        src = m["img"][y0:B + below, max(0, xs.min() - 20):xs.min() + width - 20]
-        oy = above - (B - y0)
-        win[oy:oy + src.shape[0], :src.shape[1]] = src
+        x0 = max(0, xs.min() - 20)
+        for r in range(above + below):       # canvas row for window row r
+            cr = B - above + r
+            if 0 <= cr < m["img"].shape[0]:
+                src = m["img"][cr, x0:x0 + width]
+                win[r, :src.shape[0]] = src
         im = Image.fromarray((255 - 255 * np.clip(win, 0, 1)).astype(np.uint8))
         im = im.resize(((cell - 20) * width // (above + below), cell - 20))
         x, y = (j % cols) * cell, (j // cols) * cell

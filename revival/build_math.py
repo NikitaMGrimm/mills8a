@@ -1,0 +1,374 @@
+"""Mills 8A Math: an OpenType MATH font for unicode-math.
+
+Latin Modern Math supplies the MATH table, the extensible delimiters and
+every symbol the 1947 scans do not contain.  On top of it:
+
+* math italic letters and Greek, upright letters, figures and operators are
+  replaced by the Mills 8A text glyphs (fonts/Mills8A-{Regular,Italic}.otf);
+* the script ('ssty' .st) and scriptscript (.sts) variants of those glyphs
+  are the real first- and second-order script sorts of the 1947 pages
+  where they exist (sizes S1, S2 in work/masters.pkl), otherwise the text
+  glyph thickened to the stroke weight the real script sorts have;
+* the display summation and product are the 1947 display sorts;
+* script sizes and positions are measured from the scans
+  (ScriptPercentScaleDown, ScriptScriptPercentScaleDown, superscript and
+  subscript shifts).
+
+Latin Modern Math is distributed under the GUST Font License; this derived
+font therefore has its own name.
+"""
+import os
+import pickle
+import subprocess
+from collections import defaultdict
+
+import numpy as np
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.freetypePen import FreeTypePen
+from fontTools.pens.t2CharStringPen import T2CharStringPen
+from fontTools.ttLib import TTFont
+
+import build_font as bf
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+WORK = os.path.join(HERE, "work")
+FONTS = os.path.join(HERE, "fonts")
+UP = bf.UP
+U = bf.U_PER_UPX                      # font units per master px
+OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑"
+
+
+def lm_path():
+    return subprocess.run(["kpsewhich", "latinmodern-math.otf"], check=True,
+                          capture_output=True, text=True).stdout.strip()
+
+
+# ---------------------------------------------------------------- measuring
+
+def script_scales(M):
+    """Script and scriptscript scale factors: the size of the 1947 script
+    sorts relative to the 11pt ones, measured on glyph heights with the
+    ink spread (2 px per edge, which does not scale) taken off."""
+    def h(m):
+        ys = np.nonzero((m["img"] > 0.5).any(1))[0]
+        return (ys.max() - ys.min() + 1) / UP
+    out = {}
+    for lvl in ("S1", "S2"):
+        r = [(h(M[(g, s, lvl)]) - 4) / (h(M[(g, s, 11)]) - 4)
+             for (g, s, z) in M if z == lvl and (g, s, 11) in M
+             and len(g) == 1 and g.isalnum() and M[(g, s, lvl)]["n"] >= 3]
+        out[lvl] = float(np.median(r))
+        print(f"{lvl}: scale {out[lvl]:.3f} from {len(r)} sorts")
+    return out
+
+
+def script_positions():
+    """Baselines of first-order scripts relative to the line, from the
+    bottoms of S1 sorts without descenders: superscripts form one cluster
+    above the line, subscripts one just below it.  Returns font units."""
+    inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
+    cl = {c["id"]: c for c in pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))}
+    sorts = pickle.load(open(os.path.join(WORK, "sorts.pkl"), "rb"))
+    b = []
+    for (g, s, z), cids in sorts.items():
+        if z == "S1" and g in "0123468mnuxikdtNE":
+            for c in cids:
+                for i in cl[c]["members"]:
+                    x = inst[i]
+                    if x["baseline_ref"] is not None:
+                        b.append(x["bbox"][3] - x["baseline_ref"])
+    b = np.array(b)
+    sup = -np.median(b[(b < -18) & (b > -36)]) * bf.U_PER_PX
+    sub = np.median(b[(b > 3) & (b < 15)]) * bf.U_PER_PX
+    print(f"superscripts raised {sup:.0f} units, subscripts lowered {sub:.0f} "
+          f"({len(b)} script impressions)")
+    return sup, sub
+
+
+def stem(img):
+    return bf.stem_width(img) / UP                          # scan px
+
+
+# ---------------------------------------------------------------- glyphs
+
+def outline_from_glyph(gs, name, grow_px=0.0):
+    """Rasterise a glyph at master resolution, optionally grow its ink by
+    grow_px scan px per edge, and retrace it.  Returns (contours, dx, dy)
+    for bf.charstring at scale U (font units), and the ink grow in units."""
+    pen = FreeTypePen(gs)
+    gs[name].draw(pen)
+    from fontTools.pens.boundsPen import BoundsPen
+    bp = BoundsPen(gs)
+    gs[name].draw(bp)
+    if bp.bounds is None:
+        return None
+    x0, y0, x1, y1 = bp.bounds
+    s = 1 / U                                               # px per unit
+    m = int(grow_px * UP) + 8
+    W = int((x1 - x0) * s) + 2 * m
+    H = int((y1 - y0) * s) + 2 * m
+    img = pen.array(width=W, height=H, transform=(s, 0, 0, s, m - x0 * s, m - y0 * s))
+    img = bf.embolden(img, grow_px)
+    contours = bf.trace(np.pad(img, 2))
+    # potrace px (y up from the padded bottom) -> units
+    dx = x0 - (m + 2) * U
+    dy = y0 - (m + 2) * U
+    return contours, dx, dy
+
+
+def outline_from_master(m, ink_px):
+    """A script master traced at its real size (units of the 11pt em)."""
+    img = bf.despeckle(m["img"])
+    ys, xs = np.nonzero(img > 0.5)
+    g = int(np.ceil(ink_px * UP)) + 1
+    img = bf.embolden(np.pad(img, g), ink_px)
+    base = m["base"] + g
+    r0, r1, c0, c1 = ys.min(), ys.max() + 1 + 2 * g, xs.min(), xs.max() + 1 + 2 * g
+    contours, dx, dy = bf.traced(img, r0, r1, c0, c1, base, c0 + g, 0.0)
+    return contours, dx, dy, (xs.max() - xs.min() + 1) * U   # ink width, units
+
+
+def charstring(contours, dx, dy, scale, adv, private, gsubrs):
+    pen = T2CharStringPen(round(adv), None)
+    for c in contours:
+        for op, pts in c:
+            q = [(round(x * scale + dx), round(y * scale + dy)) for x, y in pts]
+            if op == "M":
+                pen.moveTo(q[0])
+            elif op == "L":
+                pen.lineTo(q[0])
+            else:
+                pen.curveTo(*q)
+        pen.closePath()
+    return pen.getCharString(private, gsubrs)
+
+
+def bounds(cs):
+    b = cs.calcBounds(None)
+    return b if b else (0, 0, 0, 0)
+
+
+# ---------------------------------------------------------------- assembly
+
+def main():
+    M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
+    k = script_scales(M)
+    sup, sub = script_positions()
+    lm = TTFont(lm_path())
+    lm_gs = lm.getGlyphSet()
+    order = list(lm.getGlyphOrder())
+    lm_cmap = lm.getBestCmap()
+    ours = {s: TTFont(os.path.join(FONTS, f"Mills8A-{n}.otf")) for s, n in (("R", "Regular"), ("I", "Italic"))}
+    our_gs = {s: f.getGlyphSet() for s, f in ours.items()}
+    our_cmap = {s: f.getBestCmap() for s, f in ours.items()}
+    our_hmtx = {s: f["hmtx"] for s, f in ours.items()}
+
+    # target LM glyph -> (style, char)
+    targets = {}
+    for i, c in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+        targets[lm_cmap[bf.MATH_IT_CAP + i]] = ("I", c)
+        targets[lm_cmap[ord(c)]] = ("R", c)
+    for i, c in enumerate("abcdefghijklmnopqrstuvwxyz"):
+        cp = 0x210E if c == "h" else bf.MATH_IT_LOW + i
+        targets[lm_cmap[cp]] = ("I", c)
+        targets[lm_cmap[ord(c)]] = ("R", c)
+    for g, cp in bf.GREEK_MATH_IT.items():
+        targets[lm_cmap[cp]] = ("I", g)
+    for c in "0123456789" + OPERATORS:
+        if ord(c) in lm_cmap:
+            targets[lm_cmap[ord(c)]] = ("R", c)
+    targets = {t: v for t, v in targets.items() if ord(v[1]) in our_cmap[v[0]]}
+
+    # ssty alternates in Latin Modern: base -> [script, scriptscript]
+    gsub = lm["GSUB"].table
+    ssty = {}
+    for fr in gsub.FeatureList.FeatureRecord:
+        if fr.FeatureTag == "ssty":
+            for li in fr.Feature.LookupListIndex:
+                for st in gsub.LookupList.Lookup[li].SubTable:
+                    ssty.update(st.alternates)
+            break
+
+    # stroke growth for script variants without a real 1947 script sort:
+    # make the scaled text glyph as heavy as the real script sorts are
+    grow = {}
+    for lvl in ("S1", "S2"):
+        pairs = [(stem(M[(g, s, 11)]["img"]), stem(M[(g, s, lvl)]["img"]))
+                 for (g, s, z) in M if z == lvl and (g, s, 11) in M
+                 and g in "nmu1IlhdN" and M[(g, s, lvl)]["n"] >= 3]
+        if pairs:
+            s11, sS = np.median(pairs, axis=0)
+            grow[lvl] = max(0.0, (sS / k[lvl] - s11) / 2)
+        else:
+            grow[lvl] = 0.0
+        print(f"{lvl}: synthesised script variants thickened by {grow[lvl]:.2f} px per edge")
+
+    # start from all LM glyphs, drawn into fresh charstrings
+    top = lm["CFF "].cff.topDictIndex[0]
+    private, gsubrs = top.Private, top.GlobalSubrs
+    cs, adv = {}, {}
+    for name in order:
+        pen = T2CharStringPen(lm["hmtx"][name][0], lm_gs)
+        lm_gs[name].draw(pen)
+        cs[name] = pen.getCharString(private, gsubrs)
+        adv[name] = lm["hmtx"][name][0]
+
+    new_glyphs, italic_ic, accents = [], {}, {}
+    replaced = 0
+    real = defaultdict(int)
+    for target, (style, ch) in sorted(targets.items()):
+        src = our_cmap[style][ord(ch)]
+        a = our_hmtx[style][src][0]
+        pen = T2CharStringPen(a, our_gs[style])
+        our_gs[style][src].draw(pen)
+        cs[target] = pen.getCharString(private, gsubrs)
+        adv[target] = a
+        replaced += 1
+        variants = ssty.get(target)
+        if not variants:
+            variants = [target + ".st", target + ".sts"]
+            ssty[target] = variants
+            new_glyphs += variants
+        b = bounds(cs[target])
+        for lvl, vname in zip(("S1", "S2"), variants):
+            kk = k[lvl]
+            mkey = (ch, style, lvl)
+            if mkey in M and M[mkey]["n"] >= 2:
+                # a real script sort: its ink at real size, side bearings
+                # scaled from the text glyph by the ratio of ink widths
+                contours, dx, dy, w_real = outline_from_master(M[mkey], bf.INK_PX)
+                w_text = max(1, b[2] - b[0])
+                f = w_real / w_text
+                lsb, rsb = b[0] * f, (a - b[2]) * f
+                # a script master sits where its impressions were cut, raised
+                # or lowered with them; put it on its own baseline: its
+                # bottom where the text glyph's is, scaled to its size
+                cs[vname] = charstring(contours, (dx + lsb) / kk, dy / kk, U / kk,
+                                       (lsb + w_real + rsb) / kk, private, gsubrs)
+                shift = b[1] * f / kk - bounds(cs[vname])[1]
+                cs[vname] = charstring(contours, (dx + lsb) / kk, dy / kk + shift, U / kk,
+                                       (lsb + w_real + rsb) / kk, private, gsubrs)
+                adv[vname] = round((lsb + w_real + rsb) / kk)
+                real[lvl] += 1
+            else:
+                o = outline_from_glyph(our_gs[style], src, grow[lvl])
+                if o is None:
+                    continue
+                contours, dx, dy = o
+                g_u = grow[lvl] * bf.U_PER_PX
+                cs[vname] = charstring(contours, dx + g_u, dy, U, a + 2 * g_u, private, gsubrs)
+                adv[vname] = round(a + 2 * g_u)
+        if style == "I":
+            for n in [target] + [v for v in variants if v in cs]:
+                bb = bounds(cs[n])
+                italic_ic[n] = max(0, round(bb[2] - adv[n]) + 20)
+                accents[n] = round((bb[0] + bb[2]) / 2 + 0.12 * (bb[3] - bb[1]) / 2)
+        else:
+            for n in [target] + [v for v in variants if v in cs]:
+                bb = bounds(cs[n])
+                accents[n] = round((bb[0] + bb[2]) / 2)
+    print(f"replaced {replaced} glyphs; real script sorts used: "
+          f"{real['S1']} first-order, {real['S2']} second-order")
+
+    # display operators: the 1947 display sorts as first size variant
+    mvar = lm["MATH"].table.MathVariants
+    for ch, lmname in (("∑", "summation"), ("∏", "product")):
+        mkey = (ch, "R", "D")
+        if mkey not in M:
+            continue
+        i = mvar.VertGlyphCoverage.glyphs.index(lmname)
+        recs = mvar.VertGlyphConstruction[i].MathGlyphVariantRecord
+        if len(recs) < 2:
+            continue
+        vname = recs[1].VariantGlyph
+        contours, dx, dy, w = outline_from_master(M[mkey], bf.INK_PX)
+        sb = 40
+        cs[vname] = charstring(contours, dx + sb, dy, U, w + 2 * sb, private, gsubrs)
+        adv[vname] = round(w + 2 * sb)
+        bb = bounds(cs[vname])
+        recs[1].AdvanceMeasurement = round(bb[3] - bb[1])
+        print(f"display {ch}: 1947 sort as {vname}")
+
+    # ---- MATH table
+    mt = lm["MATH"].table
+    mc = mt.MathConstants
+    mc.ScriptPercentScaleDown = round(100 * k["S1"])
+    mc.ScriptScriptPercentScaleDown = round(100 * k["S2"])
+    mc.SuperscriptShiftUp.Value = round(sup)
+    mc.SuperscriptShiftUpCramped.Value = round(0.8 * sup)
+    mc.SubscriptShiftDown.Value = round(sub)
+    mc.SubscriptTopMax.Value = round(0.8 * 440)
+    gi = mt.MathGlyphInfo
+    ic = gi.MathItalicsCorrectionInfo
+    cur = dict(zip(ic.Coverage.glyphs, ic.ItalicsCorrection))
+    for n, v in italic_ic.items():
+        rec = type(ic.ItalicsCorrection[0])()
+        rec.Value = v
+        cur[n] = rec
+    for n in list(cur):                      # upright replacements: none
+        if n in targets and targets[n][0] == "R":
+            del cur[n]
+    ic.Coverage.glyphs = list(cur)
+    ic.ItalicsCorrection = list(cur.values())
+    ic.ItalicsCorrectionCount = len(cur)
+    ta = gi.MathTopAccentAttachment
+    cur = dict(zip(ta.TopAccentCoverage.glyphs, ta.TopAccentAttachment))
+    for n, v in accents.items():
+        rec = type(ta.TopAccentAttachment[0])()
+        rec.Value = v
+        cur[n] = rec
+    ta.TopAccentCoverage.glyphs = list(cur)
+    ta.TopAccentAttachment = list(cur.values())
+    ta.TopAccentAttachmentCount = len(cur)
+    kern = gi.MathKernInfo                   # LM's cut-ins fit LM's shapes only
+    if kern is not None:
+        keep = [(g, r) for g, r in zip(kern.MathKernCoverage.glyphs, kern.MathKernInfoRecords)
+                if g not in targets and not any(g in v for v in ssty.values() if False)]
+        kern.MathKernCoverage.glyphs = [g for g, _ in keep]
+        kern.MathKernInfoRecords = [r for _, r in keep]
+        kern.MathKernCount = len(keep)
+
+    # ---- ssty: Latin Modern's lookup, extended to the glyphs it lacked
+    for fr in gsub.FeatureList.FeatureRecord:
+        if fr.FeatureTag == "ssty":
+            st = gsub.LookupList.Lookup[fr.Feature.LookupListIndex[0]].SubTable[0]
+            for base, v in ssty.items():
+                if base not in st.alternates:
+                    st.alternates[base] = v
+            break
+
+    # ---- build
+    glyph_order = order + [g for g in new_glyphs if g not in order]
+    fb = FontBuilder(1000, isTTF=False)
+    fb.setupGlyphOrder(glyph_order)
+    fb.setupCharacterMap(lm_cmap)
+    fb.setupCFF("Mills8A-Math", {"FullName": "Mills 8A Math", "FamilyName": "Mills 8A Math"},
+                cs, {})
+    fb.setupHorizontalMetrics({n: (adv[n], round(bounds(cs[n])[0])) for n in glyph_order})
+    fb.setupHorizontalHeader(ascent=lm["hhea"].ascent, descent=lm["hhea"].descent)
+    fb.setupNameTable({"familyName": "Mills 8A Math", "styleName": "Regular",
+                       "copyright": "Based on Latin Modern Math (GUST Font License); "
+                                    "glyphs traced from 1947 Monotype Modern 8A printing"})
+    fb.setupOS2(sTypoAscender=lm["OS/2"].sTypoAscender, sTypoDescender=lm["OS/2"].sTypoDescender,
+                usWinAscent=lm["OS/2"].usWinAscent, usWinDescent=lm["OS/2"].usWinDescent,
+                sxHeight=440, sCapHeight=650)
+    fb.setupPost()
+    # coverage tables must list glyphs in glyph-id order
+    gid = {g: i for i, g in enumerate(glyph_order)}
+    def resort(cov, values):
+        pairs = sorted(zip(cov.glyphs, values), key=lambda p: gid[p[0]])
+        cov.glyphs = [p[0] for p in pairs]
+        return [p[1] for p in pairs]
+    ic.ItalicsCorrection = resort(ic.Coverage, ic.ItalicsCorrection)
+    ta.TopAccentAttachment = resort(ta.TopAccentCoverage, ta.TopAccentAttachment)
+    if kern is not None:
+        kern.MathKernInfoRecords = resort(kern.MathKernCoverage, kern.MathKernInfoRecords)
+    for t in ("MATH", "GSUB", "GPOS", "GDEF"):
+        fb.font[t] = lm[t]
+    out = os.path.join(FONTS, "Mills8A-Math.otf")
+    fb.save(out)
+    print(f"wrote {out}: {len(glyph_order)} glyphs")
+
+
+if __name__ == "__main__":
+    main()

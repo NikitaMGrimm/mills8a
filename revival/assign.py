@@ -11,30 +11,51 @@ import string
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
 
-# Relative heights measured from the scans (ink spread included):
-# 11pt body = 1.0, 9pt ~ 0.84, 8pt ~ 0.77, 7pt ~ 0.67, 6pt ~ 0.59.
-SIZES = [(11, 1.0), (9, 0.84), (8, 0.77), (7, 0.67), (6, 0.59)]
 ALWAYS_ROMAN = set(string.digits + string.punctuation) | set("—–’‘“”")
 
 
-def size_class(r):
+def size_class(h, h_body):
+    """Size from height h relative to the body-size cluster's h_body, with
+    the ~2 px of ink spread per edge removed first (it doesn't scale):
+    11 = body, 9 = footnotes, S1 = first-order scripts (~6.5pt),
+    S2 = second-order scripts (~5.5pt)."""
+    r = (h - 4) / max(1, h_body - 4)
     if r > 1.12:
         return None                    # display sizes and pairs: by hand only
-    return min(SIZES, key=lambda s: abs(s[1] - r))[0]
+    return 11 if r > 0.92 else 9 if r > 0.75 else "S1" if r > 0.53 else "S2"
 
 
 def load_overrides():
-    ov = {}
+    """{cluster id: (glyph, style, size) or None}.  Each line names one
+    impression (page@x0,y0); it applies to the cluster containing the
+    impression nearest that corner (within 4 px), so cluster renumbering
+    does not invalidate the file."""
+    inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
+    clusters = pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))
+    cluster_of = {i: c["id"] for c in clusters for i in c["members"]}
+    by_page = {}
+    for k, g in enumerate(inst):
+        by_page.setdefault(g["page"], []).append((g["bbox"][0], g["bbox"][1], k))
+    ov, missing = {}, []
     for line in open(os.path.join(HERE, "overrides.tsv"), encoding="utf-8"):
         if not line.strip() or line.startswith("#"):
             continue
         f = line.rstrip("\n").split("\t")
-        cid = int(f[0])
+        page, xy = f[0].split("@")
+        x, y = map(int, xy.split(","))
+        near = min(by_page.get(page, []), key=lambda t: abs(t[0] - x) + abs(t[1] - y),
+                   default=None)
+        if near is None or abs(near[0] - x) + abs(near[1] - y) > 4 or near[2] not in cluster_of:
+            missing.append(f[0])
+            continue
+        cid = cluster_of[near[2]]
         if f[1] == "skip":
             ov[cid] = None
         else:
             size = f[3]
             ov[cid] = (f[1], f[2], int(size) if size.isdigit() else size)
+    if missing:
+        print(f"overrides: {len(missing)} keys match no clustered impression: {missing[:5]}")
     return ov
 
 
@@ -67,13 +88,13 @@ def main():
             if c["w"] > 1.35 * r["w"]:
                 continue               # two letters touching
             style = "R" if g in ALWAYS_ROMAN else c["style"]
-            size = size_class(c["h"] / r["h"])
+            size = size_class(c["h"], r["h"])
             if style == "R" and g.isascii() and g.isupper() and g not in "JQ":
                 # roman capitals: absolute cap height separates the sizes,
                 # and in particular 11pt small caps from real capitals
                 h = c["h"]
                 size = (11 if 56 <= h <= 65 else "SC" if 42 <= h <= 49 else
-                        9 if 50 <= h <= 55 else 8 if 34 <= h <= 40 else None)
+                        9 if 50 <= h <= 55 else "S1" if 33 <= h <= 41 else None)
             if size is None:
                 continue
             lab = (g, style, size)

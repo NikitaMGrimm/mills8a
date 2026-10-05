@@ -68,6 +68,25 @@ def baseline_y(line, x):
     return y1 + line["off"] + line["slope"] * (x - x0)
 
 
+def columns(parts, min_overlap=0.3):
+    """Split a character box's components into horizontally separate
+    groups.  Components overlapping horizontally by >= min_overlap of the
+    narrower one stay together (i-dots, the bars of =, the halves of ;)."""
+    parts = sorted(parts, key=lambda p: p[1][1].start)
+    groups = []
+    for k, sl in parts:
+        x0, x1 = sl[1].start, sl[1].stop
+        for g in groups:
+            gx0 = min(s[1].start for _, s in g); gx1 = max(s[1].stop for _, s in g)
+            ov = min(x1, gx1) - max(x0, gx0)
+            if ov >= min_overlap * min(x1 - x0, gx1 - gx0):
+                g.append((k, sl))
+                break
+        else:
+            groups.append([(k, sl)])
+    return groups
+
+
 def segment_page(png):
     ink = ~np.array(Image.open(png)).astype(bool)
     lines, chars = ocr(png)
@@ -131,7 +150,15 @@ def segment_page(png):
 
     for ci, parts in groups.items():
         c = chars[ci]
-        emit(parts, c["ch"], c["conf"], c["line"])
+        pieces = columns(parts)
+        # the largest piece is the character OCR saw; side-by-side extras
+        # (a subscript inside the same OCR box, a touching neighbour) become
+        # separate, unlabelled instances
+        pieces.sort(key=lambda p: -sum(sl[0].stop - sl[0].start for _, sl in p)
+                    * max(sl[1].stop for _, sl in p))
+        emit(pieces[0], c["ch"], c["conf"], c["line"])
+        for p in pieces[1:]:
+            emit(p, None, 0.0, None)
     for parts in orphans:
         emit(parts, None, 0.0, None)
     return out

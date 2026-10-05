@@ -13,3 +13,4 @@ python3 assign.py         # labels: rules + overrides.tsv
 python3 masters.py        # average each sort at 4x
 python3 specimen.py       # 1922 alphabets for missing letters
 python3 build_font.py     # trace, space, assemble fonts/*.otf
+python3 build_math.py     # Mills8A-Math.otf: 1947 letters and script sorts on Latin Modern Math

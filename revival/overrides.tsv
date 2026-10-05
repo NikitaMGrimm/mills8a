@@ -1,146 +1,292 @@
-# Hand corrections after inspecting work/review-*.png.
-# id	glyph	style	size	(size: 11 body, 9, 8 scripts, 6, D display, T title; glyph "skip" drops)
+# Hand corrections after inspecting work/review-*.png and work/masters.png.
+# key: one impression in the group, as page@x0,y0 (its bounding box corner in
+# the 600 dpi page image); the correction applies to the group that contains it.
+# key	glyph	style	size	(size: 11 body, 9, 8, 6, SC small caps, D display, T title; glyph "skip" drops)
 # relations
-65	≦	R	11
-207	≧	R	11
-215	≦	R	8
-344	≧	R	8
-447	≤	R	11
-474	≦	R	11
-475	≦	R	11
-45	=	R	11
-88	=	R	11
-166	=	R	11
-486	=	R	11
-71	<	R	11
-294	<	R	11
-480	<	R	11
-483	<	R	11
-489	<	R	11
-107	>	R	11
-349	>	R	11
-247	→	R	11
+erdos1947-001@1846,2090	≦	R	11
+erdos1947-001@1703,1573	≧	R	11
+erdos1947-001@1880,1330	≦	R	S1
+erdos1947-002@1680,1512	≧	R	S1
+erdos1947-005@1679,2285	≤	R	11
+erdos1947-001@1073,3330	≦	R	11
+erdos1947-001@1311,2950	≦	R	11
+erdos1947-002@540,5023	=	R	11
+erdos1947-008@2004,920	=	R	11
+erdos1947-004@947,2071	=	R	11
+erdos1947-005@1600,2053	=	R	11
+erdos1947-002@2647,2177	<	R	11
+erdos1947-005@1989,3503	<	R	11
+erdos1947-004@2522,1124	<	R	11
+erdos1947-005@2471,3901	<	R	11
+erdos1947-001@1406,3242	<	R	11
+erdos1947-007@2264,3340	>	R	11
+erdos1947-003@1939,2471	>	R	11
+erdos1947-005@2550,3001	→	R	11
 # operators
-54	+	R	11
-87	+	R	11
-116	+	R	11
-219	+	R	11
-243	+	R	11
-308	+	R	8
-382	+	R	8
-528	+	R	8
-122	−	R	11
-134	−	R	11
-515	−	R	11
-526	−	R	11
-373	—	R	11
-123	-	R	11
-68	∑	R	11
-82	∑	R	D
-114	∑	R	D
-542	∑	R	D
-125	∏	R	D
-317	∏	R	D
-318	∏	R	D
-239	∞	R	11
-396	∞	R	8
-523	∞	R	8
+erdos1947-007@2116,1514	+	R	11
+erdos1947-006@1564,1887	+	R	11
+erdos1947-007@2816,903	+	R	11
+erdos1947-006@1351,3564	+	R	11
+erdos1947-006@2111,2917	+	R	11
+erdos1947-007@2977,2845	+	R	S1
+erdos1947-002@1372,4901	+	R	S1
+erdos1947-007@2160,3778	+	R	S1
+erdos1947-006@2843,4427	−	R	11
+erdos1947-004@1686,934	−	R	11
+erdos1947-000@1823,4247	−	R	11
+erdos1947-003@2034,2496	−	R	11
+erdos1947-005@1709,4424	—	R	11
+erdos1947-000@3085,1452	-	R	11
+erdos1947-008@658,1229	∑	R	11
+erdos1947-006@1770,885	∑	R	D
+erdos1947-008@1818,4518	∑	R	D
+erdos1947-002@1594,1398	∑	R	D
+erdos1947-001@1799,1217	∏	R	D
+erdos1947-007@1410,1563	∏	R	D
+erdos1947-003@1592,1397	∏	R	D
+erdos1947-001@3020,1023	∞	R	11
+erdos1947-008@1843,4464	∞	R	S1
+erdos1947-004@953,3610	∞	R	S1
 # fences and bars
-56	/	R	11
-521	/	R	11
-177	/	R	8
-113	|	R	11
-120	skip
-199	skip
-236	skip
-363	skip
-240	[	R	11
-289	]	R	11
+erdos1947-007@839,897	/	R	11
+erdos1947-003@1532,1893	/	R	11
+erdos1947-001@1989,2599	/	R	S1
+erdos1947-001@1957,1848	|	R	11
+erdos1947-001@792,1968	skip
+erdos1947-005@967,3475	skip
+erdos1947-005@1732,3831	skip
+erdos1947-005@1685,3475	skip
+erdos1947-007@765,886	[	R	11
+erdos1947-007@1032,887	]	R	11
 # greek (math italic)
-133	ϵ	I	11
-220	π	I	11
-341	α	I	11
-487	α	I	11
-225	α	I	8
-253	α	I	8
-304	α	I	8
-519	α	I	8
-522	α	I	8
-527	α	I	8
-330	β	I	11
-432	β	I	11
-497	β	I	8
-506	β	I	8
-356	ζ	I	11
-365	σ	I	11
-484	σ	I	11
-547	ϕ	I	11
+erdos1947-005@2870,3203	ϵ	I	11
+niven1947-000@2982,3739	π	I	11
+erdos1947-007@2197,3355	α	I	11
+erdos1947-006@2255,1557	α	I	11
+erdos1947-000@2123,3347	α	I	S1
+erdos1947-001@2077,1762	α	I	S1
+erdos1947-006@2816,1508	α	I	S1
+erdos1947-000@2345,2178	α	I	S1
+erdos1947-001@1822,1998	α	I	S1
+erdos1947-007@2878,2859	α	I	S1
+erdos1947-006@2429,1535	β	I	11
+erdos1947-007@2437,3332	β	I	11
+erdos1947-007@1885,3330	β	I	S1
+erdos1947-006@2888,1493	β	I	S1
+erdos1947-006@2186,1538	ζ	I	11
+erdos1947-006@844,1240	σ	I	11
+erdos1947-006@1396,1904	σ	I	11
+erdos1947-006@2127,1889	ϕ	I	11
 # punctuation
-311	!	R	11
-175	;	R	11
-38	,	R	11
-135	,	R	11
-178	,	R	11
-539	,	R	11
-540	,	R	11
-21	.	R	11
-151	′	R	8
-315	′	R	8
+niven1947-000@2463,1916	!	R	11
+erdos1947-002@2305,1438	;	R	11
+erdos1947-001@2224,1051	,	R	11
+erdos1947-006@2542,2482	,	R	11
+erdos1947-005@2692,3525	,	R	11
+erdos1947-000@2574,2149	,	R	11
+erdos1947-006@1321,2483	,	R	11
+erdos1947-008@1172,2366	.	R	11
+erdos1947-005@619,2279	′	R	S1
+erdos1947-007@1092,4044	′	R	S1
 # ligatures
-127	fi	R	11
-157	ffi	R	11
-267	ffi	R	11
+erdos1947-007@1869,2433	fi	R	11
+erdos1947-008@1918,4304	ffi	R	11
+erdos1947-003@1060,3730	ffi	R	11
 # title bold caps (ERDŐS / NIVEN papers)
-137	O	B	T
-152	E	B	T
-159	A	B	T
-160	T	B	T
-188	R	B	T
-189	B	B	T
-190	L	B	T
-231	M	B	T
-264	N	B	T
-268	R	B	T
-269	P	B	T
-274	C	B	T
-326	U	B	T
-421	Y	B	T
+erdos1947-008@1058,2020	O	B	T
+erdos1947-008@2454,2020	E	B	T
+erdos1947-008@1238,2021	A	B	T
+erdos1947-000@1585,919	T	B	T
+erdos1947-008@2356,2021	R	B	T
+erdos1947-003@1694,1201	B	B	T
+erdos1947-008@1401,2020	L	B	T
+erdos1947-000@1441,920	M	B	T
+erdos1947-000@2350,1019	N	B	T
+erdos1947-006@580,1001	R	B	T
+erdos1947-000@1528,920	P	B	T
+erdos1947-000@1809,919	C	B	T
+erdos1947-000@2185,920	U	B	T
+erdos1947-008@1952,2021	Y	B	T
 # misc. mislabels
-75	1	R	6
-101	A	I	11
-181	A	I	11
-216	A	I	11
-442	skip
-446	skip
-40	p	I	11
-59	p	I	11
-291	p	I	11
-548	p	I	11
-64	p	I	8
-552	p	I	8
+erdos1947-008@1063,1645	1	R	S2
+erdos1947-006@1887,3983	A	I	11
+erdos1947-002@824,4746	A	I	11
+erdos1947-001@2641,1750	A	I	11
+erdos1947-001@483,1467	skip
+erdos1947-000@1748,1419	skip
+erdos1947-007@2719,3540	p	I	11
+erdos1947-006@1729,3373	p	I	11
+erdos1947-006@988,4936	p	I	11
+erdos1947-000@2251,3643	p	I	11
+erdos1947-001@1705,1345	p	I	S1
+erdos1947-000@1794,3677	p	I	S1
 # diagonal letters the slant detector calls italic
-29	v	R	11
-36	y	R	11
-104	y	R	11
-195	z	R	11
-99	v	R	9
-81	A	R	SC
-32	x	I	11
-168	x	I	11
-250	x	I	11
+erdos1947-007@1604,1821	v	R	11
+erdos1947-007@3100,3352	y	R	11
+erdos1947-006@1031,4201	y	R	11
+erdos1947-008@2283,3490	z	R	11
+erdos1947-007@2742,4946	v	R	9
+erdos1947-001@795,716	A	R	SC
+erdos1947-002@1793,1122	x	I	11
+erdos1947-003@1906,1918	x	I	11
+niven1947-000@1504,2451	x	I	11
 # mislabels found on the masters sheet: pairs, script marks, italic i
-395	skip
-500	skip
-357	skip
-229	skip
-379	skip
-350	skip
-156	skip
-255	skip
-374	skip
-495	skip
-501	skip
-283	ö	R	11
-290	skip
-115	W	R	11
-490	skip
+erdos1947-001@1930,1344	skip
+erdos1947-001@1300,3020	skip
+erdos1947-001@2992,4549	skip
+erdos1947-002@3055,1088	skip
+erdos1947-001@2083,2070	skip
+erdos1947-000@2267,4582	skip
+erdos1947-001@545,5022	skip
+erdos1947-001@2024,2098	skip
+erdos1947-006@886,1783	skip
+erdos1947-000@888,4838	skip
+erdos1947-002@2584,2153	skip
+erdos1947-000@1878,1172	ö	R	11
+erdos1947-006@1405,1402	skip
+erdos1947-000@581,4002	W	R	11
+erdos1947-006@709,5012	skip
+# w is diagonal: the slant estimate calls it italic
+erdos1947-001@2237,924	w	R	11
+erdos1947-001@589,5017	w	R	9
+# script sizes (S1 = first-order indices/exponents ~6.5pt, S2 = second-order ~5.5pt),
+# labelled from work/scripts.png (scripts.py proposals checked by eye)
+erdos1947-001@3112,4932	s	R	S1
+niven1947-000@2303,1269	.	R	S1
+erdos1947-001@1705,1345	p	I	S1
+erdos1947-002@1914,1368	n	I	11
+erdos1947-008@1063,1645	1	R	S1
+erdos1947-006@1813,2671	v	I	9
+erdos1947-008@1924,2619	1	R	S1
+erdos1947-006@1305,2912	(	R	S1
+erdos1947-006@1580,2646	)	R	S1
+erdos1947-001@3096,1797	skip
+erdos1947-001@2485,3467	/	R	S1
+erdos1947-006@2091,902	2	R	S1
+erdos1947-006@2964,1496	1	R	S1
+erdos1947-008@1338,895	2	R	S1
+erdos1947-006@1525,3230	1	R	S1
+erdos1947-005@619,2279	′	R	S1
+erdos1947-001@1769,1345	m	I	S1
+erdos1947-000@1536,2666	n	I	S1
+erdos1947-006@2006,4214	k	I	S1
+erdos1947-005@2627,1229	k	I	S1
+erdos1947-001@545,5022	i	I	S1
+erdos1947-002@735,4332	1	R	S1
+erdos1947-007@2786,1245	)	R	S1
+erdos1947-007@996,3112	)	R	S1
+erdos1947-001@2845,1779	skip
+erdos1947-000@2299,3530	skip
+erdos1947-001@2024,2098	x	I	S1
+erdos1947-001@1749,3233	(	R	S1
+erdos1947-006@2235,2332	(	R	S1
+erdos1947-001@2083,2070	0	R	S2
+erdos1947-006@2629,4633	)	R	S1
+erdos1947-002@3055,1088	1	R	S2
+erdos1947-001@1880,1330	≦	R	S1
+erdos1947-004@3059,731	skip
+erdos1947-007@997,934	2	R	S1
+erdos1947-006@561,1331	=	R	S1
+erdos1947-004@1971,1228	k	I	S1
+erdos1947-000@2123,3347	α	I	S1
+erdos1947-001@2183,904	4	R	S1
+erdos1947-007@1092,4044	′	R	S1
+erdos1947-008@830,2936	e	R	11
+erdos1947-008@646,1356	m	I	S1
+erdos1947-008@1474,929	2	R	S1
+erdos1947-006@2447,3495	(	R	S1
+erdos1947-003@726,4612	i	I	S1
+erdos1947-006@2498,3495	)	R	S1
+erdos1947-001@2077,1762	α	I	S1
+erdos1947-005@1488,1295	f	I	S1
+erdos1947-005@2547,1299	t	I	S1
+erdos1947-000@2699,4859	−	R	S1
+erdos1947-005@2643,3941	skip
+erdos1947-007@2402,4056	v	I	S1
+erdos1947-002@1680,1512	≧	R	S1
+erdos1947-008@1166,1644	skip
+erdos1947-004@3092,733	skip
+erdos1947-006@666,5013	2	R	S2
+erdos1947-006@2016,4762	d	I	S1
+erdos1947-005@1559,4491	n	I	S1
+erdos1947-006@2816,1508	α	I	S1
+erdos1947-005@2498,1313	=	R	S1
+erdos1947-007@2977,2845	+	R	S1
+erdos1947-005@1024,3114	k	I	S1
+erdos1947-007@1873,2081	1	R	S1
+erdos1947-007@483,728	1	R	S2
+erdos1947-005@2012,1296	i	I	S1
+erdos1947-007@2501,4043	/	R	S1
+erdos1947-007@2426,4062	−	R	S1
+erdos1947-003@2279,2495	skip
+erdos1947-006@1795,2936	n	I	11
+erdos1947-008@741,1643	N	R	S1
+erdos1947-008@1126,1644	E	R	S1
+erdos1947-004@924,1046	N	I	S1
+erdos1947-007@1283,3138	v	I	9
+erdos1947-008@666,1645	T	R	S1
+erdos1947-006@1398,4760	d	I	S1
+erdos1947-003@537,733	skip
+erdos1947-007@2085,2080	2	R	S1
+erdos1947-006@1900,1936	=	R	S2
+niven1947-000@2500,1760	n	I	S1
+erdos1947-002@1372,4901	+	R	S1
+niven1947-000@1432,1476	n	I	S1
+erdos1947-002@626,4431	j	I	S1
+erdos1947-008@2259,1290	v	I	S1
+erdos1947-000@633,4582	1	R	S2
+erdos1947-004@2730,3559	skip
+erdos1947-008@1843,4464	∞	R	S1
+erdos1947-000@1794,3677	p	I	S1
+niven1947-000@1277,2039	skip
+erdos1947-001@974,2083	skip
+erdos1947-008@1839,2185	skip
+erdos1947-001@2565,4932	skip
+erdos1947-001@2489,3187	n	I	11
+erdos1947-008@900,1644	D	R	S1
+erdos1947-000@888,4838	skip
+erdos1947-007@1885,3330	β	I	S1
+erdos1947-002@1505,1515	B	I	S1
+erdos1947-008@1296,1644	Y	R	S1
+erdos1947-006@2888,1493	β	I	S1
+erdos1947-007@2530,4046	8	R	S1
+erdos1947-007@1467,2871	v	I	9
+erdos1947-008@1086,1644	V	R	S1
+niven1947-000@766,3980	U	R	S1
+erdos1947-005@2755,2982	6	R	S1
+erdos1947-006@1813,4763	2	R	S1
+erdos1947-000@2345,2178	α	I	S1
+erdos1947-004@953,3610	∞	R	S1
+erdos1947-006@886,1783	3	R	S1
+erdos1947-001@2267,3867	0	R	S1
+erdos1947-002@2639,3398	3	R	S1
+erdos1947-007@2878,2859	α	I	S2
+erdos1947-007@2160,3778	+	R	S1
+erdos1947-002@1914,2728	u	I	S1
+erdos1947-000@1663,3606	skip
+erdos1947-000@636,4835	5	R	S2
+erdos1947-005@1679,2343	skip
+erdos1947-008@2481,2366	n	I	S1
+erdos1947-001@2387,3301	1	R	S1
+erdos1947-007@2206,3791	ϵ	I	S1
+erdos1947-006@1665,2431	(	R	S1
+erdos1947-004@1523,1947	t	I	S1
+erdos1947-004@1218,1117	t	I	S1
+erdos1947-002@2111,1949	′	R	S1
+erdos1947-007@1560,1334	skip
+erdos1947-003@1429,4471	m	I	S1
+erdos1947-008@1207,1644	S	R	S1
+erdos1947-004@1299,2023	p	I	S1
+erdos1947-007@1449,1692	p	I	S1
+erdos1947-003@1850,4361	0	R	S1
+erdos1947-006@2598,4631	2	R	S1
+erdos1947-000@1066,3667	→	R	S1
+erdos1947-006@1693,2433	i	I	S1
+erdos1947-006@933,2434	i	I	S1
+erdos1947-004@983,1215	1	R	S1
+erdos1947-001@2351,2184	1	R	S1
+erdos1947-002@1806,4747	1	R	S1
+erdos1947-006@2186,2432	)	R	S1
+erdos1947-007@921,1283	)	R	S1
+niven1947-000@2317,3096	skip
+niven1947-000@1918,3084	skip

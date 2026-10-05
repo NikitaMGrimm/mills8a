@@ -26,11 +26,8 @@
   \setmainfont{Mills8A-Regular.otf}[RawFeature=+rand,
     ItalicFont=Mills8A-Italic.otf,
     BoldFont=Mills8A-Regular.otf, BoldFeatures={FakeBold=2}]
-  \setmathfont{latinmodern-math.otf}
-  \setmathfont{Mills8A-Italic.otf}[range={it/{latin,Latin},
-    "1D6FC,"1D6FD,"1D701,"1D70B,"1D70E,"1D716,"1D719}]
-  \setmathfont{Mills8A-Regular.otf}[range={up/num,
-    "2B,"3D,"3C,"3E,"28,"29,"5B,"5D,"2F,"7C,"2212,"2266,"2267,"221E,"2192}]
+  % Mills 8A Math: 1947 letters, operators and script sorts on Latin Modern Math
+  \setmathfont{Mills8A-Math.otf}
   \makeatletter
   \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
     \abovedisplayskip 6pt plus 2pt minus 2pt
@@ -39,7 +36,26 @@
     \belowdisplayshortskip 3pt plus 2pt}
   \renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
   \makeatother
-  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu}
+  % Script positions of this paper, measured on the 1947 scan: in displays
+  % exponents start at cap height (0.66em) and subscripts sit 0.14em below
+  % the line; in running text they are where the font puts them (measured
+  % on the Erdos pages: 0.27em and 0.09em).  Set at the start of every
+  % formula, because loading the math fonts resets them.
+  \newcommand\millsscripts{%
+    \Umathsupshiftup\displaystyle=0.66em
+    \Umathsupshiftup\crampeddisplaystyle=0.56em
+    \Umathsubshiftdown\displaystyle=0.14em
+    \Umathsubshiftdown\crampeddisplaystyle=0.14em}
+  % Fixed leading, as in metal: exponents may reach into the space between
+  % lines without pushing the next line down.  Footnote marks are superior
+  % figures (the 1947 script sorts) at a fixed height, not math exponents.
+  \lineskiplimit=-3pt
+  \makeatletter
+  \renewcommand\@makefnmark{\hbox{\raise0.42em\hbox{$\scriptstyle\@thefnmark$}}}
+  \makeatother
+  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
+    \everymath\expandafter{\the\everymath\millsscripts}%
+    \everydisplay\expandafter{\the\everydisplay\millsscripts}}
 \else\ifdefined\usecm\else
   \usepackage{millsmodern}
 \fi\fi\fi
