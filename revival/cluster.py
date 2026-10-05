@@ -17,6 +17,7 @@ from collections import Counter
 
 import numpy as np
 from PIL import Image, ImageDraw
+from scipy import signal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
@@ -35,6 +36,7 @@ class Cluster:
         self.n = 1
         self.members = [inst["id"]]
         self.labels = Counter([inst["ch"]])
+        self._proto = None
 
     def proto(self):
         return self.sum / self.n > 0.5
@@ -47,21 +49,23 @@ class Cluster:
             return 0.0, 0, 0
         if abs(inst["top"] - self.top) > 2 * SHIFT + 2:
             return 0.0, 0, 0
-        P = self.proto()
+        if self._proto is None:
+            self._proto = self.proto()
+            self._np = np.count_nonzero(self._proto)
+        P = self._proto
         H, W = P.shape
-        best = (0.0, 0, 0)
         base_dy = PAD + (inst["top"] - self.top)
-        for dy in range(base_dy - SHIFT, base_dy + SHIFT + 1):
-            for dx in range(PAD - SHIFT - (w - self.w) // 2, PAD + SHIFT + 1 - (w - self.w) // 2):
-                if dy < 0 or dx < 0 or dy + h > H or dx + w > W:
-                    continue
-                win = P[dy:dy + h, dx:dx + w]
-                inter = np.count_nonzero(win & bm)
-                union = np.count_nonzero(P) + np.count_nonzero(bm) - inter
-                iou = inter / union
-                if iou > best[0]:
-                    best = (iou, dy, dx)
-        return best
+        dys = [dy for dy in range(base_dy - SHIFT, base_dy + SHIFT + 1) if 0 <= dy and dy + h <= H]
+        x0 = PAD - SHIFT - (w - self.w) // 2
+        dxs = [dx for dx in range(x0, x0 + 2 * SHIFT + 1) if 0 <= dx and dx + w <= W]
+        if not dys or not dxs:
+            return 0.0, 0, 0
+        # intersections at all shifts at once
+        sub = P[dys[0]:dys[-1] + h, dxs[0]:dxs[-1] + w].astype(np.float32)
+        inter = np.rint(signal.correlate(sub, bm.astype(np.float32), mode="valid"))
+        iou = inter / (self._np + np.count_nonzero(bm) - inter)
+        iy, ix = np.unravel_index(np.argmax(iou), iou.shape)
+        return float(iou[iy, ix]), dys[iy], dxs[ix]
 
     def add(self, inst, dy, dx):
         bm = inst["bitmap"]
@@ -70,6 +74,10 @@ class Cluster:
         self.n += 1
         self.members.append(inst["id"])
         self.labels[inst["ch"]] += 1
+        # the prototype settles quickly; refresh it while the cluster is
+        # small and then every 5%
+        if self.n < 64 or self.n % max(1, self.n // 20) == 0:
+            self._proto = None
 
 
 def main():
@@ -86,22 +94,38 @@ def main():
 
     clusters = []
     by_label = {}
-    for g in usable:
-        cands = by_label.get(g["ch"], []) if g["conf"] > 90 else []
+    grid = {}            # (h, w, top) // 7 -> clusters; match() needs all within 6 px
+
+    def key(g):
+        h, w = g["bitmap"].shape
+        return h // 7, w // 7, g["top"] // 7
+
+    def near(g):
+        a, b, c = key(g)
+        for i in (a - 1, a, a + 1):
+            for j in (b - 1, b, b + 1):
+                for k in (c - 1, c, c + 1):
+                    yield from grid.get((i, j, k), ())
+
+    for n, g in enumerate(usable):
+        if n % 20000 == 0:
+            print(f"  {n}/{len(usable)}: {len(clusters)} clusters", flush=True)
+        cands = by_label.get((g["ch"], key(g)[2]), []) if g["conf"] > 90 else []
         best = (THRESH, None, 0, 0)
         for c in cands:
             iou, dy, dx = c.match(g)
             if iou > best[0]:
                 best = (iou, c, dy, dx)
         if best[1] is None:
-            for c in clusters:
+            for c in near(g):
                 iou, dy, dx = c.match(g)
                 if iou > best[0]:
                     best = (iou, c, dy, dx)
         if best[1] is None:
             c = Cluster(g)
             clusters.append(c)
-            by_label.setdefault(g["ch"], []).append(c)
+            by_label.setdefault((g["ch"], key(g)[2]), []).append(c)
+            grid.setdefault(key(g), []).append(c)
         else:
             best[1].add(g, best[2], best[3])
 

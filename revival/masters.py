@@ -27,6 +27,7 @@ MAXSHIFT = 4 * UP                 # vertical search radius (UP px)
 MARGIN = 6 * UP                   # canvas margin around the largest instance
 NALT = 8                          # alternates (single impressions) per frequent sort;
                                   # half as many for sorts with 8-15 clean impressions
+MAXN = 400                        # impressions averaged per sort, spread over all pages
 
 
 def canvas_geometry(members):
@@ -96,6 +97,9 @@ def build(members, drop_bold=False, bold_out=None):
         if bold_out is not None:
             bold_out.extend(m for m, x in zip(members, w) if x > 1.18 * light)
         members = [m for m, x in zip(members, w) if x <= 1.18 * light] or members
+    if len(members) > MAXN:
+        members = sorted(members, key=lambda m: (m["page"], m["bbox"][1], m["bbox"][0]))
+        members = [members[int(k)] for k in np.linspace(0, len(members) - 1, MAXN)]
     geo = canvas_geometry(members)
     imgs = [p for p in (place(m, geo) for m in members) if p is not None]
     if not imgs:
