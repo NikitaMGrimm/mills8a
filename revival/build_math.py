@@ -35,7 +35,10 @@ WORK = os.path.join(HERE, "work")
 FONTS = os.path.join(HERE, "fonts")
 UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
-OPERATORS = "+−=<>()[]/|≦≧∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊≠∩≅∂←≡𝔛𝒞𝒜"
+OPERATORS = "+−=<>()[]/|≦≧≤∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊≠∩≅∂←≡𝔛𝒞𝒜"
+# cast centred on their body: even side bearings (TeX adds the spacing)
+CENTRED = set("+−=<>≦≧≤×÷≃≠≡≅∈⊂∪∩⊗→←")
+CENTRED_SB = 30
 MIN_MATH_LSB = 20                     # units, for math italic letters
 
 
@@ -333,6 +336,42 @@ def main():
             for n in [target] + [v for v in variants if v in cs]:
                 bb = bounds(cs[n])
                 accents[n] = round((bb[0] + bb[2]) / 2)
+    # binary operators, relations and arrows: centred, whatever spacing the
+    # text fit gave them (the text minus had 267 units on its right)
+    for n, (st, ch) in targets.items():
+        if st == "R" and ch in CENTRED and n in cs:
+            bb = bounds(cs[n])
+            adv[n] = round(bb[2] - bb[0] + 2 * CENTRED_SB)
+            cs[n] = shifted(cs[n], CENTRED_SB - bb[0], private, gsubrs, adv[n])
+            for v in ssty.get(n, []):
+                if v in cs:
+                    b2 = bounds(cs[v])
+                    sb2 = round(CENTRED_SB * (b2[2] - b2[0]) / max(1, bb[2] - bb[0]))
+                    adv[v] = round(b2[2] - b2[0] + 2 * sb2)
+                    cs[v] = shifted(cs[v], sb2 - b2[0], private, gsubrs, adv[v])
+    # for pdfLaTeX (TeX centres a math accent by its advance): spacing copies
+    # of the combining accents, and the bar of \mapsto
+    for cp in (0x300, 0x301, 0x302, 0x303, 0x304, 0x306, 0x307, 0x308, 0x30A, 0x30C):
+        src = lm_cmap.get(cp)
+        if not src:
+            continue
+        name = f"tex.acc.{cp:04X}"
+        c0 = cs.get(src)
+        if c0 is None:
+            pen = T2CharStringPen(0, lm_gs)
+            lm_gs[src].draw(pen)
+            c0 = pen.getCharString(private, gsubrs)
+        bb = bounds(c0)
+        adv[name] = round(bb[2] - bb[0])
+        cs[name] = shifted(c0, -bb[0], private, gsubrs, adv[name])
+        new_glyphs.append(name)
+    pen = T2CharStringPen(0, None)
+    for x, y in ((56, -10), (96, -10), (96, 510), (56, 510)):
+        (pen.moveTo if (x, y) == (56, -10) else pen.lineTo)((x, y))
+    pen.closePath()
+    cs["tex.mapstochar"], adv["tex.mapstochar"] = pen.getCharString(private, gsubrs), 0
+    new_glyphs.append("tex.mapstochar")
+
     # spacing around parentheses from print (f(x) is set tight in 1947).
     # 1) italic correction: the gaps from a letter to a following "(" or ")",
     #    weighted by how often each occurs;

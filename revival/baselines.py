@@ -15,7 +15,9 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
-ON_BASELINE = set("acemnorsuvwxzhklbdi0123456789ABCDEFHIKLMNPRTUVWXZ")
+# letters only: the figures in running heads ("1947]") are old style and
+# descend, which put those lines' baselines too low
+ON_BASELINE = set("acemnorsuvwxzhklbdiABCDEFHIKLMNPRTUVWXZ")
 
 
 def main():

@@ -119,7 +119,8 @@ SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 # letter and its terminal over the next.  (The math italic f in
 # Mills8A-Math.otf gets a positive left side bearing instead; see
 # build_math.py.)
-SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07)}}
+SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07)},
+                   "R": {"—": (0.02, 0.02)}}     # the em dash is constructed
 
 
 _ds = os.path.join(WORK, "docscale.json")
@@ -840,6 +841,16 @@ def main():
             masters["–"] = (np.pad(ndimage.zoom(crop, (1, target / crop.shape[1]), order=1),
                                    ((0, 0), (8, 8))), top)
             added.append("–")
+        if style == "R" and "-" in masters:
+            # em dash: the 1947 "—" sort is a rule from the math (0.7 em,
+            # above the hyphen); the hyphen stretched to an em of ink instead
+            img, top = masters["-"][:2]
+            ys, xs = np.nonzero(img > 0.5)
+            crop = img[:, xs.min():xs.max() + 1]
+            target = int(0.95 * EM_PX * UP)
+            masters["—"] = (np.pad(ndimage.zoom(crop, (1, target / crop.shape[1]), order=1),
+                                   ((0, 0), (8, 8))), top)
+            added.append("—")
         print(f"{style_name}: {len(masters)} masters, from 1922 specimen: {''.join(added)}")
         # master tuples hold (img, top-of-img relative to baseline in master px)
         glyphs = build(style, masters)

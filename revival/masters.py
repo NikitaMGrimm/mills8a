@@ -111,7 +111,10 @@ def stroke(bm):
     return 2 * np.percentile(edt[edt > 0], 95)
 
 
-def build(members, drop_bold=False, bold_out=None):
+def build(members, drop_bold=False, bold_out=None, extra=()):
+    """extra: impressions moved here because OCR read them as this letter;
+    the template is made from the sort's own members, and an extra
+    impression is kept only if it matches it like the members do."""
     # drop instances whose vertical position disagrees with the majority
     # (a wrong baseline on a display-math line)
     tops = np.array([m["bbox"][1] - m["baseline_ref"] for m in members])
@@ -129,7 +132,8 @@ def build(members, drop_bold=False, bold_out=None):
     if len(members) > MAXN:
         members = sorted(members, key=lambda m: (m["page"], m["bbox"][1], m["bbox"][0]))
         members = [members[int(k)] for k in np.linspace(0, len(members) - 1, MAXN)]
-    geo = canvas_geometry(members)
+    extra = list(extra)[:MAXN]
+    geo = canvas_geometry(members + extra)
     imgs = [p for p in (place(m, geo) for m in members) if p is not None]
     if not imgs:
         return None
@@ -139,6 +143,7 @@ def build(members, drop_bold=False, bold_out=None):
     for im in imgs:
         acc += shift(im, *align(im, t_f))
     tmpl = acc / len(imgs)
+    imgs += [p for p in (place(m, geo) for m in extra) if p is not None]
     t_f = sfft.rfft2(tmpl)
     acc, kept, aligned, dys = np.zeros_like(tmpl), 0, [], []
     for im in imgs:
@@ -176,6 +181,7 @@ def main():
     masters = {}
     bold = {}                  # bold title capitals found inside roman sorts
     members_of = {}
+    moved = {}             # impressions OCR read as another letter, by target sort
     for key, cids in sorted(sorts.items(), key=lambda kv: str(kv[0])):
         members = [inst[i] for c in cids for i in clusters[c]["members"]]
         members_of.setdefault(key, [])
@@ -191,14 +197,15 @@ def main():
                     and len(key[0]) == 1 and key[0].isascii() and key[0].isalpha()
                     and ch != key[0] and m["conf"] > 90 and ch.isupper() == key[0].isupper()
                     and (ch,) + key[1:] in sorts):
-                members_of.setdefault((ch,) + key[1:], []).append(m)
+                moved.setdefault((ch,) + key[1:], []).append(m)
             else:
                 members_of[key].append(m)
     for key, members in members_of.items():
         if not members:
             continue
         out = [] if key[1] == "R" and key[2] == 11 and key[0].isascii() and key[0].isupper() else None
-        r = build(members, drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(), bold_out=out)
+        r = build(members, drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
+                  bold_out=out, extra=moved.get(key, []))
         if out:
             bold.setdefault(key[0], []).extend(out)
         if r is None:

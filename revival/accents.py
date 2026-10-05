@@ -183,7 +183,8 @@ def main():
             names['"'] = "quotedblright"
         # the rest have no 1947 or 1922 source: Latin Modern's, thickened
         borrowed = ""
-        for ch in "?#%&*@\\^_{}~\u00a7\u2020\u2021":
+        for ch in ("?#%&*@\\^_{}~\u00a7\u2020\u2021\u00b6\u00a1\u00bf\u00ab\u00bb"
+                   "\u00df\u00c6\u00e6\u0152\u0153\u00d8\u00f8\u0141\u0142\u00d0\u00f0\u00de\u00fe"):
             if ch in names or ord(ch) not in L.getBestCmap():
                 continue
             src = L.getBestCmap()[ord(ch)]
@@ -192,7 +193,9 @@ def main():
                 continue
             contours, dx, dy = o
             a = L["hmtx"][src][0] + 2 * grow_u
-            new_cs = charstring(contours, dx + grow_u, dy, bf.U_PER_UPX, a, private, gsubrs)
+            # lifted by the thickening, so the bottom stays on the baseline
+            new_cs = charstring(contours, dx + grow_u, dy + grow_u, bf.U_PER_UPX, a, private,
+                                gsubrs)
             rec = RecordingPen()
             new_cs.draw(rec)
             add_from_pen(src, rec, a)

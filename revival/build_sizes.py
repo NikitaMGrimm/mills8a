@@ -12,6 +12,7 @@ fill-in glyphs keep the 11pt outlines and are only thickened; real 9pt sorts
 are traced at their printed size in units of the 9pt em.
 """
 import os
+import string
 import pickle
 
 import numpy as np
@@ -23,6 +24,7 @@ from fontTools.ttLib import TTFont
 
 import build_font as bf
 from build_math import outline_from_glyph, outline_from_master, charstring, bounds
+from masters import stroke
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
@@ -41,6 +43,14 @@ def measured_grow(M, style, size, letters, ratio):
          for g in letters for base_style in [style if style != "B" else "R"]
          if (g, style, size) in M and (g, base_style, 11) in M and M[(g, style, size)]["n"] >= 3]
     return max(0.0, float(np.median(d))) if d else 0.0
+
+
+def scaled(c, k, adv, private, gsubrs):
+    """Charstring c scaled by k about the origin, with advance adv."""
+    from fontTools.pens.transformPen import TransformPen
+    pen = T2CharStringPen(adv, None)
+    c.draw(TransformPen(pen, (k, 0, 0, k, 0, 0)))
+    return pen.getCharString(private, gsubrs)
 
 
 def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=None,
@@ -62,6 +72,13 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     private, gsubrs = top.Private, top.GlobalSubrs
     cs, adv = {}, {}
     n_real = 0
+    # real sorts can come from impressions of different weight (bold: the
+    # titles of several papers); bring each to the median stem
+    ink = {}
+    if len(real) >= 5:
+        st = {c: stroke(m["img"] > 0.5) / bf.UP for c, m in real.items()}
+        med = float(np.median(list(st.values())))
+        ink = {c: bf.INK_PX + (med - v) / 2 for c, v in st.items()}
     for n in keep:
         ch = names.get(n)
         a = base["hmtx"][n][0]
@@ -69,7 +86,7 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
         gs[n].draw(bp)
         b = bp.bounds or (0, 0, 0, 0)
         if ch in real:
-            contours, dx, dy, w = outline_from_master(real[ch], bf.INK_PX)
+            contours, dx, dy, w = outline_from_master(real[ch], ink.get(ch, bf.INK_PX))
             # traced at 11pt units; this font's em is em_pt
             w_u = w * f
             if spacing and ch in spacing:
@@ -102,6 +119,24 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
             cs[n] = charstring(contours, dx + gu, dy + gu, bf.U_PER_UPX, a + 2 * gu, private,
                                gsubrs)
             adv[n] = round(a + 2 * gu)
+    # glyphs from the base font follow the real sorts' proportions: a 9 pt
+    # cut is relatively larger than a scaled 11 pt, thickened bold grows
+    # upward; scale them about the baseline to the real sorts' median cap
+    # height (capitals) and x-height (lowercase)
+    real_n = {n for n in keep if names.get(n) in real}
+    for group, flat in ((string.ascii_uppercase, "BDEFHIKLMNPRTXZ"),
+                        (string.ascii_lowercase, "vwxz")):
+        tops_r = [bounds(cs[n])[3] for n in real_n if names[n] in flat]
+        synth = [n for n in keep if names.get(n, "") in group and n not in real_n and n in cs]
+        tops_s = [bounds(cs[n])[3] for n in synth if names[n] in flat]
+        if len(tops_r) >= 3 and tops_s:
+            k = float(np.median(tops_r)) / float(np.median(tops_s))
+            if abs(k - 1) > 0.01:
+                for n in synth:
+                    adv[n] = round(adv[n] * k)
+                    cs[n] = scaled(cs[n], k, adv[n], private, gsubrs)
+                print(f"  {style_name}: {len(synth)} {'capitals' if group[0] == 'A' else 'lowercase'}"
+                      f" from the base font scaled {(k - 1) * 100:+.1f}% to the real sorts")
     order = [".notdef", "space"] + [n for n in keep if n not in (".notdef", "space")]
     pen = T2CharStringPen(500, None)
     pen.moveTo((50, 0)); pen.lineTo((450, 0)); pen.lineTo((450, 700)); pen.lineTo((50, 700))

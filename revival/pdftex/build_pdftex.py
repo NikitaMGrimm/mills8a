@@ -56,6 +56,11 @@ TEXT_FONTS = [
 ]
 
 
+SYM_ENC = """/m8asym [ /section /dagger /daggerdbl /paragraph
+""" + " ".join(["/.notdef"] * 252) + """ ] def
+"""
+
+
 def text_fonts():
     maplines = []
     done = set()
@@ -69,6 +74,14 @@ def text_fonts():
         if otf not in done:
             run("cfftot1", os.path.join(SRC, otf), otf[:-4] + ".pfb", cwd=OUT)
             done.add(otf)
+    # § † ‡ ¶ (LaTeX takes them from TS1): a small font in its own encoding
+    with open(os.path.join(OUT, "m8asym.enc"), "w") as fh:
+        fh.write(SYM_ENC)
+    r = run("otftotfm", "-e", "m8asym.enc", "--no-type1", "--no-updmap", "--force",
+            os.path.join(SRC, "Mills8A-Regular.otf"), "m8asym", cwd=OUT)
+    for line in r.stdout.splitlines():
+        if line.strip():
+            maplines.append(re.sub(r"<([\w-]+)\.otf", r"<\1.pfb", line))
     return maplines
 
 
@@ -108,13 +121,26 @@ OMS = {0x00: 0x2212, 0x01: 0x22C5, 0x02: 0x00D7, 0x03: 0x2217, 0x04: 0x00F7, 0x0
        0x6F: 0x2240, 0x70: 0x221A, 0x71: 0x2A3F, 0x72: 0x2207, 0x73: 0x222B, 0x74: 0x2294,
        0x75: 0x2293, 0x76: 0x2291, 0x77: 0x2292, 0x78: 0x00A7, 0x79: 0x2020, 0x7A: 0x2021,
        0x7B: 0x00B6, 0x7C: 0x2663, 0x7D: 0x2662, 0x7E: 0x2661, 0x7F: 0x2660}
+SCRIPT_CAPS = {"B": 0x212C, "E": 0x2130, "F": 0x2131, "H": 0x210B, "I": 0x2110,
+               "L": 0x2112, "M": 0x2133, "R": 0x211B}   # not in the U+1D49C run
 for i in range(26):                       # calligraphic capitals
-    OMS[0x41 + i] = 0x1D49C + i
+    OMS[0x41 + i] = SCRIPT_CAPS.get(chr(0x41 + i), 0x1D49C + i)
 
-# operators: OT1-like layout of upright letters, figures and punctuation
+# operators: OT1-like layout of upright Greek capitals, letters, figures,
+# punctuation and the math accents
 OPS = {}
 for c in "!()*+,-./0123456789:;=?[]ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz":
     OPS[ord(c)] = ord(c)
+for i, cp in enumerate([0x393, 0x394, 0x398, 0x39B, 0x39E, 0x3A0, 0x3A3, 0x3A5, 0x3A6, 0x3A8,
+                        0x3A9]):
+    OPS[i] = cp
+# accents as spacing glyphs made for TeX in Mills8A-Math.otf (tex.acc.*)
+OPS_NAMED = {0x12: "tex.acc.0300", 0x13: "tex.acc.0301", 0x14: "tex.acc.030C",
+             0x15: "tex.acc.0306", 0x16: "tex.acc.0304", 0x17: "tex.acc.030A",
+             0x5E: "tex.acc.0302", 0x5F: "tex.acc.0307", 0x7E: "tex.acc.0303",
+             0x7F: "tex.acc.0308"}
+# relations with no slot in the standard layouts: a small U-encoded font
+EXTRA = {0: 0x2260, 1: 0x2266, 2: 0x2267, 3: 0x2245}     # ≠ ≦ ≧ ≅
 
 
 def math_tables(f):
@@ -236,6 +262,7 @@ def math_fonts():
         # family 0: operators
         g = {s: glyph_for(f, cmap, ssty, cp, level) for s, cp in OPS.items()}
         g = {s: n for s, n in g.items() if n}
+        g.update({s: n for s, n in OPS_NAMED.items() if n in f.getGlyphOrder()})
         lines.append(make_tex_font(f"m8aop{suffix}", f, g, size, "MILLS8A-OPERATORS",
                                    [("SLANT", 0), ("SPACE", 322), ("STRETCH", 161),
                                     ("SHRINK", 107), ("XHEIGHT", 440), ("QUAD", 1000),
@@ -243,6 +270,8 @@ def math_fonts():
         # family 2: symbols, with TeX's math parameters (fontdimens 8-22)
         g = {s: glyph_for(f, cmap, ssty, cp, level) for s, cp in OMS.items()}
         g = {s: n for s, n in g.items() if n}
+        if "tex.mapstochar" in f.getGlyphOrder():
+            g[0x37] = "tex.mapstochar"
         dims = [("SLANT", 0.25), ("SPACE", 0), ("STRETCH", 0), ("SHRINK", 0),
                 ("XHEIGHT", 440), ("QUAD", 1000), ("EXTRASPACE", 0),
                 ("NUM1", v(mc.FractionNumeratorDisplayStyleShiftUp)),
@@ -261,6 +290,10 @@ def math_fonts():
                 ("AXISHEIGHT", v(mc.AxisHeight))]
         lines.append(make_tex_font(f"m8asy{suffix}", f, g, size, "MILLS8A-SYMBOLS", dims,
                                    ic=ic, acc=acc, skewchar=0x30))
+        g = {s: glyph_for(f, cmap, ssty, cp, level) for s, cp in EXTRA.items()}
+        g = {s: n for s, n in g.items() if n}
+        lines.append(make_tex_font(f"m8axs{suffix}", f, g, size, "MILLS8A-EXTRA",
+                                   [("SLANT", 0), ("XHEIGHT", 440), ("QUAD", 1000)]))
     return lines
 
 
@@ -360,6 +393,16 @@ FD = {
 \DeclareFontFamily{OMS}{m8asy}{\skewchar\font=48 }
 \DeclareFontShape{OMS}{m8asy}{m}{n}{<-6> m8asyss <6-8> m8asys <8-> m8asy}{}
 """,
+    "um8axs.fd": r"""\ProvidesFile{um8axs.fd}[2026/10/05 Mills 8A extra relations, pdfLaTeX]
+\DeclareFontFamily{U}{m8axs}{}
+\DeclareFontShape{U}{m8axs}{m}{n}{<-6> m8axsss <6-8> m8axss <8-> m8axs}{}
+""",
+    "um8asym.fd": r"""\ProvidesFile{um8asym.fd}[2026/10/05 Mills 8A text symbols, pdfLaTeX]
+\DeclareFontFamily{U}{m8asym}{}
+\DeclareFontShape{U}{m8asym}{m}{n}{<-> m8asym}{}
+\DeclareFontShape{U}{m8asym}{b}{n}{<-> ssub * m8asym/m/n}{}
+\DeclareFontShape{U}{m8asym}{m}{it}{<-> ssub * m8asym/m/n}{}
+""",
     "mills8a.sty": r"""\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{mills8a}[2026/10/05 Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
 \RequirePackage[T1]{fontenc}
@@ -374,6 +417,18 @@ FD = {
 \DeclareSymbolFont{largesymbols}{OMX}{m8aex}{m}{n}
 \DeclareMathSizes{11}{11}{6.48}{5.51}
 \DeclareMathSizes{10.95}{11}{6.48}{5.51}
+% the 1947 sorts for relations the standard layouts have no slot for;
+% set at the start of the document so they win over amssymb's
+\DeclareSymbolFont{millsextra}{U}{m8axs}{m}{n}
+\def\mills@rel#1#2{\mathchardef#1=\numexpr"3000+\symmillsextra*"100+#2\relax}
+\AtBeginDocument{%
+  \mills@rel\neq0 \let\ne\neq
+  \mills@rel\leqq1 \mills@rel\geqq2 \mills@rel\cong3 }
+% section, dagger, double dagger and pilcrow from the 1947 text font
+\DeclareTextCommand{\textsection}{T1}{{\usefont{U}{m8asym}{m}{n}\char0}}
+\DeclareTextCommand{\textdagger}{T1}{{\usefont{U}{m8asym}{m}{n}\char1}}
+\DeclareTextCommand{\textdaggerdbl}{T1}{{\usefont{U}{m8asym}{m}{n}\char2}}
+\DeclareTextCommand{\textparagraph}{T1}{{\usefont{U}{m8asym}{m}{n}\char3}}
 \endinput
 """,
 }
