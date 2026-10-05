@@ -35,9 +35,10 @@ def canvas_geometry(members):
     tops = [m["bbox"][1] - m["baseline_ref"] for m in members]
     bots = [m["bbox"][3] - m["baseline_ref"] for m in members]
     wid = max(m["bbox"][2] - m["bbox"][0] for m in members)
-    base = int(-min(tops) * UP) + MARGIN
-    h = sfft.next_fast_len(base + int(max(bots) * UP) + MARGIN)
-    w = sfft.next_fast_len(int(wid * UP) + 2 * MARGIN)
+    z = UP * max(DOCSCALE.values(), default=1.0)      # room for rescaled impressions
+    base = int(-min(tops) * z) + MARGIN
+    h = sfft.next_fast_len(base + int(max(bots) * z) + MARGIN)
+    w = sfft.next_fast_len(int(wid * z) + 2 * MARGIN)
     return h, w, base
 
 
@@ -47,6 +48,8 @@ def _docweight():
 
 
 DOCWEIGHT = _docweight()           # extra ink per edge (scan px) of each scan, see docweight.py
+DOCSCALE = (json.load(open(os.path.join(WORK, "docscale.json")))
+            if os.path.exists(os.path.join(WORK, "docscale.json")) else {})
 
 
 def disk(r):
@@ -57,16 +60,21 @@ def disk(r):
 def place(inst, geo):
     H, W, base = geo
     bm = inst["bitmap"].astype(float)
-    up = ndimage.zoom(np.pad(bm, 1), UP, order=1)[UP:-UP, UP:-UP]
+    doc = inst["page"].rsplit("-", 1)[0]
+    sc = DOCSCALE.get(doc, 1.0)            # the Transactions type is ~4% smaller
+    z = UP * sc
+    up = ndimage.zoom(np.pad(bm, 1), z, order=1)
+    p = int(round(z))
+    up = up[p:-p, p:-p]
     # bring a heavier or lighter scan to the reference weight
-    r = int(round(DOCWEIGHT.get(inst["page"].rsplit("-", 1)[0], 0.0) * UP))
+    r = int(round(DOCWEIGHT.get(doc, 0.0) * UP))
     k = max(0, -r)                    # growth beyond the bitmap's box
     if r > 0:
         up = ndimage.grey_erosion(up, footprint=disk(r))
     elif r < 0:
         up = ndimage.grey_dilation(np.pad(up, k), footprint=disk(k))
     can = np.zeros((H, W))
-    y = base + int(round((inst["bbox"][1] - inst["baseline_ref"]) * UP)) - k
+    y = base + int(round((inst["bbox"][1] - inst["baseline_ref"]) * z)) - k
     h, w = up.shape
     if y < 0 or y + h > H or MARGIN - k + w > W:
         return None

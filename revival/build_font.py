@@ -9,6 +9,7 @@ Fonts written to fonts/:
 Units: 1000 per em of 11pt.  The 1947 scans are 600 dpi, so one em is
 11 * 600/72.27 = 91.3 px, and a master pixel (4x) is 1000/365.3 units.
 """
+import json
 import os
 import pickle
 import re
@@ -121,6 +122,10 @@ SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07)}}
 
 
+_ds = os.path.join(WORK, "docscale.json")
+DOCSCALE = json.load(open(_ds)) if os.path.exists(_ds) else {}   # see docweight.py
+
+
 def fit_spacing(style, size, widths):
     """Side bearings and advances (scan px) from within-word letter pairs.
 
@@ -157,7 +162,9 @@ def fit_spacing(style, size, widths):
             if a in sort_of and b in sort_of:
                 gap = inst[b]["bbox"][0] - inst[a]["bbox"][2]
                 if -6 < gap < 12:
-                    pairs.append((sort_of[a], sort_of[b], inst[b]["bbox"][0] - inst[a]["bbox"][0]))
+                    sc = DOCSCALE.get(inst[a]["page"].rsplit("-", 1)[0], 1.0)
+                    pairs.append((sort_of[a], sort_of[b],
+                                  sc * (inst[b]["bbox"][0] - inst[a]["bbox"][0])))
     out = {}
     if pairs:
         glyphs = sorted({p[0] for p in pairs} | {p[1] for p in pairs})
