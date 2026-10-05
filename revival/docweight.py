@@ -21,7 +21,7 @@ from masters import stroke
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WORK = os.path.join(HERE, "work")
-LETTERS = "acehmnorsu"
+LETTERS = set("acehmnorsu")
 REF = "erdos1947"
 
 
