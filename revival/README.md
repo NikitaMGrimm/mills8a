@@ -63,7 +63,20 @@ repository; put copies in `scans/` under these names.
 - **Built:** *ff*, from the 1947 *ffi* sort cut after the second *f*, with
   the single *f*'s arm grafted on (no *ff* occurs in the scans); its width
   is the *ffi* width less the *i* width. The en dash is a stretched hyphen.
+- **Built, italic:** *ff*, from two italic *f* masters placed so the
+  crossbars run on, with the first *f*'s terminal trimmed clear of the second
+  ascender.
 - **By hand:** the italic *f*'s overhang (`SPACING_BY_HAND`).
+
+Two clean-ups keep sparse sorts consistent with the frequent ones:
+
+- **Bold title capitals** have the 11 pt cap height and so join the roman
+  capital sorts. Impressions whose stroke width is 18% or more above the
+  sort's lighter quartile are dropped (ink varies by about 10%, bold adds
+  about 25%). Half the roman I impressions came from bold titles.
+- **Baseline snapping:** a sort seen fewer than 30 times inherits the
+  baseline errors of its few lines, so it's placed where the frequent
+  letters sit (flat bottoms like *n h H T*, or round ones like *o c e s*).
 
 ## Texture and weight
 

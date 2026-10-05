@@ -231,9 +231,11 @@ def fit_spacing(style, size, widths):
         if g in widths:
             lsb, rsb = lsb_em * EM_PX, rsb_em * EM_PX
             out[g] = (lsb, lsb + widths[g] + rsb)
+    if style in FF_DX and "ff" in widths and "f" in out:
+        out["ff"] = (out["f"][0], out["f"][1] + FF_DX[style] / UP)
     if unit:
         for g, (lsb, adv) in out.items():
-            if g in SPACING_BY_HAND.get(style, {}):
+            if g in SPACING_BY_HAND.get(style, {}) or (g == "ff" and style in FF_DX):
                 continue
             snapped = max(1, round(adv / unit)) * unit
             out[g] = (lsb + (snapped - adv) / 2, snapped)
@@ -278,7 +280,7 @@ def specimen_scale(size):
 
 
 DESCENDING = set("gjpqyQJ$")
-ROUND_BOTTOM = set("CGOQSUJcdeosabqu")
+ROUND_BOTTOM = set("CGOQSUJcdeosabqu035689")
 
 
 _GROW = {}
@@ -401,6 +403,79 @@ def make_ff(M):
             w = min(src.shape[1], img.shape[1] - x0)
             arm[yy, x0:x0 + w] = src[y, :w]
     return np.maximum(img, arm), -ffi["base"]
+
+
+FF_DX = {}          # style -> offset of the second f in an ff ligature (master px)
+
+
+FLAT_REF = set("nmhiluHTIL")
+ROUND_REF = set("oces")
+
+
+def snap_sparse_to_baseline(M, style, min_n=30):
+    """A sort seen only a few times inherits the baseline errors of its few
+    lines (the roman I, 9 impressions, floated 2.5 px high).  Sit such
+    sorts on the baseline exactly as the frequent ones sit: flat-bottomed
+    letters at the median bottom of n m h i l u H T I L, round ones at
+    that of o c e s (overshoot).  Shifts the master and its alternates."""
+    def bottom(m):
+        rows = np.nonzero((m["img"] > 0.5).any(1))[0]
+        return rows.max() + 1 - m["base"]            # master px below baseline
+    ref = {}
+    for kind, chars in (("flat", FLAT_REF), ("round", ROUND_REF)):
+        b = [bottom(m) for (g, s, z), m in M.items()
+             if s == style and z == 11 and g in chars and m["n"] >= min_n]
+        if b:
+            ref[kind] = float(np.median(b))
+    moved = []
+    for (g, s, z), m in M.items():
+        if s != style or z != 11 or m["n"] >= min_n or len(g) != 1:
+            continue
+        if not g.isalnum() or g in DESCENDING or g in "Jjpqgyf" or not g.isascii():
+            continue
+        want = ref.get("round" if g in ROUND_BOTTOM else "flat")
+        if want is None:
+            continue
+        d = int(round(want - bottom(m)))
+        if d and abs(d) <= 6 * UP:
+            m["base"] -= d                           # lower the glyph by d
+            moved.append(f"{g}{d / UP:+.1f}")
+    if moved:
+        print(f"{style}: baseline snapped (scan px): {' '.join(moved)}")
+
+
+def make_ff_italic(M):
+    """Italic ff (no ffi or ff occurs in the scans): two italic f masters,
+    the second placed so its crossbar continues the first one's, and the
+    first f's top terminal trimmed where it would run into the second f's
+    ascender, as on the Monotype italic ff."""
+    f = M.get(("f", "I", 11))
+    if f is None:
+        return None
+    img, base = despeckle(f["img"]), f["base"]
+    bm = img > 0.5
+    xh = 41 * UP
+    # crossbar: the row near the x-height with the widest ink extent
+    rows = range(base - xh - 6 * UP, base - xh + 6 * UP)
+    def extent(r):
+        x = np.flatnonzero(bm[r])
+        return (x.max() - x.min() + 1, x.min(), x.max()) if len(x) else (0, 0, 0)
+    bar = max(rows, key=lambda r: extent(r)[0])
+    _, bx0, bx1 = extent(bar)
+    dx = int(bx1 - bx0 - 1 * UP)              # overlap the bars by 1 scan px
+    H, W = img.shape
+    out = np.zeros((H, W + dx))
+    out[:, :W] = img
+    second = np.zeros_like(out)
+    second[:, dx:] = img
+    # trim the first f above the crossbar where it comes within 2 scan px of
+    # the second f's ascender
+    for r in range(0, bar - 2 * UP):
+        x = np.flatnonzero(second[r] > 0.5)
+        if len(x):
+            out[r, max(0, x.min() - 2 * UP):] = 0
+    FF_DX["I"] = dx
+    return np.maximum(out, second), -base
 
 
 def glyph_name(g):
@@ -543,6 +618,8 @@ def main():
     os.makedirs(FONTS, exist_ok=True)
     regular = {}
     M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
+    for style in "RI":
+        snap_sparse_to_baseline(M, style)
     for style, style_name in (("R", "Regular"), ("I", "Italic")):
         masters = {g: (m["img"], -m["base"], m.get("alts", [])) for (g, s, z), m in M.items()
                    if s == style and z == 11}
@@ -556,6 +633,11 @@ def main():
                     img, top = sg
                     masters[ch] = (img, top * 1.0)
                     added.append(ch)
+        if style == "I" and "ff" not in masters:
+            ff = make_ff_italic(M)
+            if ff is not None:
+                masters["ff"] = ff
+                added.append("ff")
         if style == "R" and "ff" not in masters:
             ff = make_ff(M)
             if ff is not None:
@@ -611,6 +693,8 @@ def main():
                     extra[0x210E if g == "h" else MATH_IT_LOW + ord(g) - 97] = name
                 elif g in GREEK_MATH_IT:
                     extra[GREEK_MATH_IT[g]] = name
+        if style == "I" and "f_f" in glyphs:
+            feats += "feature liga { sub f f by f_f; } liga;\n"
         feats += rand_feature(glyphs)
         assemble(glyphs, "Mills 8A", style_name,
                  os.path.join(FONTS, f"Mills8A-{style_name}.otf"), extra, feats)

@@ -73,12 +73,26 @@ def iou(a, b):
     return np.count_nonzero(a & b) / max(1, np.count_nonzero(a | b))
 
 
-def build(members):
+def stroke(bm):
+    """Stroke width of a 1-bit glyph: twice a high percentile of the
+    distance to the nearest paper pixel."""
+    edt = ndimage.distance_transform_edt(np.pad(bm, 1))
+    return 2 * np.percentile(edt[edt > 0], 95)
+
+
+def build(members, drop_bold=False):
     # drop instances whose vertical position disagrees with the majority
     # (a wrong baseline on a display-math line)
     tops = np.array([m["bbox"][1] - m["baseline_ref"] for m in members])
     med = np.median(tops)
     members = [m for m, t in zip(members, tops) if abs(t - med) <= 6] or members
+    if drop_bold and len(members) >= 4:
+        # bold title capitals have the cap height of the 11pt text and so
+        # land in the same sort; their strokes are ~25% heavier, while ink
+        # varies by ~10%
+        w = np.array([stroke(m["bitmap"]) for m in members])
+        light = np.percentile(w, 25)
+        members = [m for m, x in zip(members, w) if x <= 1.18 * light] or members
     geo = canvas_geometry(members)
     imgs = [p for p in (place(m, geo) for m in members) if p is not None]
     if not imgs:
@@ -119,7 +133,7 @@ def main():
     for key, cids in sorted(sorts.items(), key=lambda kv: str(kv[0])):
         members = [inst[i] for c in cids for i in clusters[c]["members"]]
         members = [m for m in members if m["baseline_ref"] is not None]
-        r = build(members)
+        r = build(members, drop_bold=key[1] == "R" and key[0].isupper())
         if r is None:
             continue
         img, n, base, alts = r
