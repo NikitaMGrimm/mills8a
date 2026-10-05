@@ -52,8 +52,8 @@ repository; put copies in `scans/` under these names.
 ## What comes from where
 
 - **1947 masters:** all roman lowercase, figures, punctuation, roman caps
-  F H I J L N T, 18 small caps, italic lowercase except *j q*, italic caps
-  *A B D F M N T W*, Greek *α β ζ π σ ϕ ϵ*, and + − = < > ≦ ≧ ∞ → ∑ ( ) [ ] / |,
+  F H I L N T W, 18 small caps, italic lowercase except *j q*, italic caps
+  *A B D F M N T*, Greek *α β ζ π σ ϕ ϵ*, and + − = < > ≦ ≧ ∞ → ∑ ( ) [ ] / |,
   plus the fi and ffi ligatures.
 - **1922 specimen:** the remaining capitals, small caps and italic letters.
   Each is the average of all its impressions (up to six sizes, each scaled
