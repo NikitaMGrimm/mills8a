@@ -125,8 +125,29 @@ def thin_horizontals(m, r):
     out["img"] = ndimage.zoom(out["img"], (f, 1), order=1)
     out["alts"] = [ndimage.zoom(a.astype(np.float32), (f, 1), order=1).astype(np.float16)
                    for a in out["alts"]]
-    out["base"] = int(round(out["base"] * f))
+    out["base"] = extent(out["img"])[1] - (b0 - m["base"])   # bottom where it was
     return out
+
+
+def proportions(got):
+    """{figure: (top, descent)} in head px, ink spread (~2 px) taken off,
+    measured on the impressions in the running heads."""
+    out = {}
+    for d, v in got.items():
+        top = np.median([m["baseline_ref"] - m["bbox"][1] for m in v]) - 2
+        bot = np.median([m["bbox"][3] - m["baseline_ref"] for m in v]) - 2
+        out[d] = (float(top), float(bot) if bot > 4 else 0.0)
+    return out
+
+
+def to_proportion(m, top, bot):
+    """Scale m (uniformly) and place it so its ink runs from top above the
+    baseline to bot below it (master px)."""
+    t, b = extent(m["img"])
+    m = zoom_master(m, (top + bot) / (b - t + 1))
+    t, b = extent(m["img"])
+    m["base"] = int(round(b - bot))
+    return m
 
 
 def main():
@@ -153,6 +174,28 @@ def main():
         img, n, base, alts = r
         osf[d] = zoom_master(dict(img=img, base=base, alts=alts, n=n), k)
         print(f"old-style {d}: {n} impressions from the running heads, scaled {k:.2f}")
+    # each figure from its own year's papers: small differences in scale
+    # between the scans put them out of proportion (the 0, all from 1940,
+    # came out 10% too tall).  Height and descent as measured in the heads,
+    # relative to the 1, which every year has
+    prop = proportions(got)
+    targets = {}
+    if "1" in osf and "1" in prop:
+        t1, b1 = extent(osf["1"]["img"])
+        px = (osf["1"]["base"] - t1) / prop["1"][0]      # master px per head px
+        # on the line: flat feet (1 2) exactly, round bottoms (0 6 8) by the
+        # o's overshoot -- the heads' baselines are good to a pixel only
+        o_m = M[("o", "R", 11)]
+        over = extent(o_m["img"])[1] - o_m["base"]
+        for d in list(osf):
+            if d in prop:
+                top, bot = prop[d][0] * px, prop[d][1] * px
+                if d in "12":
+                    top, bot = top + bot, 0.0
+                elif d in "068":
+                    top, bot = top + bot - over, over
+                targets[d] = (top, bot)
+                osf[d] = to_proportion(osf[d], top, bot)
     # the ~8 pt head type is cut with heavy hairlines (it must survive at
     # that size); scaled to 11 pt, the bowl of the 0 -- all hairline at top
     # and bottom -- reads heavier than the o beside it.  Its horizontal
@@ -174,7 +217,11 @@ def main():
               f"(contrast of the o: {o_ratio:.2f})")
     for d in list(osf):
         m = thin_horizontals(osf[d], thin) if d == "0" else osf[d]
-        osf[d] = reweigh(m, (target_stem - stem(m)) / 2)
+        for _ in range(3):                     # weight and size, until both hold
+            m = reweigh(m, (target_stem - stem(m)) / 2)
+            if d in targets:                   # the stem match moves the edges
+                m = to_proportion(m, *targets[d])
+        osf[d] = m
     if "1" not in osf or not ({"9", "7"} & set(osf)):
         print("old-style figures: too few real ones; none built")
         return
