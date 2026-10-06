@@ -98,6 +98,37 @@ def stem(m):
     return ms.stroke(m["img"] > 0.5)
 
 
+def hairline(img):
+    """Thickness of the thin strokes: the shorter ink runs down the middle
+    column (top and bottom of a bowl)."""
+    xs = np.flatnonzero((img > 0.5).any(0))
+    col = img[:, (xs.min() + xs.max()) // 2] > 0.5
+    d = np.diff(np.r_[0, col.astype(int), 0])
+    runs = np.flatnonzero(d == -1) - np.flatnonzero(d == 1)
+    return float(np.min(runs)) if len(runs) else 0.0
+
+
+def thin_horizontals(m, r):
+    """Thin the horizontal strokes by r master px per edge (vertical
+    erosion, which leaves vertical stems as wide as they are), then restore
+    the glyph's height."""
+    if r <= 0:
+        return m
+    fp = np.ones((2 * r + 1, 1), bool)
+    t0, b0 = extent(m["img"])
+    out = dict(m)
+    out["img"] = ndimage.grey_erosion(m["img"], footprint=fp)
+    out["alts"] = [ndimage.grey_erosion(a.astype(np.float32), footprint=fp).astype(np.float16)
+                   for a in m["alts"]]
+    t1, b1 = extent(out["img"])
+    f = (b0 - t0 + 1) / (b1 - t1 + 1)                 # height back, width kept
+    out["img"] = ndimage.zoom(out["img"], (f, 1), order=1)
+    out["alts"] = [ndimage.zoom(a.astype(np.float32), (f, 1), order=1).astype(np.float16)
+                   for a in out["alts"]]
+    out["base"] = int(round(out["base"] * f))
+    return out
+
+
 def main():
     inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
     M = pickle.load(open(os.path.join(WORK, "masters.pkl"), "rb"))
@@ -120,10 +151,30 @@ def main():
         if r is None:
             continue
         img, n, base, alts = r
-        m = zoom_master(dict(img=img, base=base, alts=alts, n=n), k)
-        m = reweigh(m, (target_stem - stem(m)) / 2)
-        osf[d] = m
+        osf[d] = zoom_master(dict(img=img, base=base, alts=alts, n=n), k)
         print(f"old-style {d}: {n} impressions from the running heads, scaled {k:.2f}")
+    # the ~8 pt head type is cut with heavy hairlines (it must survive at
+    # that size); scaled to 11 pt, the bowl of the 0 -- all hairline at top
+    # and bottom -- reads heavier than the o beside it.  Its horizontal
+    # strokes are thinned to the o's contrast; the other figures, whose thin
+    # strokes are curves and diagonals that vertical thinning would break,
+    # only get their stems matched to the letters
+    o_ratio = hairline(M[("o", "R", 11)]["img"]) / stem(M[("o", "R", 11)])
+    thin = 0
+    if "0" in osf:
+        best = None
+        for rv in range(0, 25):
+            m0 = reweigh(thin_horizontals(osf["0"], rv),
+                         (target_stem - stem(thin_horizontals(osf["0"], rv))) / 2)
+            err = abs(hairline(m0["img"]) / stem(m0) - o_ratio)
+            if best is None or err < best[0]:
+                best = (err, rv)
+        thin = best[1]
+        print(f"old-style figures: hairlines thinned {thin / UP:.2f} px per edge "
+              f"(contrast of the o: {o_ratio:.2f})")
+    for d in list(osf):
+        m = thin_horizontals(osf[d], thin) if d == "0" else osf[d]
+        osf[d] = reweigh(m, (target_stem - stem(m)) / 2)
     if "1" not in osf or not ({"9", "7"} & set(osf)):
         print("old-style figures: too few real ones; none built")
         return
