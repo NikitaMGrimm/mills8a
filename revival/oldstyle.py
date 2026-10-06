@@ -10,7 +10,7 @@ in the ~8 pt type of the heads.
   running head of odd pages; their digits are known from the paper's year.
   Each figure's impressions are averaged (masters.build), scaled from the
   head's x-height to the text's, and thinned to the stem weight of the
-  11 pt lining figures (a smaller size is cut relatively heavier).
+  11 pt lowercase (a smaller size is cut relatively heavier).
 * Constructed, from the 1947 lining figures, by the proportions the real
   ones show: 0 2 at the height of the old-style 1; 3 5 hung like 9 and 7
   (top at that height, bottom at their descent); 6 8 as the lining ones.
@@ -111,7 +111,9 @@ def main():
             body_x.append((b - t + 1) / UP)
     # x-heights with the ink spread (~2 px per edge) taken off, as in assign.py
     k = (float(np.median(body_x)) - 4) / (head_x - 4)
-    lining_stem = float(np.median([stem(M[(d, "R", 11)]) for d in "147" if (d, "R", 11) in M]))
+    # old-style figures sit with the lowercase: their stems match the letters'
+    # (the lining figures print ~7% heavier than the letters)
+    target_stem = float(np.median([stem(M[(c, "R", 11)]) for c in "nmhuo" if (c, "R", 11) in M]))
     osf = {}
     for d, members in sorted(got.items()):
         r = ms.build(members)
@@ -119,7 +121,7 @@ def main():
             continue
         img, n, base, alts = r
         m = zoom_master(dict(img=img, base=base, alts=alts, n=n), k)
-        m = reweigh(m, (lining_stem - stem(m)) / 2)
+        m = reweigh(m, (target_stem - stem(m)) / 2)
         osf[d] = m
         print(f"old-style {d}: {n} impressions from the running heads, scaled {k:.2f}")
     if "1" not in osf or not ({"9", "7"} & set(osf)):
@@ -144,7 +146,7 @@ def main():
             m["base"] = int(round(bb - d_bot))       # hang it below the line
         else:                                         # 6 8 ascend like lining
             m = dict(lin)
-        m = reweigh(m, (lining_stem - stem(m)) / 2)
+        m = reweigh(m, (target_stem - stem(m)) / 2)
         osf[d] = m
         print(f"old-style {d}: constructed from the 1947 lining {d}")
     for d, m in osf.items():
