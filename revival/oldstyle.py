@@ -130,14 +130,26 @@ def thin_horizontals(m, r):
 
 
 def proportions(got):
-    """{figure: (top, descent)} in head px, ink spread (~2 px) taken off,
-    measured on the impressions in the running heads."""
-    out = {}
+    """{figure: (top, descent)} relative to the top of the 9, measured
+    within each year token -- one line, one scan, so neither the heads'
+    baseline errors nor the scale differences between scans enter -- with
+    the ink spread (~2 px per edge) taken off."""
+    tokens = defaultdict(dict)
     for d, v in got.items():
-        top = np.median([m["baseline_ref"] - m["bbox"][1] for m in v]) - 2
-        bot = np.median([m["bbox"][3] - m["baseline_ref"] for m in v]) - 2
-        out[d] = (float(top), float(bot) if bot > 4 else 0.0)
-    return out
+        for m in v:
+            tokens[(m["page"], m["line"])].setdefault(d, m)
+    rel = defaultdict(list)
+    for t in tokens.values():
+        if "9" not in t:
+            continue
+        n9 = t["9"]
+        h9 = n9["baseline_ref"] - n9["bbox"][1] - 2
+        for d, m in t.items():
+            top = m["baseline_ref"] - m["bbox"][1] - 2
+            bot = m["bbox"][3] - m["baseline_ref"] - 2
+            rel[d].append((top / h9, max(0.0, bot) / h9 if bot > 4 else 0.0))
+    return {d: (float(np.median([r[0] for r in v])), float(np.median([r[1] for r in v])))
+            for d, v in rel.items()}
 
 
 def to_proportion(m, top, bot):
@@ -176,13 +188,13 @@ def main():
         print(f"old-style {d}: {n} impressions from the running heads, scaled {k:.2f}")
     # each figure from its own year's papers: small differences in scale
     # between the scans put them out of proportion (the 0, all from 1940,
-    # came out 10% too tall).  Height and descent as measured in the heads,
-    # relative to the 1, which every year has
+    # came out 10% too tall).  Height and descent as measured within each
+    # year in the heads, relative to the 9, which every year has
     prop = proportions(got)
     targets = {}
-    if "1" in osf and "1" in prop:
-        t1, b1 = extent(osf["1"]["img"])
-        px = (osf["1"]["base"] - t1) / prop["1"][0]      # master px per head px
+    if "9" in osf and "9" in prop:
+        t9, b9 = extent(osf["9"]["img"])
+        px = (osf["9"]["base"] - t9) / prop["9"][0]      # master px per unit (9's top)
         # on the line: flat feet (1 2) exactly, round bottoms (0 6 8) by the
         # o's overshoot -- the heads' baselines are good to a pixel only
         o_m = M[("o", "R", 11)]
