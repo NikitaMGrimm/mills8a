@@ -182,8 +182,17 @@ def main():
     bold = {}                  # bold title capitals found inside roman sorts
     members_of = {}
     moved = {}             # impressions OCR read as another letter, by target sort
+    # the running head (each page's topmost line) sets its figures in old
+    # style ("1947]", whose 1 looks like a small I) or as page numbers; they
+    # are kept out of the figure sorts (oldstyle.py takes the years)
+    head = {}
+    for g in inst:
+        if g["line"] >= 0 and (g["page"] not in head or g["bbox"][1] < head[g["page"]][0]):
+            head[g["page"]] = (g["bbox"][1], g["line"])
     for key, cids in sorted(sorts.items(), key=lambda kv: str(kv[0])):
         members = [inst[i] for c in cids for i in clusters[c]["members"]]
+        if key[0].isdigit():
+            members = [m for m in members if m["line"] != head.get(m["page"], (0, None))[1]]
         members_of.setdefault(key, [])
         for m in members:
             if m["baseline_ref"] is None:

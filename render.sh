@@ -47,6 +47,14 @@ if [ -f mills-8a.pdf ] && [ -f mills-8a-pdf.pdf ]; then
   pdflatex -interaction=nonstopmode -jobname=mills-compare compare-all.tex >/dev/null \
     || { tail -30 mills-compare.log; exit 1; }
   echo out/mills-compare.pdf
+  # the specimen and the comparison images shown in README.md
+  P=$PWD/../revival/pdftex
+  TEXINPUTS="$P/tex:$TEXINPUTS" TFMFONTS="$P/fonts:" VFFONTS="$P/fonts:" T1FONTS="$P/fonts:" \
+  ENCFONTS="$P/fonts:" TEXFONTMAPS="$P/fonts:" \
+    pdflatex -interaction=nonstopmode specimen.tex >/dev/null || { tail -30 specimen.log; exit 1; }
+  mkdir -p ../docs
+  pdftoppm -r 170 -png -singlefile specimen.pdf ../docs/specimen
+  pdftoppm -r 110 -png -singlefile -f 1 -l 1 mills-compare.pdf ../docs/comparison
 fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills
 pdftoppm -r 200 -png -singlefile mills-cm.pdf mills-cm

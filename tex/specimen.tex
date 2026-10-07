@@ -1,0 +1,52 @@
+% Type specimen of Mills 8A (pdfLaTeX), rendered to docs/specimen.png by
+% render.sh.
+\documentclass[11pt]{article}
+\usepackage[paperwidth=34pc,paperheight=46pc,margin=2pc,top=2.2pc]{geometry}
+\usepackage{amsmath}
+\usepackage{mills8a}
+\pagestyle{empty}
+\setlength\parindent{0pt}
+\newcommand\OSF[1]{{\fontfamily{m8aj}\selectfont #1}}
+\newcommand\lbl[1]{\par\medskip{\footnotesize\textsc{#1}}\par\smallskip}
+\begin{document}
+\begin{center}
+  {\Large\bfseries MILLS 8A}\par\smallskip
+  {\small\textsc{A revival of Monotype Modern No.\ 8A from the}
+   \textit{Bulletin of the American Mathematical Society}, \OSF{1940--1948}}
+\end{center}
+
+\lbl{Roman, italic, bold, small capitals}
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\\
+abcdefghijklmnopqrstuvwxyz \ fi fl ff ffi ffl\\
+\textit{ABCDEFGHIJKLMNOPQRSTUVWXYZ}\\
+\textit{abcdefghijklmnopqrstuvwxyz \ fi fl ff ffi ffl}\\
+\textbf{ABCDEFGHIJKLMNOPQRSTUVWXYZ \ abcdefghijklmnopqrstuvwxyz}\\
+\textsc{Small Capitals: Lemma, Theorem, Proof}
+
+\lbl{Figures, lining and old style}
+0123456789 \quad \OSF{0123456789} \quad \textit{0123456789} \quad \textbf{0123456789}
+
+\lbl{Text, 11 on 12 pt}
+A function $f(x)$ is said to be a prime-representing function if $f(x)$ is
+a prime number for all positive integral values of~$x$. It will be shown that
+there exists a real number $A$ such that $[A^{3^x}]$ is a prime-representing
+function, where $[R]$ denotes the greatest integer less than or equal to~$R$.
+{\small\par\smallskip \textit{Footnotes and references are set in the 9 pt cut:}
+Ingham, \textit{On the difference between consecutive primes}, Quart.\ J.\
+Math.\ Oxford Ser.\ vol.\ 8 (1937) pp.~255--266.\par}
+
+\lbl{Mathematics}\vspace{-\abovedisplayskip}
+\[
+  p_{n+1}-p_n<Kp_n^{5/8},\qquad
+  u_{n+1}=P_{n+1}^{3^{-n-1}}>P_n^{3^{-n}}=u_n,\qquad
+  \sum_{n=1}^\infty \frac{1}{n^s}=\prod_p\frac{1}{1-p^{-s}}
+\]
+\[
+  \int_0^\infty e^{-x^2}\,dx=\frac{\sqrt\pi}{2},\qquad
+  \alpha\beta\gamma\,\eta\lambda\mu\,\xi\pi\sigma\,\phi\chi\psi\omega,\qquad
+  x\in A\cap B,\quad a\equiv b \pmod{p},\quad a\neq b
+\]
+
+\lbl{Accents and punctuation}
+Erd\H{o}s, G\"odel, Poincar\'e, \'Ecole, Sch\"onflies; ``quoted'' --- \S\,3, \dag, \&, 50\%.
+\end{document}
