@@ -23,6 +23,7 @@ import subprocess
 from collections import defaultdict
 
 import numpy as np
+from scipy import ndimage
 from fontTools.fontBuilder import FontBuilder
 from fontTools.pens.freetypePen import FreeTypePen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
@@ -49,10 +50,46 @@ def lm_path():
 
 # ---------------------------------------------------------------- measuring
 
-# script sorts set from the scaled text glyph although real ones exist: the
-# real 2 and 3 average into closed, hard-to-read shapes at index size, and the
-# second-order "5" group holds 2s
-SYNTH_SCRIPT = {("2", "S1"), ("2", "S2"), ("3", "S1"), ("3", "S2"), ("5", "S2")}
+# A real script sort is used only where it reads well at index size; else
+# the scaled text glyph, thickened to the script weight.  Automatic: at least
+# MIN_SCRIPT_N impressions (fewer average into blur, and are often misfiled)
+# and counters at least MIN_COUNTER as open as the text glyph's (the heavy
+# small sorts fill in: 8, 4, italic e).  By inspection of the rest:
+# 2 3 7 average into closed shapes; the second-order "5" group holds 2s;
+# the italic "o" is a sigma; the italic t is a blob
+SYNTH_SCRIPT = {("2", "R", "S1"), ("2", "R", "S2"), ("3", "R", "S1"), ("3", "R", "S2"),
+                ("5", "R", "S2"), ("7", "R", "S2"), ("o", "I", "S1"), ("t", "I", "S1")}
+# the italic script k is cut with an open loop: no counter, but it reads
+KEEP_SCRIPT = {("k", "I", "S1")}
+MIN_SCRIPT_N = 10
+MIN_COUNTER = 0.4
+
+
+def counter_area(img):
+    """Area of the enclosed counters relative to the ink box."""
+    a = np.asarray(img, dtype=float) > 0.5
+    ys, xs = np.nonzero(a)
+    a = a[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    lab, n = ndimage.label(~a)
+    edge = set(lab[0]) | set(lab[-1]) | set(lab[:, 0]) | set(lab[:, -1])
+    return sum((lab == i).sum() for i in range(1, n + 1) if i not in edge) / a.size
+
+
+def use_real_script(M, key):
+    """Whether the real script sort M[key] (ch, style, level) is legible."""
+    ch, style, lvl = key
+    if key not in M or key in SYNTH_SCRIPT:
+        return False
+    if key in KEEP_SCRIPT:
+        return True
+    if M[key]["n"] < MIN_SCRIPT_N:
+        return False
+    text = M.get((ch, style, 11))
+    if text is not None:
+        c_text = counter_area(text["img"])
+        if c_text > 0.02 and counter_area(M[key]["img"]) < MIN_COUNTER * c_text:
+            return False
+    return True
 
 
 def script_scales(M):
@@ -308,8 +345,7 @@ def main():
         for lvl, vname in zip(("S1", "S2"), variants):
             kk = k[lvl]
             mkey = (ch, style, lvl)
-            if (mkey in M and M[mkey]["n"] >= 5      # fewer: often misfiled impressions
-                    and (ch, lvl) not in SYNTH_SCRIPT):
+            if use_real_script(M, mkey):
                 # a real script sort: its ink at real size, side bearings
                 # scaled from the text glyph by the ratio of ink widths
                 contours, dx, dy, w_real = outline_from_master(M[mkey], bf.INK_PX)
