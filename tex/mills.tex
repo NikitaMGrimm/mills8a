@@ -79,11 +79,12 @@
 \pagestyle{plain}
 \raggedbottom        % footnotes follow the text, as on the 1947 page
 \ExplSyntaxOn
-\NewDocumentCommand\spaced{m}{% letterspaced title lines
-  \seq_set_split:Nnn \l_tmpa_seq {~} {#1}
+\NewDocumentCommand\spaced{O{0em}O{.45em}m}{% letterspaced title lines:
+  % [letter kern][word space]{text}
+  \seq_set_split:Nnn \l_tmpa_seq {~} {#3}
   \seq_map_indexed_inline:Nn \l_tmpa_seq
-    { \int_compare:nT {##1>1} {\hspace{.45em}}
-      \tl_map_inline:nn {##2} {####1\kern.07em} \unkern }}
+    { \int_compare:nT {##1>1} {\hspace{#2}}
+      \tl_map_inline:nn {##2} {####1\kern#1} \unkern }}
 \ExplSyntaxOff
 \newcommand\thmhead[1]{\par\smallskip\begingroup\textsc{#1.}\ \itshape\ignorespaces}
 \newcommand\thmend{\par\endgroup\smallskip}
@@ -99,7 +100,7 @@
 {\centering
   {\bfseries\spaced{A PRIME-REPRESENTING FUNCTION}}\par
   \medskip
-  {\footnotesize\spaced{W. H. MILLS}}\par}
+  {\scshape\spaced[.02em][.37em]{w. h. mills}}\par}% small caps of the text size
 \vspace{7pt}
 
 A function $f(x)$ is said to be a prime-representing function if $f(x)$
