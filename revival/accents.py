@@ -169,18 +169,24 @@ def main():
             qb = gbounds(gs, rq)
             a = font["hmtx"][rq][0]
             cx, cy = (qb[0] + qb[2]) / 2, (qb[1] + qb[3]) / 2
-            lq = RecordingPen()
-            gs[rq].draw(TransformPen(lq, (-1, 0, 0, -1, 2 * cx, 2 * cy)))
-            add_from_pen("quoteleft", lq, a)
-            names["\u2018"] = "quoteleft"
-            step = (qb[2] - qb[0]) * 1.15
+            if "\u2018" in names:
+                lq = record(gs, names["\u2018"])
+            else:
+                lq = RecordingPen()
+                gs[rq].draw(TransformPen(lq, (-1, 0, 0, -1, 2 * cx, 2 * cy)))
+                add_from_pen("quoteleft", lq, a)
+                names["\u2018"] = "quoteleft"
+            # the 1947 pairs nearly touch
+            step = (qb[2] - qb[0]) * 1.05
             for nm, src, cp in (("quotedblright", record(gs, rq), "\u201d"), ("quotedblleft", lq, "\u201c")):
+                if cp in names:
+                    continue
                 rec = RecordingPen()
                 rec.value += src.value
                 src.replay(TransformPen(rec, (1, 0, 0, 1, step, 0)))
                 add_from_pen(nm, rec, a + step)
                 names[cp] = nm
-            names['"'] = "quotedblright"
+            names.setdefault('"', names["\u201d"])
         # the rest have no 1947 or 1922 source: Latin Modern's, thickened
         borrowed = ""
         for ch in ("?#%&*@\\^_{}~\u00a7\u2020\u2021\u00b6\u00a1\u00bf\u00ab\u00bb"
@@ -201,7 +207,7 @@ def main():
             add_from_pen(src, rec, a)
             names[ch] = src
             borrowed += ch
-        print(f"  punctuation from 1947 sorts: :…‘“”; from Latin Modern: {borrowed}")
+        print(f"  punctuation from 1947 sorts: :…, and ‘“” where the scans lack them; from Latin Modern: {borrowed}")
 
         # spacing accents
         for acc, cp in SPACING.items():

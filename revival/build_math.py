@@ -49,6 +49,12 @@ def lm_path():
 
 # ---------------------------------------------------------------- measuring
 
+# script sorts set from the scaled text glyph although real ones exist: the
+# real 2 and 3 average into closed, hard-to-read shapes at index size, and the
+# second-order "5" group holds 2s
+SYNTH_SCRIPT = {("2", "S1"), ("2", "S2"), ("3", "S1"), ("3", "S2"), ("5", "S2")}
+
+
 def script_scales(M):
     """Script and scriptscript scale factors: the size of the 1947 script
     sorts relative to the 11pt ones, measured on glyph heights with the
@@ -302,7 +308,8 @@ def main():
         for lvl, vname in zip(("S1", "S2"), variants):
             kk = k[lvl]
             mkey = (ch, style, lvl)
-            if mkey in M and M[mkey]["n"] >= 5:      # fewer: often misfiled impressions
+            if (mkey in M and M[mkey]["n"] >= 5      # fewer: often misfiled impressions
+                    and (ch, lvl) not in SYNTH_SCRIPT):
                 # a real script sort: its ink at real size, side bearings
                 # scaled from the text glyph by the ratio of ink widths
                 contours, dx, dy, w_real = outline_from_master(M[mkey], bf.INK_PX)
@@ -518,7 +525,7 @@ def main():
                 cs, {})
     fb.setupHorizontalMetrics({n: (adv[n], round(bounds(cs[n])[0])) for n in glyph_order})
     fb.setupHorizontalHeader(ascent=lm["hhea"].ascent, descent=lm["hhea"].descent)
-    fb.setupNameTable({"familyName": "Mills 8A Math", "styleName": "Regular",
+    bf.stamp_version(fb, {"familyName": "Mills 8A Math", "styleName": "Regular",
                        "copyright": "Based on Latin Modern Math (GUST Font License); "
                                     "glyphs traced from 1947 Monotype Modern 8A printing"})
     fb.setupOS2(sTypoAscender=lm["OS/2"].sTypoAscender, sTypoDescender=lm["OS/2"].sTypoDescender,

@@ -25,6 +25,15 @@ from fontTools.agl import UV2AGL
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# the release, x.y.z (semantic versioning; ../VERSION), stamped into every font
+VERSION = open(os.path.join(HERE, "..", "VERSION")).read().strip()
+
+
+def stamp_version(fb, names):
+    """Name table (with the version string) and head.fontRevision."""
+    fb.setupNameTable(dict(names, version=f"Version {VERSION}"))
+    major, minor = VERSION.split(".")[:2]
+    fb.updateHead(fontRevision=int(major) + int(minor) / 1000)
 WORK = os.path.join(HERE, "work")
 FONTS = os.path.join(HERE, "fonts")
 UP = 4
@@ -324,6 +333,8 @@ def fit_spacing(style, size, widths):
             for d in "0123456789":
                 if d + ".osf" in widths:
                     out[d + ".osf"] = ((fw - widths[d + ".osf"]) / 2, fw)
+    if "–" in out and "–.osf" in widths:
+        out["–.osf"] = out["–"]
     # constructed ligatures, from the final widths of their parts
     for lig, src in (("fl", "fi"), ("ffl", "ffi")):
         # roman: the fi/ffi sort less its i, plus the l
@@ -773,7 +784,7 @@ def assemble(glyphs, family, style_name, out, extra_cmap=None, features=""):
         lsb[n] = b[0] if b else 0
     fb.setupHorizontalMetrics({n: (adv[n], lsb[n]) for n in order})
     fb.setupHorizontalHeader(ascent=800, descent=-250)
-    fb.setupNameTable({"familyName": family, "styleName": style_name})
+    stamp_version(fb, {"familyName": family, "styleName": style_name})
     fb.setupOS2(sTypoAscender=800, sTypoDescender=-250, usWinAscent=900, usWinDescent=300,
                 sxHeight=440, sCapHeight=650, fsSelection=0x01 if style_name == "Italic" else 0x40)
     fb.setupPost(italicAngle=-14 if style_name == "Italic" else 0)
@@ -873,6 +884,12 @@ def main():
             if ff is not None:
                 masters["ff"] = ff
                 added.append("ff")
+        if style == "R" and "–" not in masters and ("–", "R", 9) in M:
+            # en dash: the real 9 pt sort (references: "pp. 713–721"), at 11 pt
+            m9 = M[("–", "R", 9)]
+            masters["–"] = (ndimage.zoom(m9["img"].astype(np.float32), 11 / 9, order=1),
+                            -m9["base"] * 11 / 9)
+            added.append("–(9pt)")
         if style == "R" and "-" in masters and "–" not in masters:
             # en dash: the hyphen stretched to half an em of ink
             img, top = masters["-"][:2]
@@ -892,7 +909,16 @@ def main():
             masters["—"] = (np.pad(ndimage.zoom(crop, (1, target / crop.shape[1]), order=1),
                                    ((0, 0), (8, 8))), top)
             added.append("—")
-        print(f"{style_name}: {len(masters)} masters, from 1922 specimen: {''.join(added)}")
+        if style == "R" and "–" in masters and "x" in masters:
+            # with old-style figures the dash sits lower: centred on the
+            # x-height, where the figures' bodies are
+            img, top = masters["–"][:2]
+            ys = np.nonzero((img > 0.5).any(1))[0]
+            mid = top + (ys.min() + ys.max()) / 2               # (negative = above)
+            ximg, xtop = masters["x"][:2]
+            xh = -(xtop + np.nonzero((ximg > 0.5).any(1))[0].min())
+            masters["–.osf"] = (img, top - xh / 2 - mid)
+        print(f"{style_name}: {len(masters)} masters, added (1922 specimen or constructed): {' '.join(added)}")
         # master tuples hold (img, top-of-img relative to baseline in master px)
         glyphs = build(style, masters)
         if style == "R":
@@ -939,7 +965,7 @@ def main():
                                     ("sub f l by fl;", "fl")) if g in glyphs]
             if rules:
                 feats += "feature liga { " + " ".join(rules) + " } liga;\n"
-        osf = [glyph_name(d) for d in "0123456789" if glyph_name(d + ".osf") in glyphs]
+        osf = [glyph_name(d) for d in "0123456789–" if glyph_name(d + ".osf") in glyphs]
         if osf:                             # old-style figures on request
             feats += ("feature onum { " + " ".join(f"sub {n} by {n}.osf;" for n in osf)
                       + " } onum;\n")

@@ -134,6 +134,14 @@ Requires TeX Live (pdfLaTeX, LuaLaTeX, `lcdf-typetools`), Tesseract, potrace,
 and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are
 committed in `revival/fonts/` and `revival/pdftex/fonts/`.
 
+## Versions
+
+Releases follow [semantic versioning](https://semver.org). The version is in
+`VERSION`; the build stamps it into every font (name table and
+`head.fontRevision`) and into `mills8a.sty` and its `.fd` files, and each
+release is tagged `vX.Y.Z`. Until 1.0.0 glyph shapes and spacing may still
+change in a minor release; patch releases change no metrics.
+
 ## Sources and licences
 
 - The scans: *Bulletin* and *Transactions of the AMS*, 1940–1948, from the

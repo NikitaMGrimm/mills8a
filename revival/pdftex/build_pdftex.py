@@ -22,12 +22,16 @@ random impressions (one master per letter) and the baseline wobble.
 
 Writes fonts/ (tfm, vf, pfb, enc, mills8a.map) and tex/ (mills8a.sty, *.fd).
 """
+import datetime
 import os
 import re
 import subprocess
 
 from fontTools.ttLib import TTFont
 from fontTools import subset
+
+VERSION = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
+                            "VERSION")).read().strip()
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "..", "fonts")
@@ -377,7 +381,7 @@ def omx_font():
 # ------------------------------------------------------------------ LaTeX
 
 FD = {
-    "t1m8a.fd": r"""\ProvidesFile{t1m8a.fd}[2026/10/05 Mills 8A text, T1, pdfLaTeX]
+    "t1m8a.fd": r"""\ProvidesFile{t1m8a.fd}[@DATE@ v@VERSION@ Mills 8A text, T1, pdfLaTeX]
 \DeclareFontFamily{T1}{m8a}{}
 \DeclareFontShape{T1}{m8a}{m}{n}{<-10> m8ar98t <10-> m8ar8t}{}
 \DeclareFontShape{T1}{m8a}{m}{it}{<-10> m8ari98t <10-> m8ari8t}{}
@@ -387,7 +391,7 @@ FD = {
 \DeclareFontShape{T1}{m8a}{bx}{n}{<-> ssub * m8a/b/n}{}
 \DeclareFontShape{T1}{m8a}{bx}{it}{<-> ssub * m8a/b/it}{}
 """,
-    "t1m8aj.fd": r"""\ProvidesFile{t1m8aj.fd}[2026/10/05 Mills 8A text, old-style figures, T1, pdfLaTeX]
+    "t1m8aj.fd": r"""\ProvidesFile{t1m8aj.fd}[@DATE@ v@VERSION@ Mills 8A text, old-style figures, T1, pdfLaTeX]
 \DeclareFontFamily{T1}{m8aj}{}
 \DeclareFontShape{T1}{m8aj}{m}{n}{<-10> m8ar9j8t <10-> m8arj8t}{}
 \DeclareFontShape{T1}{m8aj}{m}{it}{<-10> m8ari9j8t <10-> m8arij8t}{}
@@ -397,34 +401,34 @@ FD = {
 \DeclareFontShape{T1}{m8aj}{bx}{n}{<-> ssub * m8aj/b/n}{}
 \DeclareFontShape{T1}{m8aj}{bx}{it}{<-> ssub * m8aj/b/it}{}
 """,
-    "omlm8am.fd": r"""\ProvidesFile{omlm8am.fd}[2026/10/05 Mills 8A math italic, pdfLaTeX]
+    "omlm8am.fd": r"""\ProvidesFile{omlm8am.fd}[@DATE@ v@VERSION@ Mills 8A math italic, pdfLaTeX]
 \DeclareFontFamily{OML}{m8am}{\skewchar\font=127 }
 \DeclareFontShape{OML}{m8am}{m}{it}{<-6> m8amiss <6-8> m8amis <8-> m8ami}{}
 """,
-    "ot1m8aop.fd": r"""\ProvidesFile{ot1m8aop.fd}[2026/10/05 Mills 8A math operators, pdfLaTeX]
+    "ot1m8aop.fd": r"""\ProvidesFile{ot1m8aop.fd}[@DATE@ v@VERSION@ Mills 8A math operators, pdfLaTeX]
 \DeclareFontFamily{OT1}{m8aop}{}
 \DeclareFontShape{OT1}{m8aop}{m}{n}{<-6> m8aopss <6-8> m8aops <8-> m8aop}{}
 """,
-    "omxm8aex.fd": r"""\ProvidesFile{omxm8aex.fd}[2026/10/05 Mills 8A large symbols, pdfLaTeX]
+    "omxm8aex.fd": r"""\ProvidesFile{omxm8aex.fd}[@DATE@ v@VERSION@ Mills 8A large symbols, pdfLaTeX]
 \DeclareFontFamily{OMX}{m8aex}{}
 \DeclareFontShape{OMX}{m8aex}{m}{n}{<-> sfixed * m8aex}{}
 """,
-    "omsm8asy.fd": r"""\ProvidesFile{omsm8asy.fd}[2026/10/05 Mills 8A math symbols, pdfLaTeX]
+    "omsm8asy.fd": r"""\ProvidesFile{omsm8asy.fd}[@DATE@ v@VERSION@ Mills 8A math symbols, pdfLaTeX]
 \DeclareFontFamily{OMS}{m8asy}{\skewchar\font=48 }
 \DeclareFontShape{OMS}{m8asy}{m}{n}{<-6> m8asyss <6-8> m8asys <8-> m8asy}{}
 """,
-    "um8axs.fd": r"""\ProvidesFile{um8axs.fd}[2026/10/05 Mills 8A extra relations, pdfLaTeX]
+    "um8axs.fd": r"""\ProvidesFile{um8axs.fd}[@DATE@ v@VERSION@ Mills 8A extra relations, pdfLaTeX]
 \DeclareFontFamily{U}{m8axs}{}
 \DeclareFontShape{U}{m8axs}{m}{n}{<-6> m8axsss <6-8> m8axss <8-> m8axs}{}
 """,
-    "um8asym.fd": r"""\ProvidesFile{um8asym.fd}[2026/10/05 Mills 8A text symbols, pdfLaTeX]
+    "um8asym.fd": r"""\ProvidesFile{um8asym.fd}[@DATE@ v@VERSION@ Mills 8A text symbols, pdfLaTeX]
 \DeclareFontFamily{U}{m8asym}{}
 \DeclareFontShape{U}{m8asym}{m}{n}{<-> m8asym}{}
 \DeclareFontShape{U}{m8asym}{b}{n}{<-> ssub * m8asym/m/n}{}
 \DeclareFontShape{U}{m8asym}{m}{it}{<-> ssub * m8asym/m/n}{}
 """,
     "mills8a.sty": r"""\NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{mills8a}[2026/10/05 Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
+\ProvidesPackage{mills8a}[@DATE@ v@VERSION@ Mills 8A for pdfLaTeX: standard Type 1 / TFM fonts]
 \RequirePackage[T1]{fontenc}
 % osf: old-style figures in text (the 1947 Bulletin's running-head figures);
 % math keeps lining figures, as in print
@@ -466,7 +470,9 @@ def main():
     lines = text_fonts() + math_fonts() + omx_font()
     with open(os.path.join(OUT, "mills8a.map"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
+    date = datetime.date.today().strftime("%Y/%m/%d")
     for fn, body in FD.items():
+        body = body.replace("@DATE@", date).replace("@VERSION@", VERSION)
         with open(os.path.join(TEX, fn), "w") as fh:
             fh.write(body)
     for fn in os.listdir(OUT):

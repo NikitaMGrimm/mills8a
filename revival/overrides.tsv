@@ -574,3 +574,19 @@ vonneumanngoldstine1947-030@1439,3824	z	R	11
 doob1947-001@2557,4720	z	R	11
 kleene1943-002@765,2798	z	R	11
 vonneumanngoldstine1947-050@2746,4716	skip
+# quotes: the real 1947 sorts (the ’ group #300 is the text-size prime of
+# f′(x), a slanted stroke without a ball, which made the quotes wispy)
+courant1943-003@2596,3001	‘	R	11
+eilenbergmaclane1945-012@631,617	‘	R	11
+vonkarman1940-062@1005,1235	‘	R	9
+eilenbergmaclane1945-017@1980,1250	’	R	11
+eilenbergmaclane1945-055@794,4383	’	R	11
+eilenbergmaclane1945-030@573,1276	skip
+feller1945-002@2342,4965	“	R	11
+feller1945-007@2062,4919	“	R	9
+feller1945-000@736,1802	”	R	11
+feller1945-021@1786,1403	”	R	11
+eilenbergmaclane1945-033@894,4669	”	R	9
+post1944-027@2214,4349	”	R	9
+# the en dash, from the 9 pt references ("pp. 713–721")
+vonkarman1940-062@1643,3284	–	R	9

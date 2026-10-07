@@ -23,6 +23,14 @@ pdf -jobname=mills-8a-pdf mills.tex || { tail -30 mills-8a-pdf.log; exit 1; }
 
 # the comparison: overview, scan and both versions, each page headed with
 # its version and the build
+gs_bbox() {   # ink box of a PDF page, in bp: x0 y0 x1 y1
+  gs -q -dNOPAUSE -dBATCH -sDEVICE=bbox "$1" 2>&1 | sed -n 's/^%%HiResBoundingBox: //p'
+}
+gs_bbox mills-8a-pdf.pdf | awk -v lua="$(gs_bbox mills-8a.pdf)" \
+  -v h="$(pdfinfo mills-8a-pdf.pdf | awk '/^Page size/ {print $5}')" '{
+  printf "\\def\\bboxlua{%s}\\def\\bboxpdf{%s}\n", lua, $0
+  printf "\\def\\bboxleft{%sbp}\\def\\bboxwidth{%sbp}\\def\\bboxtop{%sbp}\n", $1, $3 - $1, h - $4
+}' > bbox.tex
 for t in compare compare-scan; do
   pdflatex -interaction=nonstopmode "$t.tex" >/dev/null || { tail -30 $t.log; exit 1; }
 done
