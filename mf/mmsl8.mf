@@ -1,3 +1,0 @@
-% Mills Modern sl8: letterpress variant of cmsl8.
-input mmbase;
-input cmsl8;

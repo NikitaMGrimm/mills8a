@@ -1,4 +1,0 @@
-\ProvidesFile{omxmmex.fd}[2026/10/03 Mills Modern math extension]
-\DeclareFontFamily{OMX}{mmex}{}
-\DeclareFontShape{OMX}{mmex}{m}{n}{<->sfixed*mmex10}{}
-\endinput

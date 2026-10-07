@@ -1,3 +1,0 @@
-% Mills Modern sy5: letterpress variant of cmsy5.
-input mmbase;
-input cmsy5;

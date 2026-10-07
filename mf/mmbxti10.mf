@@ -1,3 +1,0 @@
-% Mills Modern bxti10: letterpress variant of cmbxti10.
-input mmbase;
-input cmbxti10;

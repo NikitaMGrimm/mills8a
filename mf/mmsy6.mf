@@ -1,3 +1,0 @@
-% Mills Modern sy6: letterpress variant of cmsy6.
-input mmbase;
-input cmsy6;

@@ -1,3 +1,0 @@
-% Mills Modern tt10: letterpress variant of cmtt10.
-input mmbase;
-input cmtt10;

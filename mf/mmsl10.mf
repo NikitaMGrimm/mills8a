@@ -1,3 +1,0 @@
-% Mills Modern sl10: letterpress variant of cmsl10.
-input mmbase;
-input cmsl10;

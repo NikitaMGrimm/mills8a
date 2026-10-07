@@ -1,3 +1,0 @@
-% Mills Modern sy7: letterpress variant of cmsy7.
-input mmbase;
-input cmsy7;

@@ -5,7 +5,7 @@ which was 11 pt Monotype Modern 8A on 12 pt leading. Nothing is drawn by
 hand: every master glyph is the average of the copies of that sort found on
 the page scans, and the spacing is measured from the text.
 
-![comparison](../comparison-8a.png)
+![comparison](../docs/comparison.png)
 
 | font | what it is |
 |---|---|
@@ -31,7 +31,7 @@ the page scans, and the spacing is measured from the text.
 \directlua{require("mills8a-jitter").enable(0.04, 1947)}   % optional, tex/
 ```
 
-Set it 11 on 12 pt. `tex/mills.tex` (`\useeighta`) is a complete example. It
+Set it 11 on 12 pt. `tex/mills.tex` (run with LuaLaTeX) is a complete example. It
 also sets the Mills paper's display-style script positions and fixed
 leading (see *Scripts* below).
 

@@ -1,3 +1,0 @@
-% Mills Modern sy9: letterpress variant of cmsy9.
-input mmbase;
-input cmsy9;

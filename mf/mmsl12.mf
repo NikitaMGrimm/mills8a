@@ -1,3 +1,0 @@
-% Mills Modern sl12: letterpress variant of cmsl12.
-input mmbase;
-input cmsl12;

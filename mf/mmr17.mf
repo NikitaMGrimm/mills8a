@@ -1,3 +1,0 @@
-% Mills Modern r17: letterpress variant of cmr17.
-input mmbase;
-input cmr17;

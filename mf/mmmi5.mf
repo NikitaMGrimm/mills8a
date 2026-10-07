@@ -1,3 +1,0 @@
-% Mills Modern mi5: letterpress variant of cmmi5.
-input mmbase;
-input cmmi5;

@@ -1,3 +1,0 @@
-% Mills Modern bx7: letterpress variant of cmbx7.
-input mmbase;
-input cmbx7;

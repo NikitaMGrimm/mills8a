@@ -1,3 +1,0 @@
-% Mills Modern sl9: letterpress variant of cmsl9.
-input mmbase;
-input cmsl9;

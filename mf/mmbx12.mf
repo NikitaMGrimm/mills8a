@@ -1,3 +1,0 @@
-% Mills Modern bx12: letterpress variant of cmbx12.
-input mmbase;
-input cmbx12;

@@ -1,3 +1,0 @@
-% Mills Modern r9: letterpress variant of cmr9.
-input mmbase;
-input cmr9;

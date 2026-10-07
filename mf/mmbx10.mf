@@ -1,3 +1,0 @@
-% Mills Modern bx10: letterpress variant of cmbx10.
-input mmbase;
-input cmbx10;

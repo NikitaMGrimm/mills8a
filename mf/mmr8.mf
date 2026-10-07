@@ -1,3 +1,0 @@
-% Mills Modern r8: letterpress variant of cmr8.
-input mmbase;
-input cmr8;

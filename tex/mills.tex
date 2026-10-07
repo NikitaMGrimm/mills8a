@@ -1,45 +1,11 @@
 % W. H. Mills, "A prime-representing function",
-% Bull. Amer. Math. Soc. 53 (1947), 604, reset in Mills Modern.
-% Variants, chosen by defining a macro before \input{mills}:
-%   (none)              Mills Modern (pdflatex)
-%   \def\usecm{}        plain Computer Modern (pdflatex)
-%   \def\useoldstandard{} Old Standard text + math (lualatex)
-%   \def\useeighta{}    Mills 8A, the revival traced from 1947 scans (lualatex)
-%   \def\useeightapdf{} Mills 8A through standard pdfLaTeX fonts (pdflatex)
-\ifdefined\useeightapdf\def\useeighta{}\def\eightapdf{}\fi
-\ifdefined\useeighta
+% Bull. Amer. Math. Soc. 53 (1947), 604, reset in Mills 8A.
+% The engine picks the version:
+%   lualatex   OpenType fonts, random 1947 impressions, baseline wobble
+%   pdflatex   Type 1 / TFM fonts through \usepackage{mills8a}
 \documentclass[11pt]{article}
-\else
-\documentclass[10pt]{article}
-\fi
 \usepackage[leqno]{amsmath}
-\ifdefined\useoldstandard
-  \usepackage{unicode-math}
-  \setmainfont{OldStandard-Regular.otf}[Scale=1.06,
-    ItalicFont=OldStandard-Italic.otf,
-    BoldFont=OldStandard-Bold.otf,
-    BoldItalicFont=OldStandard-BoldItalic.otf]
-  \setmathfont{OldStandard-Math.otf}[Scale=1.06]
-  \AtBeginDocument{\thickmuskip=3.5mu plus 2mu}
-\else\ifdefined\eightapdf
-  % Mills 8A with standard pdfLaTeX fonts: Type 1 + TFM, script sizes as
-  % separate fonts (revival/pdftex); no random impressions, no wobble
-  \usepackage{mills8a}
-  \makeatletter
-  \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
-    \abovedisplayskip 6pt plus 2pt minus 2pt
-    \belowdisplayskip \abovedisplayskip
-    \abovedisplayshortskip 3pt plus 2pt
-    \belowdisplayshortskip 3pt plus 2pt}
-  \renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
-  \renewcommand\@makefnmark{\hbox{\raise0.42em\hbox{$\scriptstyle\@thefnmark$}}}
-  % display exponents at cap height, as on the Mills page: TeX's sup1
-  % (display superscript shift) is \fontdimen13 of the symbol font
-  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
-    \check@mathfonts\fontdimen13\textfont2=7.26pt}
-  \makeatother
-  \lineskiplimit=-3pt
-\else\ifdefined\useeighta
+\ifdefined\directlua
   % 11pt Monotype Modern 8A on 12pt, 317pt measure, as in the 1947 Bulletin
   \usepackage{unicode-math}
   % rand: each letter is one of several real 1947 impressions, at random
@@ -87,20 +53,29 @@
   \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
     \everymath\expandafter{\the\everymath\millsscripts}%
     \everydisplay\expandafter{\the\everydisplay\millsscripts}}
-\else\ifdefined\usecm\else
-  \usepackage{millsmodern}
-\fi\fi\fi\fi
-\ifdefined\useeighta
+\else
+  % Mills 8A with standard pdfLaTeX fonts: Type 1 + TFM, script sizes as
+  % separate fonts (revival/pdftex); no random impressions, no wobble
+  \usepackage{mills8a}
+  \makeatletter
+  \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
+    \abovedisplayskip 6pt plus 2pt minus 2pt
+    \belowdisplayskip \abovedisplayskip
+    \abovedisplayshortskip 3pt plus 2pt
+    \belowdisplayshortskip 3pt plus 2pt}
+  \renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
+  \renewcommand\@makefnmark{\hbox{\raise0.42em\hbox{$\scriptstyle\@thefnmark$}}}
+  % display exponents at cap height, as on the Mills page: TeX's sup1
+  % (display superscript shift) is \fontdimen13 of the symbol font
+  \AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
+    \check@mathfonts\fontdimen13\textfont2=7.26pt}
+  \makeatother
+  \lineskiplimit=-3pt
+\fi
 \usepackage[paperwidth=31pc,paperheight=50pc,textwidth=317pt,
   top=4pc,bottom=4pc,footskip=2pc]{geometry}
-\else
-\usepackage[paperwidth=31pc,paperheight=50pc,textwidth=26pc,
-  top=4pc,bottom=4pc,footskip=2pc]{geometry}
-\fi
-\ifdefined\pdfpkresolution\pdfpkresolution=1200 \fi
 \setlength\parindent{1.5em}
 \setlength\parskip{0pt}
-\ifdefined\useeighta\else\linespread{1.04}\fi
 \pagestyle{empty}
 \ExplSyntaxOn
 \NewDocumentCommand\spaced{m}{% letterspaced title lines

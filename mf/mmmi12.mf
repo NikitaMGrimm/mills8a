@@ -1,3 +1,0 @@
-% Mills Modern mi12: letterpress variant of cmmi12.
-input mmbase;
-input cmmi12;

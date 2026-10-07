@@ -128,7 +128,7 @@ from the AMS back issues). With them in `revival/scans/`:
 
     revival/fetch-specimen.sh     # the 1922 specimen pages (public domain)
     revival/build.sh              # about 1.5-2 h on 4 cores; clustering is most of it
-    ./render.sh type1             # the PDFs, proof sheets and the images above
+    ./render.sh                   # the PDFs, proof sheets and the images above
 
 Requires TeX Live (pdfLaTeX, LuaLaTeX, `lcdf-typetools`), Tesseract, potrace,
 and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are

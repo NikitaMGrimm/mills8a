@@ -1,3 +1,0 @@
-% Mills Modern ti12: letterpress variant of cmti12.
-input mmbase;
-input cmti12;

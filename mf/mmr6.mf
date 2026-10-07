@@ -1,3 +1,0 @@
-% Mills Modern r6: letterpress variant of cmr6.
-input mmbase;
-input cmr6;

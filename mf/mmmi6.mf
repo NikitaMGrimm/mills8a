@@ -1,3 +1,0 @@
-% Mills Modern mi6: letterpress variant of cmmi6.
-input mmbase;
-input cmmi6;

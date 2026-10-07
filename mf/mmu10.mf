@@ -1,3 +1,0 @@
-% Mills Modern u10: letterpress variant of cmu10.
-input mmbase;
-input cmu10;

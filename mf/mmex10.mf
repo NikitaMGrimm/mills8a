@@ -1,3 +1,0 @@
-% Mills Modern ex10: letterpress variant of cmex10.
-input mmbase;
-input cmex10;

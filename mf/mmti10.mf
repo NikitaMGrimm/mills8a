@@ -1,3 +1,0 @@
-% Mills Modern ti10: letterpress variant of cmti10.
-input mmbase;
-input cmti10;

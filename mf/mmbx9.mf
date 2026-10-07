@@ -1,3 +1,0 @@
-% Mills Modern bx9: letterpress variant of cmbx9.
-input mmbase;
-input cmbx9;

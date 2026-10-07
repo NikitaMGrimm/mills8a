@@ -1,3 +1,0 @@
-% Mills Modern r7: letterpress variant of cmr7.
-input mmbase;
-input cmr7;

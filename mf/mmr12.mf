@@ -1,3 +1,0 @@
-% Mills Modern r12: letterpress variant of cmr12.
-input mmbase;
-input cmr12;

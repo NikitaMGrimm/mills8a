@@ -1,3 +1,0 @@
-% Mills Modern mi9: letterpress variant of cmmi9.
-input mmbase;
-input cmmi9;

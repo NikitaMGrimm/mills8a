@@ -1,3 +1,0 @@
-% Mills Modern bx6: letterpress variant of cmbx6.
-input mmbase;
-input cmbx6;

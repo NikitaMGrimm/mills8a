@@ -1,3 +1,0 @@
-% Mills Modern bsy10: letterpress variant of cmbsy10.
-input mmbase;
-input cmbsy10;

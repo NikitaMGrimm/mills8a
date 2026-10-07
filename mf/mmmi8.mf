@@ -1,3 +1,0 @@
-% Mills Modern mi8: letterpress variant of cmmi8.
-input mmbase;
-input cmmi8;

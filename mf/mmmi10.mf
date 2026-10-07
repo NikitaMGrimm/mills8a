@@ -1,3 +1,0 @@
-% Mills Modern mi10: letterpress variant of cmmi10.
-input mmbase;
-input cmmi10;

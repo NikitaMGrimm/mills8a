@@ -1,3 +1,0 @@
-% Mills Modern bx8: letterpress variant of cmbx8.
-input mmbase;
-input cmbx8;
