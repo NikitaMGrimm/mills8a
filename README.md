@@ -75,7 +75,7 @@ difference from the pdfLaTeX page is slight.
    (`masters.py`). Old-style figures come from the years in the Bulletin's
    running heads (`oldstyle.py`).
 5. **Trace and space** the masters into OpenType fonts (`build_font.py`). Side
-   bearings are fitted from 230,000 letter pairs in the text and land on
+   bearings are fitted from about 440,000 letter pairs in the text and land on
    Monotype's 18-unit grid. Then accents (`accents.py`), the math font on Latin
    Modern Math's tables (`build_math.py`), bold and 9 pt (`build_sizes.py`),
    and the pdfLaTeX fonts (`pdftex/build_pdftex.py`).
@@ -88,21 +88,38 @@ where each glyph comes from.
 
 ## How much is real
 
-From the 1940s scans: every roman and italic letter and figure at 11 pt
-(except the roman J), the old-style figures, punctuation, 23 small caps, 20
-bold capitals, Greek, most math operators and relations, the display ∑ ∏ ∫,
-Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛, the 9 pt cut, and about 60 script sorts.
+Traced from the 1940s scans (each glyph the average of its printed
+impressions):
+
+- every roman and italic letter and figure at 11 pt, the roman J from its
+  9 pt sort (66 impressions) scaled up;
+- the old-style figures, from the years in the Bulletin's running heads;
+- punctuation, with the 1947 quotes ‘ ’ “ ” and the en dash (a 9 pt sort,
+  scaled);
+- 23 small capitals and 21 bold capitals;
+- Greek, most math operators and relations, the display ∑ ∏ ∫, and
+  Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛;
+- the 9 pt cut: 80 roman and 54 italic sorts;
+- 51 script sorts for indices (46 first-order, 5 second-order).
 
 Filled in otherwise:
 
-- from the 1922 Lanston *Specimen Book* (No. 8A at 9–18 pt): the roman J,
-  small caps J Q X, and `$`;
-- built from 1947 sorts: the *fl*/*ffl* and italic *ffi*/*ffl* ligatures, the
-  en and em dashes, most script sizes that have no real sort, and bold
-  lowercase;
+- from the 1922 Lanston *Specimen Book* (No. 8A at 9–18 pt): small caps
+  J Q X and `$`;
+- built from 1947 sorts: the *fl*/*ffl* and italic *ffi*/*ffl* ligatures,
+  the em dash, the colon and ellipsis, `\cdot` and `\cdots` (from the
+  period), bold lowercase and bold italic (thickened), and the script sizes
+  that have no legible real sort (the text glyph scaled: among them the
+  index 2 3 4 8 and the arrow, whose real sorts fill in or were misfiled);
 - from Latin Modern, thickened to the type's weight: accents other than the
-  dieresis, rarer punctuation and symbols, and the math symbols the scans
-  lack.
+  dieresis, rarer punctuation and symbols (`? # % @` † ‡ ¶ « » ß Æ Œ Ø Ł
+  and so on), and the math symbols the scans lack.
+
+Spacing is measured as well: side bearings from about 440,000 letter
+pairs in the text, the thin space 1947 set before `:` and `;`, and the
+script positions and gaps of the Mills page. A few bearings that the
+pairs cannot fix (the small-cap A before a period) are set by hand from
+the scans.
 
 ## Building
 

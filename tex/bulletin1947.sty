@@ -1,0 +1,66 @@
+% A first page of the 1940s Bulletin (or Transactions) of the AMS, set in
+% Mills 8A with pdfLaTeX: 11 pt on 12 pt, the measure of the scan, footnotes
+% right after the text, the page number at the foot.  Used by tex/pages/*.tex
+% for the side-by-side comparisons in docs/pages/.
+%
+%   \def\bulletinmeasure{334pt}   % before \usepackage: Transactions measure
+%   \usepackage{bulletin1947}
+%   \setcounter{page}{604}
+%   \received{Received by the editors December 23, 1946.}
+%   \articletitle{A PRIME-REPRESENTING FUNCTION}{w. h. mills}
+%   \head{1. Introduction.} The text ...
+%   \thmhead{Theorem 1} statement \thmend   \proofhead ...
+%   \affiliation{Princeton University}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bulletin1947}[2026/10/07 1940s AMS first page in Mills 8A]
+\RequirePackage[leqno]{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mills8a}
+\makeatletter
+\renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
+  \abovedisplayskip 6pt plus 2pt minus 2pt
+  \belowdisplayskip \abovedisplayskip
+  \abovedisplayshortskip 3pt plus 2pt
+  \belowdisplayshortskip 3pt plus 2pt}
+\renewcommand\small{\@setfontsize\small{10}{11}}
+\renewcommand\footnotesize{\@setfontsize\footnotesize{9}{10}}
+\renewcommand\@makefnmark{\hbox{\raise0.42em\hbox{$\scriptstyle\@thefnmark$}}}
+\AtBeginDocument{\normalsize\thickmuskip=3.5mu plus 2mu
+  \check@mathfonts\fontdimen13\textfont2=7.26pt}
+\renewcommand\@makefntext[1]{\parindent1.5em\noindent
+  \hbox to 1.5em{\hss\@makefnmark\,}#1}
+\makeatother
+\lineskiplimit=-3pt
+\providecommand\bulletinmeasure{317pt}
+\RequirePackage[paperwidth=33pc,paperheight=50pc,textwidth=\bulletinmeasure,
+  top=4pc,bottom=4pc,footskip=2pc]{geometry}
+\setlength\parindent{1.5em}
+\setlength\parskip{0pt}
+\pagestyle{plain}
+\raggedbottom          % footnotes follow the text, as on the 1947 pages
+\renewcommand\thefootnote{\arabic{footnote}}
+% the 1947 footnote rule: 75 pt long, 0.7 pt as printed (LaTeX's is 0.4 of
+% the measure and 0.4 pt)
+\renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern2.3pt}
+\ExplSyntaxOn
+\NewDocumentCommand\spacedwords{O{.45em}m}{% title lines: words #1 apart
+  \seq_set_split:Nnn \l_tmpa_seq {~} {#2}
+  \seq_use:Nn \l_tmpa_seq {\hspace{#1}}}
+\ExplSyntaxOff
+% title in bold capitals (lines broken with \\), author in small caps of the
+% text size (give it in lower case: \articletitle{...}{w. h. mills})
+\newcommand\articletitle[2]{{\centering
+  {\bfseries\spacedwords{#1}}\par
+  \medskip
+  {\scshape\spacedwords[.37em]{#2}}\par}\vspace{7pt}}
+% a run-in heading: "1. Introduction." in bold
+\newcommand\head[1]{\par\textbf{#1}\ \ignorespaces}
+\newcommand\thmhead[1]{\par\smallskip\begingroup\textsc{#1.}\ \itshape\ignorespaces}
+\newcommand\thmend{\par\endgroup\smallskip}
+\newcommand\proofhead{\par\textsc{Proof.}\ \ignorespaces}
+% footnotes without a mark: "Received by the editors ...", "An address ..."
+\newcommand\unmarkedfootnote[1]{{\renewcommand\thefootnote{}\footnotetext{#1}%
+  \addtocounter{footnote}{0}}}
+\let\received\unmarkedfootnote
+\newcommand\affiliation[1]{\par\vspace{5pt}{\footnotesize\textsc{#1}}\par}
+\endinput

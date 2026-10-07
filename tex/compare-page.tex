@@ -1,0 +1,21 @@
+% One first page side by side: the scan (cropped to its ink by
+% revival/crop_scan.py) and the page reset in Mills 8A (cut to its ink box),
+% at one width.  compare-pages.sh runs it as
+%   pdflatex "\def\doc{erdos1947}\def\bbox{x0 y0 x1 y1}\input{compare-page}"
+\documentclass{article}
+\usepackage[paperwidth=62pc,paperheight=52pc,margin=1pc]{geometry}
+\usepackage{graphicx}
+\pagestyle{empty}
+\setlength\parindent{0pt}
+\newcommand\panel[2]{%
+  \begin{minipage}[t][49pc][t]{29pc}\centering
+    \vspace{1pc}#1\par\vfill{\small\sffamily #2}
+  \end{minipage}}
+\begin{document}
+\centering
+\panel{\includegraphics[width=26pc,height=46pc,keepaspectratio]{pages/\doc-scan.png}}
+  {1940s \textit{Bulletin} / \textit{Transactions of the AMS} (scan)}\hfill
+\panel{\edef\next{\noexpand\includegraphics[viewport=\bbox,clip,width=26pc,
+    height=46pc,keepaspectratio]{pages/\doc.pdf}}\next}
+  {Mills 8A (\texttt{\string\usepackage\string{mills8a\string}}, pdfLaTeX)}
+\end{document}
