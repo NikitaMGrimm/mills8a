@@ -16,6 +16,7 @@ import re
 import subprocess
 import tempfile
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 from fontTools.fontBuilder import FontBuilder
@@ -199,6 +200,45 @@ def normalize_cap_heights(M, style, size, ref=None, tol=0.01):
         print(f"  {style}{size} capitals {target / UP:.1f} px tall: scaled " + " ".join(fixed))
 
 
+_NEIGHBOURS = None
+
+
+def neighbours():
+    """Neighbouring impressions on the text lines (ink gap -6..12 px): ids a,
+    b and the distance d between their left ink edges (scaled to the Erdős
+    paper), with each cluster's members.  Extracted from the 1.4 GB
+    instances.pkl once, cached in work/neighbours.pkl until the scans'
+    data changes."""
+    global _NEIGHBOURS
+    if _NEIGHBOURS is not None:
+        return _NEIGHBOURS
+    cache = os.path.join(WORK, "neighbours.pkl")
+    srcs = [os.path.join(WORK, f) for f in ("instances.pkl", "clusters.pkl", "docscale.json")]
+    newest = max(os.path.getmtime(f) for f in srcs if os.path.exists(f))
+    if os.path.exists(cache) and os.path.getmtime(cache) > newest:
+        _NEIGHBOURS = pickle.load(open(cache, "rb"))
+        return _NEIGHBOURS
+    inst = pickle.load(open(srcs[0], "rb"))
+    clusters = pickle.load(open(srcs[1], "rb"))
+    byline = defaultdict(list)
+    for i, g in enumerate(inst):
+        if g["line"] >= 0:
+            byline[(g["page"], g["line"])].append(i)
+    a_, b_, d_ = [], [], []
+    for ids in byline.values():
+        ids.sort(key=lambda i: inst[i]["bbox"][0])
+        for a, b in zip(ids, ids[1:]):
+            gap = inst[b]["bbox"][0] - inst[a]["bbox"][2]
+            if -6 < gap < 12:
+                sc = DOCSCALE.get(inst[a]["page"].rsplit("-", 1)[0], 1.0)
+                a_.append(a); b_.append(b)
+                d_.append(sc * (inst[b]["bbox"][0] - inst[a]["bbox"][0]))
+    _NEIGHBOURS = dict(a=a_, b=b_, d=d_,
+                       members={c["id"]: list(c["members"]) for c in clusters})
+    pickle.dump(_NEIGHBOURS, open(cache, "wb"))
+    return _NEIGHBOURS
+
+
 def fit_spacing(style, size, widths):
     """Side bearings and advances (scan px) from within-word letter pairs.
 
@@ -215,29 +255,16 @@ def fit_spacing(style, size, widths):
     (1/18 of the set), whose size is itself fitted to the data.
 
     widths: {glyph: ink width in scan px}.  Returns {glyph: (lsb, adv)}."""
-    inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
-    clusters = pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))
+    nb = neighbours()
     sorts = pickle.load(open(os.path.join(WORK, "sorts.pkl"), "rb"))
     sort_of = {}
     for (g, s, z), cids in sorts.items():
         if s == style and z == size and g in widths:
             for c in cids:
-                for i in clusters[c]["members"]:
+                for i in nb["members"][c]:
                     sort_of[i] = g
-    byline = defaultdict(list)
-    for i, g in enumerate(inst):
-        if g["line"] >= 0:
-            byline[(g["page"], g["line"])].append(i)
-    pairs = []
-    for ids in byline.values():
-        ids.sort(key=lambda i: inst[i]["bbox"][0])
-        for a, b in zip(ids, ids[1:]):
-            if a in sort_of and b in sort_of:
-                gap = inst[b]["bbox"][0] - inst[a]["bbox"][2]
-                if -6 < gap < 12:
-                    sc = DOCSCALE.get(inst[a]["page"].rsplit("-", 1)[0], 1.0)
-                    pairs.append((sort_of[a], sort_of[b],
-                                  sc * (inst[b]["bbox"][0] - inst[a]["bbox"][0])))
+    pairs = [(sort_of[a], sort_of[b], d) for a, b, d in zip(nb["a"], nb["b"], nb["d"])
+             if a in sort_of and b in sort_of]
     out = {}
     if pairs:
         glyphs = sorted({p[0] for p in pairs} | {p[1] for p in pairs})
@@ -733,8 +760,9 @@ def build(style, masters, size=11, suffix=""):
             crops[g] = (img, -top, ys.min(), ys.max() + 1, xs.min(), xs.max() + 1,
                         v[2] if len(v) > 2 else [])
     spacing = fit_spacing(style, size, {g: (c[5] - c[4]) / UP for g, c in crops.items()})
-    glyphs = {}                              # name -> (contours, dx, dy, adv, char)
-    for g, (img, base, r0, r1, c0, c1, alts) in crops.items():
+    def one(item):
+        """The glyph g and its impressions, traced: [(name, glyph), ...]."""
+        g, (img, base, r0, r1, c0, c1, alts) = item
         lsb, adv = spacing[g]
         name = glyph_name(g) + suffix
         ink = INK_PX + EXTRA_INK.get(g, 0.0)
@@ -743,7 +771,7 @@ def build(style, masters, size=11, suffix=""):
         # outline around the same position (window widened to hold it)
         img = embolden(np.pad(img, grow), ink)
         base, r0, r1, c0, c1 = base + grow, r0, r1 + 2 * grow, c0, c1 + 2 * grow
-        glyphs[name] = (*traced(img, r0, r1, c0, c1, base, c0 + grow, lsb), adv * U_PER_PX, g)
+        out = [(name, (*traced(img, r0, r1, c0, c1, base, c0 + grow, lsb), adv * U_PER_PX, g))]
         for k, alt in enumerate(alts, 1):
             a = embolden(np.pad(alternate(alt), grow), ink)
             m = 4 * UP + grow                # impressions may reach past the mean
@@ -751,8 +779,16 @@ def build(style, masters, size=11, suffix=""):
             ar1, ac1 = min(a.shape[0], r1 + m), min(a.shape[1], c1 + m)
             if not (a[ar0:ar1, ac0:ac1] > 0.5).any():
                 continue
-            glyphs[f"{name}.r{k}"] = (*traced(a, ar0, ar1, ac0, ac1, base, c0 + grow, lsb),
-                                      adv * U_PER_PX, g)
+            out.append((f"{name}.r{k}", (*traced(a, ar0, ar1, ac0, ac1, base, c0 + grow, lsb),
+                                         adv * U_PER_PX, g)))
+        return out
+
+    # potrace runs as its own process and numpy/scipy release the GIL, so
+    # threads trace in parallel; map keeps the glyph order
+    glyphs = {}                              # name -> (contours, dx, dy, adv, char)
+    with ThreadPoolExecutor(os.cpu_count()) as ex:
+        for out in ex.map(one, crops.items()):
+            glyphs.update(out)
     return glyphs
 
 
