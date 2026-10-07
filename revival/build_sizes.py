@@ -97,9 +97,12 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
             cs[n] = charstring(contours, dx * f + lsb_u, dy * f, bf.U_PER_UPX * f, adv_u,
                                private, gsubrs)
             # sit on the baseline like the base glyph (a real sort's master
-            # inherits its lines' baseline errors)
+            # inherits its lines' baseline errors, a few percent of its
+            # height); a larger difference is one of shape (a J that
+            # descends where the base glyph does not), not of position
             shift = b[1] * (w_u / max(1, b[2] - b[0])) - bounds(cs[n])[1]
-            if abs(shift) > 2:
+            rb = bounds(cs[n])
+            if 2 < abs(shift) < 0.06 * (rb[3] - rb[1]):
                 cs[n] = charstring(contours, dx * f + lsb_u, dy * f + shift,
                                    bf.U_PER_UPX * f, adv_u, private, gsubrs)
             adv[n] = round(adv_u)

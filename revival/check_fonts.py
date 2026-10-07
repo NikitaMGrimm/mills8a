@@ -1,6 +1,7 @@
 """Consistency checks over the built fonts; prints what looks wrong.
 
 * baseline: letters with flat (serif) bottoms sit within +-TOL units of 0;
+* descenders: g j p q y Q (and the roman J) reach below the line;
 * x-height: flat-topped lowercase reach the same height;
 * cap height: flat-topped capitals reach the same height;
 * side bearings: no glyph's left or right bearing is far outside its kind's;
@@ -24,6 +25,7 @@ FLAT_BOTTOM_LC = "hiklmnrx"
 FLAT_BOTTOM_UC = "BDEFHIKLMPRTXZ"
 FLAT_TOP_LC = "vwxyz"
 FLAT_TOP_UC = "BDEFHIKLMNPRTXZ"
+DESCENDERS = "gjpqyQ"                # and the roman J, below the line in Modern 8A
 problems = []
 
 
@@ -58,6 +60,9 @@ def check_text(name, italic=False, smallcaps=False):
 
     band("baseline", FLAT_BOTTOM_LC, 1, 0)
     band("baseline", FLAT_BOTTOM_UC, 1, 0)
+    for c in DESCENDERS + ("" if italic else "J"):
+        if g(c) and bounds(gs, g(c))[1] > -80:
+            report(f"{name}: descender {c} reaches only {bounds(gs, g(c))[1]:.0f}")
     band("x-height", FLAT_TOP_LC, 3)
     band("cap height", FLAT_TOP_UC, 3)
     # side bearings: lowercase and capitals separately, robust z-score

@@ -824,6 +824,19 @@ def main():
                         del masters[d]
                         print(f"figure {d}: 1947 sort {hh / med:.0%} of the others' height; "
                               "taking the specimen's")
+        if style == "R" and "J" not in masters and ("J", "R", 9) in M:
+            # roman J: the scans have it only at 9 pt (references: "J. Math."),
+            # descending below the line as Monotype Modern's J does; scaled
+            # to 11 pt, its stems thinned to the 11 pt weight (a smaller
+            # size is cut relatively heavier)
+            m9 = M[("J", "R", 9)]
+            img = ndimage.zoom(m9["img"].astype(np.float32), 11 / 9, order=1)
+            r = int(round((stem_width(img) - stem) / 2))
+            if r > 0:
+                yy, xx = np.mgrid[-r:r + 1, -r:r + 1]
+                img = ndimage.grey_erosion(img, footprint=xx * xx + yy * yy <= r * r + r)
+            masters["J"] = (img, -m9["base"] * 11 / 9)
+            added.append("J(9pt)")
         fill = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
         if style == "R":
             fill += "0123456789"
