@@ -15,8 +15,8 @@
 \newcommand\cropped[2]{% page #2 cut to the ink box #1
   \edef\next{\noexpand\includegraphics[viewport=#1,clip,width=26pc]{#2}}\next}
 \newcommand\panel[2]{%
-  \begin{minipage}[t]{29pc}\centering
-    \vspace{1.5pc}#1\par\vspace{1pc}{\small\sffamily #2}
+  \begin{minipage}[t][48pc][t]{29pc}\centering
+    \vspace{1.5pc}#1\par\vfill{\small\sffamily #2}
   \end{minipage}}
 \begin{document}
 \centering
