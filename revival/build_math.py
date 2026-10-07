@@ -40,6 +40,8 @@ OPERATORS = "+−±=<>()[]/|≦≧≤∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠ
 # cast centred on their body: even side bearings (TeX adds the spacing)
 CENTRED = set("+−±=<>≦≧≤×÷≃≠≡≅∈⊂∪∩⊗→←:")
 CENTRED_SB = 30
+SCRIPT_SB = 25              # index figures and operators (units of the variant)
+SCRIPT_SB_ARROW = 150       # index arrows
 MIN_MATH_LSB = 20                     # units, for math italic letters
 
 
@@ -237,11 +239,12 @@ def pair_gaps():
     return out
 
 
-def shifted(cs, dx, private, gsubrs, adv, dy=0):
-    """The charstring moved right by dx (and up by dy) with a new advance."""
+def shifted(cs, dx, private, gsubrs, adv, dy=0, sx=1.0):
+    """The charstring scaled by sx horizontally, moved right by dx (and up
+    by dy), with a new advance."""
     from fontTools.pens.transformPen import TransformPen
     pen = T2CharStringPen(adv, None)
-    cs.draw(TransformPen(pen, (1, 0, 0, 1, dx, dy)))
+    cs.draw(TransformPen(pen, (sx, 0, 0, 1, dx, dy)))
     return pen.getCharString(private, gsubrs)
 
 
@@ -411,22 +414,46 @@ def main():
     # indices the 1947 operators sit by the letters, not by the scaled math
     # axis: centred 6.5% of an n's height above its middle (3^{-n}, P_{n+1})
     n_var = dict(zip(("S1", "S2"), ssty.get(lm_cmap.get(0x1D45B), [])))
+
+    def by_the_n(v, lvl, b2, off):
+        """dy that centres variant v (bounds b2) off n-heights above the
+        middle of the same level's n."""
+        if n_var.get(lvl) not in cs:
+            return 0
+        bn = bounds(cs[n_var[lvl]])
+        return round((bn[1] + bn[3]) / 2 + off * (bn[3] - bn[1]) - (b2[1] + b2[3]) / 2)
     for n, (st, ch) in targets.items():
+        if st == "R" and ch.isdigit() and n in cs:
+            # index figures are set close (1947: 1 px from a +), not on
+            # the text figures' one (tabular) width
+            for v in ssty.get(n, []):
+                if v in cs:
+                    b2 = bounds(cs[v])
+                    adv[v] = round(b2[2] - b2[0] + 2 * SCRIPT_SB)
+                    cs[v] = shifted(cs[v], SCRIPT_SB - b2[0], private, gsubrs, adv[v])
+        if st == "R" and ch == "∞" and n in cs:
+            # 1947 sets the index infinity a little below the n's middle
+            for lvl, v in zip(("S1", "S2"), ssty.get(n, [])):
+                if v in cs:
+                    b2 = bounds(cs[v])
+                    cs[v] = shifted(cs[v], 0, private, gsubrs, adv[v],
+                                    by_the_n(v, lvl, b2, -0.07))
         if st == "R" and ch in CENTRED and n in cs:
             bb = bounds(cs[n])
             adv[n] = round(bb[2] - bb[0] + 2 * CENTRED_SB)
             cs[n] = shifted(cs[n], CENTRED_SB - bb[0], private, gsubrs, adv[n])
+            # index arrows are short in 1947 (33 px at 600 dpi under lim,
+            # where the text arrow scaled to index size is 51) and stand
+            # off their neighbours (6-13 px); + - = sit close (1-2 px)
+            sx = 0.65 if ch in "→←" else 1.0
             for lvl, v in zip(("S1", "S2"), ssty.get(n, [])):
                 if v in cs:
                     b2 = bounds(cs[v])
-                    sb2 = round(CENTRED_SB * (b2[2] - b2[0]) / max(1, bb[2] - bb[0]))
-                    adv[v] = round(b2[2] - b2[0] + 2 * sb2)
-                    dy = 0
-                    if n_var.get(lvl) in cs:
-                        bn = bounds(cs[n_var[lvl]])
-                        want = (bn[1] + bn[3]) / 2 + 0.065 * (bn[3] - bn[1])
-                        dy = round(want - (b2[1] + b2[3]) / 2)
-                    cs[v] = shifted(cs[v], sb2 - b2[0], private, gsubrs, adv[v], dy)
+                    w2 = (b2[2] - b2[0]) * sx
+                    sb2 = SCRIPT_SB_ARROW if ch in "→←" else SCRIPT_SB
+                    adv[v] = round(w2 + 2 * sb2)
+                    cs[v] = shifted(cs[v], sb2 - b2[0] * sx, private, gsubrs, adv[v],
+                                    by_the_n(v, lvl, b2, 0.065), sx)
     # for pdfLaTeX (TeX centres a math accent by its advance): spacing copies
     # of the combining accents, and the bar of \mapsto
     for cp in (0x300, 0x301, 0x302, 0x303, 0x304, 0x306, 0x307, 0x308, 0x30A, 0x30C, 0x20D7):
