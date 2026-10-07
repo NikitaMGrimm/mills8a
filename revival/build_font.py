@@ -131,7 +131,11 @@ SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 # build_math.py.)
 SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07),
                          "A": (-0.02, 0.025)},     # fitted 0.12 em right: pairs with spaces
-                   "R": {"—": (0.02, 0.02)},     # the em dash is constructed
+                   "R": {"—": (0.02, 0.02),      # the em dash is constructed
+                         # 1947 set a thin space before : and ; (gap after a
+                         # letter 18 and 16 px against 9 before . and ,),
+                         # which the pair fit takes for a word space
+                         ":": (0.117, 0.027), ";": (0.147, 0.027)},
                    # small caps: the A is seen only before other small caps
                    # or a roman period ("LEMMA."), so its bearings cannot be
                    # fitted; as measured on the 1947 page
@@ -342,9 +346,10 @@ def fit_spacing(style, size, widths):
     if "ff" in widths and "ffi" in lig_measured and "i" in out and "ff" not in lig_measured:
         # ff: the ffi sort less the width of the i it no longer carries
         out["ff"] = (out["ffi"][0], out["ffi"][1] - out["i"][1])
+    em = EM_PX * (size / 11 if isinstance(size, (int, float)) else 1)
     for g, (lsb_em, rsb_em) in by_hand(style, size).items():
         if g in widths:
-            lsb, rsb = lsb_em * EM_PX, rsb_em * EM_PX
+            lsb, rsb = lsb_em * em, rsb_em * em
             out[g] = (lsb, lsb + widths[g] + rsb)
     # f-ligatures seen too rarely to measure (the italic ff and fi occur a
     # few times): the left bearing of f and the right bearing of the last
@@ -373,7 +378,10 @@ def fit_spacing(style, size, widths):
                 if d + ".osf" in widths:
                     out[d + ".osf"] = ((fw - widths[d + ".osf"]) / 2, fw)
     if "–" in out and "–.osf" in widths:
-        out["–.osf"] = out["–"]
+        # old-style figures stand in one (tabular) width, the round 0 6 8
+        # filling theirs: the dash keeps 0.025 em more off them each side
+        x = 0.025 * EM_PX
+        out["–.osf"] = (out["–"][0] + x, out["–"][1] + 2 * x)
     # constructed ligatures, from the final widths of their parts
     for lig, src in (("fl", "fi"), ("ffl", "ffi")):
         # roman: the fi/ffi sort less its i, plus the l

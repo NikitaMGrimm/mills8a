@@ -38,7 +38,7 @@ UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
 OPERATORS = "+−±=<>()[]/|≦≧≤∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊≠∩≅∂←≡𝔛𝒞𝒜"
 # cast centred on their body: even side bearings (TeX adds the spacing)
-CENTRED = set("+−±=<>≦≧≤×÷≃≠≡≅∈⊂∪∩⊗→←")
+CENTRED = set("+−±=<>≦≧≤×÷≃≠≡≅∈⊂∪∩⊗→←:")
 CENTRED_SB = 30
 MIN_MATH_LSB = 20                     # units, for math italic letters
 
@@ -56,9 +56,12 @@ def lm_path():
 # and counters at least MIN_COUNTER as open as the text glyph's (the heavy
 # small sorts fill in: 8, 4, italic e).  By inspection of the rest:
 # 2 3 7 average into closed shapes; the second-order "5" group holds 2s;
-# the italic "o" is a sigma; the italic t is a blob
+# the italic "o" is a sigma; the italic t is a blob; the first-order arrow
+# group holds text-size arrows (it comes out as long as the text arrow,
+# where 1947 indices have a short one: lim_{n\to\infty})
 SYNTH_SCRIPT = {("2", "R", "S1"), ("2", "R", "S2"), ("3", "R", "S1"), ("3", "R", "S2"),
-                ("5", "R", "S2"), ("7", "R", "S2"), ("o", "I", "S1"), ("t", "I", "S1")}
+                ("5", "R", "S2"), ("7", "R", "S2"), ("o", "I", "S1"), ("t", "I", "S1"),
+                ("→", "R", "S1")}
 # the italic script k is cut with an open loop: no counter, but it reads
 KEEP_SCRIPT = {("k", "I", "S1")}
 MIN_SCRIPT_N = 10
@@ -234,11 +237,11 @@ def pair_gaps():
     return out
 
 
-def shifted(cs, dx, private, gsubrs, adv):
-    """The charstring moved right by dx with a new advance."""
+def shifted(cs, dx, private, gsubrs, adv, dy=0):
+    """The charstring moved right by dx (and up by dy) with a new advance."""
     from fontTools.pens.transformPen import TransformPen
     pen = T2CharStringPen(adv, None)
-    cs.draw(TransformPen(pen, (1, 0, 0, 1, dx, 0)))
+    cs.draw(TransformPen(pen, (1, 0, 0, 1, dx, dy)))
     return pen.getCharString(private, gsubrs)
 
 
@@ -404,18 +407,26 @@ def main():
                 our_gs["R"][period].draw(TransformPen(pen, (f, 0, 0, f, tx - f * cx, axis - f * cy)))
             cs[n] = pen.getCharString(private, gsubrs)
     # binary operators, relations and arrows: centred, whatever spacing the
-    # text fit gave them (the text minus had 267 units on its right)
+    # text fit gave them (the text minus had 267 units on its right).  In
+    # indices the 1947 operators sit by the letters, not by the scaled math
+    # axis: centred 6.5% of an n's height above its middle (3^{-n}, P_{n+1})
+    n_var = dict(zip(("S1", "S2"), ssty.get(lm_cmap.get(0x1D45B), [])))
     for n, (st, ch) in targets.items():
         if st == "R" and ch in CENTRED and n in cs:
             bb = bounds(cs[n])
             adv[n] = round(bb[2] - bb[0] + 2 * CENTRED_SB)
             cs[n] = shifted(cs[n], CENTRED_SB - bb[0], private, gsubrs, adv[n])
-            for v in ssty.get(n, []):
+            for lvl, v in zip(("S1", "S2"), ssty.get(n, [])):
                 if v in cs:
                     b2 = bounds(cs[v])
                     sb2 = round(CENTRED_SB * (b2[2] - b2[0]) / max(1, bb[2] - bb[0]))
                     adv[v] = round(b2[2] - b2[0] + 2 * sb2)
-                    cs[v] = shifted(cs[v], sb2 - b2[0], private, gsubrs, adv[v])
+                    dy = 0
+                    if n_var.get(lvl) in cs:
+                        bn = bounds(cs[n_var[lvl]])
+                        want = (bn[1] + bn[3]) / 2 + 0.065 * (bn[3] - bn[1])
+                        dy = round(want - (b2[1] + b2[3]) / 2)
+                    cs[v] = shifted(cs[v], sb2 - b2[0], private, gsubrs, adv[v], dy)
     # for pdfLaTeX (TeX centres a math accent by its advance): spacing copies
     # of the combining accents, and the bar of \mapsto
     for cp in (0x300, 0x301, 0x302, 0x303, 0x304, 0x306, 0x307, 0x308, 0x30A, 0x30C, 0x20D7):
