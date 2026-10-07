@@ -20,12 +20,28 @@ all as they were printed.
 ## The 1947 page, reset
 
 The Mills page as printed in 1947 (left), and reset from the LaTeX source in
-Mills 8A with LuaLaTeX and with pdfLaTeX:
+Mills 8A (right):
 
-![1947 scan, LuaLaTeX, pdfLaTeX](docs/comparison.png)
+![1947 scan and Mills 8A](docs/comparison.png)
 
-[`mills-compare.pdf`](mills-compare.pdf) has the three side by side and then
-each on its own page.
+[`mills-compare.pdf`](mills-compare.pdf) has the two side by side and then
+each on its own page; [`mills-8a.pdf`](mills-8a.pdf) is the page alone.
+
+## Using it
+
+```latex
+\usepackage{mills8a}            % or [osf] for old-style figures in text
+```
+
+with `revival/pdftex/tex` on `TEXINPUTS` and `revival/pdftex/fonts` on
+`TFMFONTS`, `VFFONTS`, `T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see
+`render.sh`). The Bulletin set 11 pt type on 12 pt leading; `tex/mills.tex`
+is a complete example, including the 1947 script positions.
+
+It works with pdfLaTeX and standard TeX font machinery only: T1 text fonts,
+OML/OMS/OMX math fonts at 11, 6.5 and 5.5 pt (so indices use the real script
+sorts, as `cmmi7`/`cmmi5` do), and a virtual font that puts the 1947 big
+operators into `cmex10`.
 
 ## What is in the family
 
@@ -35,48 +51,15 @@ each on its own page.
 | Mills8A-Italic | italic, Greek, f-ligatures |
 | Mills8A-Bold, -BoldItalic | bold (from the titles); bold italic (synthesized) |
 | Mills8A-Regular9, -Italic9 | the 9 pt cut, for footnotes and references |
-| Mills8A-Math | OpenType math: the 1947 letters, Greek, operators, relations, Fraktur, display ∑ ∏ ∫, and the real first- and second-order **script sorts** for indices |
+| Mills8A-Math | the 1947 letters, Greek, operators, relations, Fraktur, display ∑ ∏ ∫, and the real first- and second-order **script sorts** for indices |
 
-The same family is built twice:
+### OpenType fonts
 
-- **OpenType** for LuaLaTeX (`fontspec`, `unicode-math`). Each letter can also
-  be set as one of up to 8 real impressions at random (`rand`), and a small
-  baseline wobble (`tex/mills8a-jitter.lua`) imitates the letterpress line.
-- **Type 1 / TFM** for pdfLaTeX, using only standard TeX font machinery: T1
-  text fonts, OML/OMS/OMX math fonts at 11, 6.5 and 5.5 pt (so indices use the
-  real script sorts, as `cmmi7`/`cmmi5` do), and a virtual font that puts the
-  1947 big operators into `cmex10`.
-
-## Using it
-
-pdfLaTeX:
-
-```latex
-\usepackage{mills8a}            % or [osf] for old-style figures in text
-```
-
-with `revival/pdftex/tex` on `TEXINPUTS` and `revival/pdftex/fonts` on
-`TFMFONTS`, `VFFONTS`, `T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see
-`render.sh`).
-
-LuaLaTeX:
-
-```latex
-\usepackage{unicode-math}
-\setmainfont{Mills8A-Regular.otf}[
-  RawFeature=+rand,                                   % random 1947 impressions
-  SizeFeatures={{Size=-10, Font=Mills8A-Regular9.otf}, {Size=10-}},
-  SmallCapsFont=Mills8A-Regular.otf, SmallCapsFeatures={RawFeature=+smcp},
-  ItalicFont=Mills8A-Italic.otf,
-  ItalicFeatures={SizeFeatures={{Size=-10, Font=Mills8A-Italic9.otf}, {Size=10-}}},
-  BoldFont=Mills8A-Bold.otf, BoldItalicFont=Mills8A-BoldItalic.otf]
-\setmathfont{Mills8A-Math.otf}
-\DeclareMathSizes{10.95}{11}{6.48}{5.51}                 % the measured script sizes
-```
-
-with `revival/fonts` on `OPENTYPEFONTS`. Add `Numbers=OldStyle` for old-style
-figures. The Bulletin set 11 pt type on 12 pt leading; `tex/mills.tex` shows the
-complete setup, including the 1947 script positions.
+The family is also built as OpenType fonts (`revival/fonts`, with an OpenType
+math font) for LuaLaTeX and other software. They can set each letter as one
+of up to 8 real 1947 impressions at random (feature `rand`); `tex/mills.tex`
+run with LuaLaTeX shows the setup (`fontspec`, `unicode-math`). The
+difference from the pdfLaTeX page is slight.
 
 ## How it was made
 
@@ -98,7 +81,7 @@ complete setup, including the 1947 script positions.
    and the pdfLaTeX fonts (`pdftex/build_pdftex.py`).
 6. **Check**: `check_fonts.py` tests baselines, heights, side bearings and the
    script sorts of every font, and `proof/` has proof sheets of everything the
-   family sets, in both engines.
+   family sets.
 
 `revival/README.md` describes each step, the measurements behind it, and
 where each glyph comes from.
@@ -130,7 +113,7 @@ from the AMS back issues). With them in `revival/scans/`:
     revival/build.sh              # about 1.5-2 h on 4 cores; clustering is most of it
     ./render.sh                   # the PDFs, proof sheets and the images above
 
-Requires TeX Live (pdfLaTeX, LuaLaTeX, `lcdf-typetools`), Tesseract, potrace,
+Requires TeX Live (pdfLaTeX, `lcdf-typetools`; LuaLaTeX for the OpenType example), Tesseract, potrace,
 and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are
 committed in `revival/fonts/` and `revival/pdftex/fonts/`.
 

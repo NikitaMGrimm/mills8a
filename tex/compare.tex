@@ -1,13 +1,12 @@
-% The Mills page three ways, side by side: the 1947 scan, Mills 8A in
-% LuaLaTeX, Mills 8A through standard pdfLaTeX fonts.  render.sh builds this
-% (pdflatex, in out/) and joins it with the full-size pages (compare-scan.tex,
-% mills-8a.pdf, mills-8a-pdf.pdf) into out/mills-compare.pdf.
+% The Mills page side by side: the 1947 scan and Mills 8A (pdfLaTeX).
+% render.sh builds this (pdflatex, in out/) and joins it with the full-size
+% pages (compare-scan.tex, mills-8a.pdf) into out/mills-compare.pdf.
 %
 % Each panel is its page cropped to the ink (bbox.tex, written by render.sh;
 % the scan is cropped already) and set at the same width, so the titles, the
-% text blocks and the page numbers line up across the three.
+% text blocks and the page numbers line up across the two.
 \documentclass{article}
-\usepackage[paperwidth=93pc,paperheight=52pc,margin=1pc]{geometry}
+\usepackage[paperwidth=62pc,paperheight=52pc,margin=1pc]{geometry}
 \usepackage{graphicx}
 \pagestyle{empty}
 \setlength\parindent{0pt}
@@ -22,8 +21,6 @@
 \centering
 \panel{\includegraphics[width=26pc]{../scan-mills1947.png}}
   {1947 \textit{Bulletin of the AMS} (scan)}\hfill
-\panel{\cropped\bboxlua{mills-8a.pdf}}
-  {Mills 8A, LuaLaTeX (random impressions, wobble)}\hfill
-\panel{\cropped\bboxpdf{mills-8a-pdf.pdf}}
-  {Mills 8A, pdfLaTeX (standard Type 1 / TFM fonts)}
+\panel{\cropped\bboxpdf{mills-8a.pdf}}
+  {Mills 8A (\texttt{\string\usepackage\string{mills8a\string}}, pdfLaTeX)}
 \end{document}

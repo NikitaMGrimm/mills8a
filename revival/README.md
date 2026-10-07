@@ -16,7 +16,50 @@ the page scans, and the spacing is measured from the text.
 | `Mills8A-BoldItalic.otf` | bold italic: the italic thickened to the bold stems (synthesized) |
 | `Mills8A-Regular9.otf`, `Mills8A-Italic9.otf` | 9 pt cut for footnotes and references |
 
-## Using it (LuaLaTeX)
+## Using it (pdfLaTeX)
+
+`pdftex/` has the family as standard pdfLaTeX fonts: Type 1 outlines,
+TFM metrics, virtual fonts, `.fd` files and a map file.
+
+```latex
+\usepackage{mills8a}        % T1 text, small caps, bold, 9pt, and math
+```
+
+with `pdftex/tex` on `TEXINPUTS` and `pdftex/fonts` on `TFMFONTS`, `VFFONTS`,
+`T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see `render.sh`).
+
+The f-ligatures are in the TFM ligature tables (`otftotfm`), and small
+caps are a separate font. Math uses one font per family and size, as TeX
+always has: operators, math italic and symbols each come at 11 pt, 6.48 pt and
+5.51 pt. The script fonts are cut from `Mills8A-Math.otf`'s script variants,
+so **the real 1947 script sorts work in pdfLaTeX too**, the way `cmmi7` and
+`cmmi5` always did. The TeX math parameters (script shifts and so on) are
+the symbol font's fontdimens; `mills.tex` sets the Mills display
+superscript shift with `\fontdimen13\textfont2`.
+
+Compared with the OpenType fonts (below) it lacks
+
+- random impressions: every letter is its averaged master;
+- the baseline wobble;
+- nothing in big operators: the virtual font `m8aex` is `cmex10` with the
+  1947 text ∑ and display ∑ and ∏ put in its slots (delimiters and the
+  other big operators stay Computer Modern's).
+
+Measured on the Mills page, both versions have the same darkness as the scan
+(ratio 1.01–1.02) and the same script sorts. The text width matches the scan
+within 0.2% (an unjustified line, "where *K* is a fixed positive integer.",
+is 0.518 of the measure in both); line breaks still differ in places, as
+TeX justifies differently from the 1947 compositor.
+
+### Old-style figures
+
+`\usepackage[osf]{mills8a}` (family `m8aj`); in LuaLaTeX
+`Numbers=OldStyle` (the `onum` feature). All ten are 1940s sorts from the
+Bulletin's running heads; math keeps lining figures, as in print.
+
+### The OpenType fonts (LuaLaTeX)
+
+An extra; the difference from the pdfLaTeX fonts is slight.
 
 ```latex
 \usepackage{unicode-math}
@@ -37,47 +80,6 @@ leading (see *Scripts* below).
 
 LuaLaTeX is needed for the randomness: XeLaTeX loads the fonts, but its
 HarfBuzz shaping gives every repeat of a word the same impressions.
-
-### Old-style figures
-
-LuaLaTeX: `Numbers=OldStyle` (the `onum` feature). pdfLaTeX:
-`\usepackage[osf]{mills8a}` (family `m8aj`). All ten are 1940s sorts from the
-Bulletin's running heads; math keeps lining figures, as in print.
-
-### pdfLaTeX
-
-`pdftex/` has the same family as standard pdfLaTeX fonts: Type 1 outlines,
-TFM metrics, virtual fonts, `.fd` files and a map file.
-
-```latex
-\usepackage{mills8a}        % T1 text, small caps, bold, 9pt, and math
-```
-
-with `pdftex/tex` on `TEXINPUTS` and `pdftex/fonts` on `TFMFONTS`, `VFFONTS`,
-`T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see `render.sh`).
-
-The f-ligatures are in the TFM ligature tables (`otftotfm`), and small
-caps are a separate font. Math uses one font per family and size, as TeX
-always has: operators, math italic and symbols each come at 11 pt, 6.48 pt and
-5.51 pt. The script fonts are cut from `Mills8A-Math.otf`'s script variants,
-so **the real 1947 script sorts work in pdfLaTeX too**, the way `cmmi7` and
-`cmmi5` always did. The TeX math parameters (script shifts and so on) are
-the symbol font's fontdimens; `mills.tex` sets the Mills display
-superscript shift with `\fontdimen13\textfont2`.
-
-What pdfLaTeX loses:
-
-- the random impressions: every letter is its averaged master;
-- the baseline wobble;
-- nothing in big operators: the virtual font `m8aex` is `cmex10` with the
-  1947 text ∑ and display ∑ and ∏ put in its slots (delimiters and the
-  other big operators stay Computer Modern's).
-
-Measured on the Mills page, both versions have the same darkness as the scan
-(ratio 1.01–1.02) and the same script sorts. The text width matches the scan
-within 0.2% (an unjustified line, "where *K* is a fixed positive integer.",
-is 0.518 of the measure in both); line breaks still differ in places, as
-TeX justifies differently from the 1947 compositor.
 
 ## Sources
 

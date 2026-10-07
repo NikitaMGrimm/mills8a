@@ -1,6 +1,7 @@
 #!/bin/sh
-# Typeset the Mills page in Mills 8A with LuaLaTeX and pdfLaTeX, the
-# comparison PDF, the proof sheets and the README images.
+# Typeset the Mills page in Mills 8A (pdfLaTeX; and, as an extra, with the
+# OpenType fonts in LuaLaTeX), the comparison PDF, the proof sheets and the
+# README images.
 #   ./render.sh
 set -e
 cd "$(dirname "$0")"
@@ -18,17 +19,17 @@ pdf() {   # pdflatex with the Type 1 / TFM fonts
 }
 
 cd out
-lua -jobname=mills-8a mills.tex || { tail -30 mills-8a.log; exit 1; }
-pdf -jobname=mills-8a-pdf mills.tex || { tail -30 mills-8a-pdf.log; exit 1; }
+pdf -jobname=mills-8a mills.tex || { tail -30 mills-8a.log; exit 1; }
+lua -jobname=mills-8a-lua mills.tex || { tail -30 mills-8a-lua.log; exit 1; }
 
-# the comparison: overview, scan and both versions, each page headed with
-# its version and the build
+# the comparison: overview, scan and the typeset page, each page headed
+# with what it shows and the build
 gs_bbox() {   # ink box of a PDF page, in bp: x0 y0 x1 y1
   gs -q -dNOPAUSE -dBATCH -sDEVICE=bbox "$1" 2>&1 | sed -n 's/^%%HiResBoundingBox: //p'
 }
-gs_bbox mills-8a-pdf.pdf | awk -v lua="$(gs_bbox mills-8a.pdf)" \
-  -v h="$(pdfinfo mills-8a-pdf.pdf | awk '/^Page size/ {print $5}')" '{
-  printf "\\def\\bboxlua{%s}\\def\\bboxpdf{%s}\n", lua, $0
+gs_bbox mills-8a.pdf | awk \
+  -v h="$(pdfinfo mills-8a.pdf | awk '/^Page size/ {print $5}')" '{
+  printf "\\def\\bboxpdf{%s}\n", $0
   printf "\\def\\bboxleft{%sbp}\\def\\bboxwidth{%sbp}\\def\\bboxtop{%sbp}\n", $1, $3 - $1, h - $4
 }' > bbox.tex
 for t in compare compare-scan; do
@@ -50,7 +51,7 @@ pdftoppm -r 170 -png -singlefile specimen.pdf ../docs/specimen
 pdftoppm -r 110 -png -singlefile -f 1 -l 1 mills-compare.pdf ../docs/comparison
 
 # the PDFs README.md links to
-cp mills-compare.pdf mills-8a.pdf mills-8a-pdf.pdf ..
+cp mills-compare.pdf mills-8a.pdf ..
 
 grep -l "Missing character" *.log proof/*.log || true
-echo "mills-8a.pdf mills-8a-pdf.pdf mills-compare.pdf out/proof/*.pdf docs/*.png"
+echo "mills-8a.pdf mills-compare.pdf out/mills-8a-lua.pdf out/proof/*.pdf docs/*.png"
