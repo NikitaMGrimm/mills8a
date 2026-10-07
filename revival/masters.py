@@ -201,20 +201,26 @@ def main():
             # that letter's sort (bold E and F can share a cluster)
             ch = m["ch"]
             # (only into a sort that exists on its own: across many pages
-            # the misreads alone would otherwise make sorts of their own)
+            # the misreads alone would otherwise make sorts of their own;
+            # bold title capitals excepted, which OCR reads reliably and
+            # which are too few to cluster apart: the bold G sat with the O)
             if (ch and len(ch) == 1 and ch.isascii() and ch.isalpha()
                     and len(key[0]) == 1 and key[0].isascii() and key[0].isalpha()
                     and ch != key[0] and m["conf"] > 90 and ch.isupper() == key[0].isupper()
-                    and (ch,) + key[1:] in sorts):
+                    and ((ch,) + key[1:] in sorts or key[1] == "B")):
                 moved.setdefault((ch,) + key[1:], []).append(m)
             else:
                 members_of[key].append(m)
+    for key in moved:                  # bold sorts made from moved impressions only
+        members_of.setdefault(key, [])
     for key, members in members_of.items():
-        if not members:
+        if not members and len(moved.get(key, [])) < 2:
             continue
         out = [] if key[1] == "R" and key[2] == 11 and key[0].isascii() and key[0].isupper() else None
-        r = build(members, drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
-                  bold_out=out, extra=moved.get(key, []))
+        own = bool(members)
+        r = build(members if own else moved[key],
+                  drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
+                  bold_out=out, extra=moved.get(key, []) if own else ())
         if out:
             bold.setdefault(key[0], []).extend(out)
         if r is None:

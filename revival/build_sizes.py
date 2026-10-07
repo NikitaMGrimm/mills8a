@@ -209,8 +209,15 @@ def main():
     gb = measured_grow(M, "B", "T", "ABEILMNPRT", 1.0)
     print(f"bold: {len(bold)} real capitals ({''.join(sorted(bold))}); "
           f"the rest thickened by {gb:.2f} px per edge")
+    # side bearings of the real bold capitals fitted from the letter pairs
+    # of the titles (as the 9 pt cut is), not taken over from the roman: the
+    # bold I is set close, "PRIME" with R and I touching
+    widths = {g: (np.ptp(np.nonzero((bf.despeckle(m["img"]) > 0.5).any(0))[0]) + 1) / UP
+              for g, m in bold.items()}
+    sp = bf.fit_spacing("B", "T", widths) if widths else {}
+    sp = {g: v for g, v in sp.items() if g in bold}
     make(os.path.join(FONTS, "Mills8A-Bold.otf"), "Mills 8A", "Bold", reg, bold, 11, gb,
-         features=liga(TTFont(reg).getGlyphOrder()))
+         spacing=sp, features=liga(TTFont(reg).getGlyphOrder()))
     # bold italic: no 1947 source at all; the italic thickened like the
     # bold fill-ins
     make(os.path.join(FONTS, "Mills8A-BoldItalic.otf"), "Mills 8A", "Bold Italic", ita, {}, 11,

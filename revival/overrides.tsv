@@ -593,3 +593,5 @@ vonkarman1940-062@1643,3284	–	R	9
 # the question mark: one cluster of 10 impressions, never labelled (Tesseract
 # also writes ? for what it cannot read, so the label alone was not trusted)
 feller1945-014@2418,999	?	R	11
+# the bold hyphen (titles and bold run-in heads), 37 impressions
+post1944-001@3106,4602	-	B	T
