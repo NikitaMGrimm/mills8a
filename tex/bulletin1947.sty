@@ -54,14 +54,15 @@
 \renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern4.7pt}
 \skip\footins=9.1pt plus 2pt minus 1pt
 \ExplSyntaxOn
-\NewDocumentCommand\spacedwords{O{.45em}m}{% title lines: words #1 apart
+\NewDocumentCommand\spacedwords{O{.45em}m}{% title lines: words #1 apart,
+  % closer where a long title would otherwise break (as the compositor did)
   \seq_set_split:Nnn \l_tmpa_seq {~} {#2}
-  \seq_use:Nn \l_tmpa_seq {\hspace{#1}}}
+  \seq_use:Nn \l_tmpa_seq {\hspace{#1 minus .2em}}}
 \ExplSyntaxOff
 % title in bold capitals (lines broken with \\), author in small caps of the
 % text size (give it in lower case: \articletitle{...}{w. h. mills})
 \newcommand\articletitle[2]{{\centering
-  {\bfseries\spacedwords{#1}}\par
+  {\bfseries\linepenalty=1000 \spacedwords{#1}\par}% one line where it fits
   \medskip
   {\scshape\spacedwords[.37em]{#2}}\par}\vspace{7pt}}
 % a run-in heading: "1. Introduction." in bold

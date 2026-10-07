@@ -128,7 +128,7 @@ impressions):
 - the old-style figures, from the years in the Bulletin's running heads;
 - punctuation, with the 1947 quotes ‘ ’ “ ”, the question mark (10
   impressions) and the en dash (a 9 pt sort, scaled);
-- 23 small capitals and 21 bold capitals;
+- 23 small capitals, 22 bold capitals and the bold hyphen;
 - Greek, most math operators and relations, the display ∑ ∏ ∫, and
   Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛;
 - the 9 pt cut: 80 roman and 54 italic sorts;

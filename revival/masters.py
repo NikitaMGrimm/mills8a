@@ -12,7 +12,10 @@ with img in [0,1] ink coverage at UP x 600 dpi, alts up to NALT single
 impressions aligned to img (for the OpenType rand feature), and
 work/masters.png for review.
 """
+import hashlib
+import inspect
 import json
+import multiprocessing
 import os
 import pickle
 
@@ -174,6 +177,74 @@ def build(members, drop_bold=False, bold_out=None, extra=()):
     return mean, kept, geo[2], alts
 
 
+
+# ---------------------------------------------------------------- cache
+# A master depends only on its impressions, the per-scan corrections and
+# the code that averages them; each is stored under a hash of those, so a
+# change to a few sorts re-averages only those (work/master_cache/), and
+# the rest of the work runs on all cores.
+CACHE = os.path.join(WORK, "master_cache")
+
+
+def ident(m):
+    return (m["page"], tuple(m["bbox"]))
+
+
+def _code_hash():
+    h = hashlib.sha1()
+    for f in (build, place, canvas_geometry, align, shift, iou, stroke, disk):
+        h.update(inspect.getsource(f).encode())
+    h.update(repr((UP, MAXSHIFT, MARGIN, NALT, MAXN)).encode())
+    h.update(json.dumps([DOCSCALE, DOCWEIGHT], sort_keys=True).encode())
+    return h.digest()
+
+
+def fingerprint(job, code):
+    h = hashlib.sha1(code)
+    for grp in (job["members"], job["extra"]):
+        for m in grp:
+            h.update(repr((ident(m), m["baseline_ref"])).encode())
+            h.update(np.ascontiguousarray(m["bitmap"]).tobytes())
+        h.update(b"|")
+    h.update(repr((job["drop_bold"], job["want_bold"])).encode())
+    return h.hexdigest()
+
+
+_JOBS = []
+
+
+def _run(i):
+    key, job = _JOBS[i]
+    out = [] if job["want_bold"] else None
+    r = build(job["members"], drop_bold=job["drop_bold"], bold_out=out, extra=job["extra"])
+    return r, {ident(m) for m in out} if out else set()
+
+
+def build_all(jobs):
+    """{key: job} -> {key: (build result, ids of the bold impressions it
+    set apart)}, from the cache where the inputs are unchanged."""
+    global _JOBS
+    os.makedirs(CACHE, exist_ok=True)
+    code = _code_hash()
+    out, todo = {}, []
+    for key, job in jobs.items():
+        fp = fingerprint(job, code)
+        path = os.path.join(CACHE, fp + ".pkl")
+        if os.path.exists(path):
+            out[key] = pickle.load(open(path, "rb"))
+        else:
+            todo.append((key, job, path))
+    print(f"masters: {len(out)} from the cache, {len(todo)} to average", flush=True)
+    if todo:
+        _JOBS = [(k, j) for k, j, _ in todo]
+        # fork: the workers share the impressions without copying them
+        with multiprocessing.get_context("fork").Pool(os.cpu_count()) as pool:
+            res = pool.map(_run, range(len(_JOBS)), chunksize=1)
+        for (key, _, path), r in zip(todo, res):
+            pickle.dump(r, open(path, "wb"))
+            out[key] = r
+    return out
+
 def main():
     inst = pickle.load(open(os.path.join(WORK, "instances.pkl"), "rb"))
     clusters = {c["id"]: c for c in pickle.load(open(os.path.join(WORK, "clusters.pkl"), "rb"))}
@@ -213,28 +284,34 @@ def main():
                 members_of[key].append(m)
     for key in moved:                  # bold sorts made from moved impressions only
         members_of.setdefault(key, [])
+    jobs = {}
     for key, members in members_of.items():
         if not members and len(moved.get(key, [])) < 2:
             continue
-        out = [] if key[1] == "R" and key[2] == 11 and key[0].isascii() and key[0].isupper() else None
         own = bool(members)
-        r = build(members if own else moved[key],
-                  drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
-                  bold_out=out, extra=moved.get(key, []) if own else ())
-        if out:
-            bold.setdefault(key[0], []).extend(out)
+        jobs[key] = dict(members=members if own else moved[key],
+                         drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
+                         want_bold=key[1] == "R" and key[2] == 11 and key[0].isascii()
+                         and key[0].isupper(),
+                         extra=moved.get(key, []) if own else [])
+    results = build_all(jobs)
+    for key, (r, bold_ids) in results.items():
+        if bold_ids:
+            bold.setdefault(key[0], []).extend(
+                m for m in jobs[key]["members"] if ident(m) in bold_ids)
         if r is None:
             continue
         img, n, base, alts = r
         masters[key] = dict(img=img.astype(np.float32), base=base, n=n, alts=alts)
     # bold sorts: the title-capital clusters plus the bold impressions
     # separated from the roman capitals
+    jobs = {}
     for g, extra in bold.items():
         key = (g, "B", "T")
         members = members_of.get(key, []) + extra
-        if len(members) < 2:
-            continue
-        r = build(members)
+        if len(members) >= 2:
+            jobs[key] = dict(members=members, drop_bold=False, want_bold=False, extra=[])
+    for key, (r, _) in build_all(jobs).items():
         if r is not None:
             img, n, base, alts = r
             masters[key] = dict(img=img.astype(np.float32), base=base, n=n, alts=alts)

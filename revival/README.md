@@ -174,13 +174,13 @@ and entered in `overrides.tsv`.
 
 ## What comes from where
 
-- **1943–47 masters:** every 11 pt roman and italic letter and figure, the
-  punctuation, 21 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ τ χ ψ ω ϕ ϵ*
+- **1940–47 masters:** every 11 pt roman and italic letter and figure (the
+  roman J from its 9 pt sort), the punctuation with the quotes ‘ ’ “ ”, the
+  question mark and the en dash, 23 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ τ χ ψ ω ϕ ϵ*
   and Δ Π Ω, + − × ÷ = ≠ ≡ ≅ < > ≦ ≧ ≤ ≃ ∞ → ← ∈ ⊂ ∪ ∩ ⊗ ∂ ∑ ∏ ( ) [ ] { } / | § & * !,
   the display ∑ ∏ ∫, calligraphic 𝒜 𝒞, Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛, the roman *fi ff ffi* and italic *fi ff* ligatures,
-  20 bold capitals, 55 + 8 script sorts and 73 + 43 9 pt sorts.
-- **1922 specimen:** only small caps J Q W X Z, $, and the *fl ffl*
-  (roman) and *fl ffi ffl* (italic) ligatures, which the scans lack. Each is
+  22 bold capitals and the bold hyphen, 46 + 5 script sorts and 80 + 54 9 pt sorts.
+- **1922 specimen:** only small caps J Q X and $, which the scans lack. Each is
   the average of all its impressions (up to six sizes, each scaled by its
   own calibration), so a hairline broken in one is carried by the others.
 - **Thickened, for the sizes the scans lack:** script variants without a real
