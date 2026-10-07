@@ -332,7 +332,7 @@ def fit_spacing(style, size, widths):
     if style == "I":
         # italic: the f (or ff) advance plus the last letter's
         for lig, first, last in (("fi", "f", "i"), ("fl", "f", "l"),
-                                 ("ffi", "ff", "i"), ("ffl", "ff", "l")):
+                                 ("ffi", "f", "fi"), ("ffl", "f", "fl")):
             if lig in widths and first in out and last in out:
                 out[lig] = (out[first][0], out[first][1] + out[last][1])
     return out
@@ -466,6 +466,26 @@ def stems(img, base):
     return list(zip(x[0::2], x[1::2]))            # [start, stop)
 
 
+def f_positions(f_img, f_base, img, base, n):
+    """x offsets (master px) at which the f master best covers img, the n
+    best non-overlapping ones from left to right (baselines aligned)."""
+    B = max(f_base, base)
+    H = B + max(f_img.shape[0] - f_base, img.shape[0] - base)
+    w = f_img.shape[1]
+    a = np.zeros((H, w))
+    a[B - f_base:B - f_base + f_img.shape[0]] = f_img
+    b = np.zeros((H, img.shape[1] + 2 * w))
+    b[B - base:B - base + img.shape[0], w:w + img.shape[1]] = img
+    score = np.array([np.minimum(b[:, x:x + w], a).sum() for x in range(b.shape[1] - w)])
+    found = []
+    for x in np.argsort(-score):
+        if all(abs(x - y) > w // 3 for y in found):
+            found.append(int(x))
+        if len(found) == n:
+            break
+    return sorted(x - w for x in found)
+
+
 def make_ff(M):
     """The ff ligature, which the 1947 pages never use: the ffi sort cut
     between its second f and the i, with the arm and terminal of the single
@@ -585,9 +605,9 @@ LIG_DX = {}         # (style, ligature) -> x offset of its last letter (master p
 
 
 def make_l_ligature(M, base_lig, name):
-    """fl / ffl, which the 1947 pages never use: the fi / ffi sort cut
-    between its last f and the i, and the 1947 l set with its stem where the
-    i's stem stood (its ascender meets the f's arm, as on the matrix)."""
+    """fl / ffl, which the 1947 pages never use: the fi / ffi sort less its
+    i, and the 1947 l set with its stem where the i's stem stood (its
+    ascender meets the f's hood, as on the matrix)."""
     lig, l = M.get((base_lig, "R", 11)), M.get(("l", "R", 11))
     if lig is None or l is None:
         return None
@@ -597,7 +617,11 @@ def make_l_ligature(M, base_lig, name):
         return None
     cut = (sl[-2][1] + sl[-1][0]) // 2
     img = lig["img"].copy()
-    img[:, cut:] = 0
+    # take out the i only: below the x-height, right of the cut.  The f's
+    # hood, which reaches over the i at ascender height, stays and meets the
+    # l's ascender as on the matrix (cutting it too left the l standing apart)
+    xh_row = lig["base"] - int(round(1.15 * 41 * UP))   # the i with its serif
+    img[xh_row:, cut:] = 0
     x0 = sl[-1][0] - s1[0][0]                # l stem onto the i stem
     LIG_DX[("R", name)] = (sl[-1][0], s1[0][0])
     return paste(img, lig["base"], despeckle(l["img"]), l["base"], x0), -lig["base"]
@@ -820,14 +844,25 @@ def main():
             widths = {g: (np.ptp(np.nonzero((despeckle(v[0]) > 0.5).any(0))[0]) + 1) / UP
                       for g, v in masters.items()}
             sp = fit_spacing("I", 11, widths)
+            # ffi and ffl: an f set before the (real 1947) fi and the fl, so the
+            # last f's hood joins the dotless i as on the fi sort (ff + i kept
+            # the i's dot and stood apart)
             for lig, first, last in (("fi", "f", "i"), ("fl", "f", "l"),
-                                     ("ffi", "ff", "i"), ("ffl", "ff", "l")):
-                if lig in masters or first not in masters or first not in sp:
+                                     ("ffi", "f", "fi"), ("ffl", "f", "fl")):
+                if lig in masters or first not in masters or first not in sp \
+                        or last not in masters or (len(last) == 1 and last not in sp):
                     continue
                 fimg, ftop = masters[first][0], masters[first][1]
                 limg, ltop = masters[last][0], masters[last][1]
-                x0 = int(round(ink_left(fimg) + (sp[first][1] - sp[first][0] + sp[last][0]) * UP
-                               - ink_left(limg)))
+                if len(last) == 2 and "ff" in masters:
+                    # the f stems as far apart as on the 1947 ff sort
+                    ffi_, fft = masters["ff"][0], masters["ff"][1]
+                    a1, a2 = f_positions(fimg, -ftop, ffi_, -fft, 2)
+                    (af,) = f_positions(fimg, -ftop, limg, -ltop, 1)
+                    x0 = (a2 - a1) - af
+                else:
+                    x0 = int(round(ink_left(fimg) + (sp[first][1] - sp[first][0] + sp[last][0]) * UP
+                                   - ink_left(limg)))
                 r = make_italic_ligature({(last, "I", 11): dict(img=limg, base=-ltop)},
                                          (despeckle(fimg), -ftop), last, x0)
                 if r is not None:

@@ -41,7 +41,11 @@ if [ -f mills-8a.pdf ] && [ -f mills-8a-pdf.pdf ]; then
   for t in compare compare-scan; do
     pdflatex -interaction=nonstopmode "$t.tex" >/dev/null || { tail -30 $t.log; exit 1; }
   done
-  pdfunite compare.pdf compare-scan.pdf mills-8a.pdf mills-8a-pdf.pdf mills-compare.pdf
+  # all four pages, each with a header naming its version and the build
+  printf '\\newcommand\\buildid{built %s, commit %s}\n' "$(date +%Y-%m-%d)" \
+    "$(git -C .. rev-parse --short HEAD 2>/dev/null || echo unknown)" > build-id.tex
+  pdflatex -interaction=nonstopmode -jobname=mills-compare compare-all.tex >/dev/null \
+    || { tail -30 mills-compare.log; exit 1; }
   echo out/mills-compare.pdf
 fi
 pdftoppm -r 200 -png -singlefile mills.pdf mills

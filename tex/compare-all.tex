@@ -1,0 +1,15 @@
+% The comparison PDF: overview, the 1947 scan, and the two Mills 8A
+% versions, each page with a header naming what it shows.
+\documentclass{article}
+\usepackage{pdfpages}
+\pagestyle{empty}
+\input{build-id}   % \buildid: date and commit, written by render.sh
+\newcommand\stamp[1]{\AddToHookNext{shipout/foreground}{%
+  \put(0,-15pt){\makebox[\paperwidth]{\footnotesize\sffamily #1}}%
+  \put(0,-25pt){\makebox[\paperwidth]{\scriptsize\sffamily\buildid}}}}
+\begin{document}
+\includepdf[fitpaper,pagecommand={\stamp{1/4\quad Overview: 1947 scan \textbar\ LuaLaTeX \textbar\ pdfLaTeX}}]{compare.pdf}
+\includepdf[fitpaper,pagecommand={\stamp{2/4\quad 1947 \textit{Bulletin of the AMS} 53, W.\,H. Mills (scan)}}]{compare-scan.pdf}
+\includepdf[fitpaper,pagecommand={\stamp{3/4\quad Mills 8A, LuaLaTeX: OpenType, random 1947 impressions, baseline wobble}}]{mills-8a.pdf}
+\includepdf[fitpaper,pagecommand={\stamp{4/4\quad Mills 8A, pdfLaTeX: Type 1/TFM fonts, \texttt{\string\usepackage\string{mills8a\string}}}}]{mills-8a-pdf.pdf}
+\end{document}
