@@ -134,21 +134,6 @@ Requires TeX Live (pdfLaTeX, LuaLaTeX, `lcdf-typetools`), Tesseract, potrace,
 and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are
 committed in `revival/fonts/` and `revival/pdftex/fonts/`.
 
-## Earlier experiments
-
-Before the revival, two quicker routes were tried. Both are kept here, and
-`render.sh` still builds them.
-
-- **Mills Modern** (`mf/`, `tex/millsmodern.sty`): Computer Modern
-  regenerated from Knuth's METAFONT sources with "letterpress" parameters:
-  ink spread on stems and hairlines, rounder corners, wider set. It gets the
-  colour of the page but keeps CM's shapes. Build with `./build.sh type1`.
-- **Old Standard** (`./fetch-oldstandard.sh`), an OpenType revival of
-  late-19th-century Modern faces with a math font: closer shapes, but a light
-  digital face.
-
-![Mills Modern, Old Standard and Computer Modern against the scan](comparison.png)
-
 ## Sources and licences
 
 - The scans: *Bulletin* and *Transactions of the AMS*, 1940–1948, from the
