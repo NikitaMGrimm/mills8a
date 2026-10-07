@@ -49,5 +49,8 @@ mkdir -p ../docs
 pdftoppm -r 170 -png -singlefile specimen.pdf ../docs/specimen
 pdftoppm -r 110 -png -singlefile -f 1 -l 1 mills-compare.pdf ../docs/comparison
 
+# the PDFs README.md links to
+cp mills-compare.pdf mills-8a.pdf mills-8a-pdf.pdf ..
+
 grep -l "Missing character" *.log proof/*.log || true
-echo "out/mills-8a.pdf out/mills-8a-pdf.pdf out/mills-compare.pdf out/proof/*.pdf docs/*.png"
+echo "mills-8a.pdf mills-8a-pdf.pdf mills-compare.pdf out/proof/*.pdf docs/*.png"
