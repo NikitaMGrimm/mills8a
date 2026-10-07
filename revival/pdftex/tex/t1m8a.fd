@@ -1,4 +1,4 @@
-\ProvidesFile{t1m8a.fd}[2026/10/05 Mills 8A text, T1, pdfLaTeX]
+\ProvidesFile{t1m8a.fd}[2026/10/07 v0.1.0 Mills 8A text, T1, pdfLaTeX]
 \DeclareFontFamily{T1}{m8a}{}
 \DeclareFontShape{T1}{m8a}{m}{n}{<-10> m8ar98t <10-> m8ar8t}{}
 \DeclareFontShape{T1}{m8a}{m}{it}{<-10> m8ari98t <10-> m8ari8t}{}
