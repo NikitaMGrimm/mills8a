@@ -27,6 +27,9 @@ FLAT_TOP_LC = "vwxyz"
 FLAT_TOP_UC = "BDEFHIKLMNPRTXZ"
 DESCENDERS = "gjpqyQ"                # and the roman J, below the line in Modern 8A
 problems = []
+# script variants that differ from their text glyph on purpose: the index
+# arrow is short (as printed), the index slash the real, steeper 1947 sort
+EXPECTED_UNLIKE = {"arrowright", "arrowleft", "slash"}
 
 
 def report(msg):
@@ -142,7 +145,7 @@ def check_scripts():
             ba, bb = bounds(gs, n), bounds(gs, v)
             ra = (ba[2] - ba[0]) / max(1, ba[3] - ba[1])
             rb = (bb[2] - bb[0]) / max(1, bb[3] - bb[1])
-            if iou < 0.45 or abs(np.log(rb / ra)) > 0.45:
+            if (iou < 0.45 or abs(np.log(rb / ra)) > 0.45) and v.split(".")[0] not in EXPECTED_UNLIKE:
                 ch = next((chr(k) for k, x in cm.items() if x == n), n)
                 report(f"{name}: script variant {v} of {ch} unlike its text glyph "
                        f"(overlap {iou:.2f}, aspect {rb:.2f} vs {ra:.2f})")

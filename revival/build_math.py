@@ -20,6 +20,7 @@ font therefore has its own name.
 import os
 import pickle
 import subprocess
+import unicodedata
 from collections import defaultdict
 
 import numpy as np
@@ -36,7 +37,7 @@ WORK = os.path.join(HERE, "work")
 FONTS = os.path.join(HERE, "fonts")
 UP = bf.UP
 U = bf.U_PER_UPX                      # font units per master px
-OPERATORS = "+−±=<>()[]/|≦≧≤∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩℭ𝔖𝔄𝔅𝔇𝔊≠∩≅∂←≡𝔛𝒞𝒜"
+OPERATORS = "+−±=<>()[]/|≦≧≤∞→,.;!′∑⊗÷≃{}:*×∈⊂∪ΔΠΩΓΦΣℭ𝔖𝔄𝔅𝔇𝔊𝔎𝔗𝔔ℜℑ≠∩≅∂←≡𝔛𝒞𝒜ℒ𝒰∮∨"
 # cast centred on their body: even side bearings (TeX adds the spacing)
 CENTRED = set("+−±=<>≦≧≤×÷≃≠≡≅∈⊂∪∩⊗→←:")
 CENTRED_SB = 30
@@ -54,19 +55,17 @@ def lm_path():
 
 # A real script sort is used only where it reads well at index size; else
 # the scaled text glyph, thickened to the script weight.  Automatic: at least
-# MIN_SCRIPT_N impressions (fewer average into blur, and are often misfiled)
+# MIN_SCRIPT_N impressions (fewer average into blur, and are often misfiled:
+# the second-order j of 13 closed its hook)
 # and counters at least MIN_COUNTER as open as the text glyph's (the heavy
 # small sorts fill in: 8, 4, italic e).  By inspection of the rest:
 # 2 3 7 average into closed shapes; the second-order "5" group holds 2s;
-# the italic "o" is a sigma; the italic t is a blob; the first-order arrow
-# group holds text-size arrows (it comes out as long as the text arrow,
-# where 1947 indices have a short one: lim_{n\to\infty})
+# the italic "o" is a sigma; the italic t is a blob
 SYNTH_SCRIPT = {("2", "R", "S1"), ("2", "R", "S2"), ("3", "R", "S1"), ("3", "R", "S2"),
-                ("5", "R", "S2"), ("7", "R", "S2"), ("o", "I", "S1"), ("t", "I", "S1"),
-                ("→", "R", "S1")}
+                ("5", "R", "S2"), ("7", "R", "S2"), ("o", "I", "S1"), ("t", "I", "S1")}
 # the italic script k is cut with an open loop: no counter, but it reads
 KEEP_SCRIPT = {("k", "I", "S1")}
-MIN_SCRIPT_N = 10
+MIN_SCRIPT_N = 15
 MIN_COUNTER = 0.4
 
 
@@ -283,7 +282,14 @@ def main():
         targets[lm_cmap[ord(c)]] = ("R", c)
     for g, cp in bf.GREEK_MATH_IT.items():
         targets[lm_cmap[cp]] = ("I", g)
-    for c in "0123456789" + OPERATORS:
+    # every real roman sort that is a math symbol, a Greek capital or a
+    # letterlike/Fraktur/script letter goes in too, so a sort found in the
+    # scans later cannot be left out of the math font by this list
+    extra = sorted({k[0] for k in M if k[1] == "R" and k[2] == 11 and len(k[0]) == 1
+                    and (unicodedata.category(k[0]) in ("Sm", "So", "Ps", "Pe")
+                         or "GREEK CAPITAL" in unicodedata.name(k[0], "")
+                         or 0x2100 <= ord(k[0]) <= 0x214F or 0x1D400 <= ord(k[0]) <= 0x1D7FF)})
+    for c in "0123456789" + OPERATORS + "".join(extra):
         if ord(c) in lm_cmap:
             targets[lm_cmap[ord(c)]] = ("R", c)
     targets = {t: v for t, v in targets.items() if ord(v[1]) in our_cmap[v[0]]}
@@ -325,6 +331,7 @@ def main():
     new_glyphs, italic_ic, accents = [], {}, {}
     replaced = 0
     real = defaultdict(int)
+    real_vars = set()
     for target, (style, ch) in sorted(targets.items()):
         src = our_cmap[style][ord(ch)]
         a = our_hmtx[style][src][0]
@@ -368,6 +375,7 @@ def main():
                                        (lsb + w_real + rsb) / kk, private, gsubrs)
                 adv[vname] = round((lsb + w_real + rsb) / kk)
                 real[lvl] += 1
+                real_vars.add(vname)
             else:
                 o = outline_from_glyph(our_gs[style], src, grow[lvl])
                 if o is None:
@@ -445,9 +453,11 @@ def main():
             # index arrows are short in 1947 (33 px at 600 dpi under lim,
             # where the text arrow scaled to index size is 51) and stand
             # off their neighbours (6-13 px); + - = sit close (1-2 px)
-            sx = 0.65 if ch in "→←" else 1.0
             for lvl, v in zip(("S1", "S2"), ssty.get(n, [])):
                 if v in cs:
+                    # (a real index arrow is short already; the text arrow
+                    # scaled down is not)
+                    sx = 0.65 if ch in "→←" and v not in real_vars else 1.0
                     b2 = bounds(cs[v])
                     w2 = (b2[2] - b2[0]) * sx
                     sb2 = SCRIPT_SB_ARROW if ch in "→←" else SCRIPT_SB

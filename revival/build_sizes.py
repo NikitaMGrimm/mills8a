@@ -45,11 +45,12 @@ def measured_grow(M, style, size, letters, ratio):
     return max(0.0, float(np.median(d))) if d else 0.0
 
 
-def scaled(c, k, adv, private, gsubrs):
-    """Charstring c scaled by k about the origin, with advance adv."""
+def scaled(c, k, adv, private, gsubrs, dx=0.0):
+    """Charstring c scaled by k about the origin (and moved right by dx),
+    with advance adv."""
     from fontTools.pens.transformPen import TransformPen
     pen = T2CharStringPen(adv, None)
-    c.draw(TransformPen(pen, (k, 0, 0, k, 0, 0)))
+    c.draw(TransformPen(pen, (k, 0, 0, k, dx, 0)))
     return pen.getCharString(private, gsubrs)
 
 
@@ -130,16 +131,20 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     real_n = {n for n in keep if names.get(n) in real}
     # the stem equalisation moves the outline a little: real flat-topped
     # capitals back to their median cap height
-    tops = {n: bounds(cs[n])[3] for n in real_n if names[n] in "BDEFHIKLMNPRTXZ"}
-    if len(tops) >= 5:
-        med = float(np.median(list(tops.values())))
-        for n, t in tops.items():
-            k = med / t
-            if abs(k - 1) > 0.01:
-                adv[n] = round(adv[n] * k)
-                cs[n] = scaled(cs[n], k, adv[n], private, gsubrs)
+    # capitals and lowercase back to their median cap and x-height
+    for flat in ("BDEFHIKLMNPRTXZ", "mnruvwxyz"):
+        tops = {n: bounds(cs[n])[3] for n in real_n if names[n] in flat}
+        if len(tops) >= 5:
+            med = float(np.median(list(tops.values())))
+            for n, t in tops.items():
+                k = med / t
+                if abs(k - 1) > 0.01:
+                    adv[n] = round(adv[n] * k)
+                    cs[n] = scaled(cs[n], k, adv[n], private, gsubrs)
+    # (the bold lowercase stands 7% taller than the roman: the thickened
+    # fill-ins w z q follow the real bold n m r u v x y)
     for group, flat in ((string.ascii_uppercase, "BDEFHIKLMNPRTXZ"),
-                        (string.ascii_lowercase, "vwxz")):
+                        (string.ascii_lowercase, "mnruvwxyz")):
         tops_r = [bounds(cs[n])[3] for n in real_n if names[n] in flat]
         synth = [n for n in keep if len(names.get(n, "")) == 1 and names[n] in group
                  and n not in real_n and n in cs]
@@ -152,6 +157,14 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
                     cs[n] = scaled(cs[n], k, adv[n], private, gsubrs)
                 print(f"  {style_name}: {len(synth)} {'capitals' if group[0] == 'A' else 'lowercase'}"
                       f" from the base font scaled {(k - 1) * 100:+.1f}% to the real sorts")
+    # figures stand in one (tabular) width, real sorts and fill-ins alike
+    figs = [n for n in keep if names.get(n, "") in set(string.digits) and n in cs]
+    if figs:
+        fw = max(adv[n] for n in figs)
+        for n in figs:
+            if adv[n] != fw:
+                cs[n] = scaled(cs[n], 1.0, fw, private, gsubrs, dx=(fw - adv[n]) / 2)
+                adv[n] = fw
     order = [".notdef", "space"] + [n for n in keep if n not in (".notdef", "space")]
     pen = T2CharStringPen(500, None)
     pen.moveTo((50, 0)); pen.lineTo((450, 0)); pen.lineTo((450, 700)); pen.lineTo((50, 700))

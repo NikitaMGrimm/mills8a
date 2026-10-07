@@ -260,14 +260,34 @@ def main():
     for g in inst:
         if g["line"] >= 0 and (g["page"] not in head or g["bbox"][1] < head[g["page"]][0]):
             head[g["page"]] = (g["bbox"][1], g["line"])
+    # bold is decided by the word (boldwords.py): title lines and run-in
+    # heads.  Their letters, figures and hyphens go to the bold sorts
+    # whatever cluster they fell in; anything else in a "bold" cluster goes
+    # back to the roman (a heavily inked roman capital weighs as much as a
+    # bold one: the bold B and I had been mostly roman)
+    bold_ids = set()
+    bp = os.path.join(WORK, "boldwords.pkl")
+    if os.path.exists(bp):
+        bold_ids = pickle.load(open(bp, "rb"))
     for key, cids in sorted(sorts.items(), key=lambda kv: str(kv[0])):
-        members = [inst[i] for c in cids for i in clusters[c]["members"]]
+        ids = [i for c in cids for i in clusters[c]["members"]]
         if key[0].isdigit():
-            members = [m for m in members if m["line"] != head.get(m["page"], (0, None))[1]]
+            ids = [i for i in ids if inst[i]["line"] != head.get(inst[i]["page"], (0, None))[1]]
         members_of.setdefault(key, [])
-        for m in members:
+        by_word = len(key[0]) == 1 and (key[0].isalnum() or key[0] == "-") and key[1] in "RB"
+        for i in ids:
+            m = inst[i]
             if m["baseline_ref"] is None:
                 continue
+            tkey = key
+            if by_word:
+                if i in bold_ids:
+                    if key[2] not in (11, "T"):
+                        continue                   # a 9 pt bold head: neither sort
+                    tkey = (key[0], "B", "T")
+                elif key[1] == "B":
+                    tkey = (key[0], "R", 11 if key[2] == "T" else key[2])
+                members_of.setdefault(tkey, [])
             # an impression OCR confidently read as another letter goes to
             # that letter's sort (bold E and F can share a cluster)
             ch = m["ch"]
@@ -276,12 +296,12 @@ def main():
             # bold title capitals excepted, which OCR reads reliably and
             # which are too few to cluster apart: the bold G sat with the O)
             if (ch and len(ch) == 1 and ch.isascii() and ch.isalpha()
-                    and len(key[0]) == 1 and key[0].isascii() and key[0].isalpha()
-                    and ch != key[0] and m["conf"] > 90 and ch.isupper() == key[0].isupper()
-                    and ((ch,) + key[1:] in sorts or key[1] == "B")):
-                moved.setdefault((ch,) + key[1:], []).append(m)
+                    and len(tkey[0]) == 1 and tkey[0].isascii() and tkey[0].isalpha()
+                    and ch != tkey[0] and m["conf"] > 90 and ch.isupper() == tkey[0].isupper()
+                    and ((ch,) + tkey[1:] in sorts or tkey[1] == "B")):
+                moved.setdefault((ch,) + tkey[1:], []).append(m)
             else:
-                members_of[key].append(m)
+                members_of[tkey].append(m)
     for key in moved:                  # bold sorts made from moved impressions only
         members_of.setdefault(key, [])
     jobs = {}
@@ -290,9 +310,7 @@ def main():
             continue
         own = bool(members)
         jobs[key] = dict(members=members if own else moved[key],
-                         drop_bold=key[1] == "R" and key[0].isascii() and key[0].isupper(),
-                         want_bold=key[1] == "R" and key[2] == 11 and key[0].isascii()
-                         and key[0].isupper(),
+                         drop_bold=False, want_bold=False,
                          extra=moved.get(key, []) if own else [])
     results = build_all(jobs)
     for key, (r, bold_ids) in results.items():

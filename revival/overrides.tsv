@@ -595,3 +595,35 @@ vonkarman1940-062@1643,3284	–	R	9
 feller1945-014@2418,999	?	R	11
 # the bold hyphen (titles and bold run-in heads), 37 impressions
 post1944-001@3106,4602	-	B	T
+# real glyphs found by the audit of unused clusters (October 2026)
+eilenbergmaclane1945-051@1478,3183	→	R	S1
+doob1947-007@1776,1863	Γ	R	11
+kleene1943-017@913,2349	Φ	R	11
+feller1945-017@2199,2573	Φ	R	11
+post1944-019@1066,3613	Σ	R	11
+eilenbergmaclane1945-053@3092,3669	𝔎	R	11
+eilenbergmaclane1945-020@1265,2245	ℜ	R	11
+eilenbergmaclane1945-048@717,2062	ℑ	R	11
+eilenbergmaclane1945-020@1725,2046	𝔗	R	11
+eilenbergmaclane1945-041@2063,2761	𝔔	R	11
+feller1945-007@1067,1997	ℒ	R	11
+feller1945-006@2300,4005	𝒰	R	11
+vonkarman1940-004@544,4480	∮	R	11
+kleene1943-030@1882,2196	∨	R	11
+neugebauer1948-027@487,4831	ü	R	11
+vonkarman1940-068@1105,4591	ü	R	11
+neugebauer1948-027@727,1992	ü	I	11
+vonkarman1940-064@1957,1576	ü	I	11
+vonneumanngoldstine1947-007@665,4929	Ü	I	11
+courant1943-021@699,3123	á	R	11
+# the first-order arrow group held text-size arrows; the real index arrow is #1112 above
+feller1945-017@1712,4327	→	R	11
+erdos1947-000@1066,3667	skip
+eilenbergmaclane1945-048@1894,3525	→	R	11
+# bold X (a category name in Eilenberg-Mac Lane) mixed into the 9 pt roman and italic X
+eilenbergmaclane1945-037@2064,2847	skip
+feller1945-020@2735,4418	skip
+# italic theta and a-dieresis, found by the audit
+vonkarman1940-055@2740,3042	θ	I	11
+vonkarman1940-028@1682,4715	θ	I	11
+vonkarman1940-067@2207,2151	ä	I	11

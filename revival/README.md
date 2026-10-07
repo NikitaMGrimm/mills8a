@@ -176,10 +176,11 @@ and entered in `overrides.tsv`.
 
 - **1940–47 masters:** every 11 pt roman and italic letter and figure (the
   roman J from its 9 pt sort), the punctuation with the quotes ‘ ’ “ ”, the
-  question mark and the en dash, 23 of 26 small caps, Greek *α β γ ζ η κ λ μ ν ξ π σ τ χ ψ ω ϕ ϵ*
-  and Δ Π Ω, + − × ÷ = ≠ ≡ ≅ < > ≦ ≧ ≤ ≃ ∞ → ← ∈ ⊂ ∪ ∩ ⊗ ∂ ∑ ∏ ( ) [ ] { } / | § & * !,
-  the display ∑ ∏ ∫, calligraphic 𝒜 𝒞, Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛, the roman *fi ff ffi* and italic *fi ff* ligatures,
-  22 bold capitals and the bold hyphen, 46 + 5 script sorts and 80 + 54 9 pt sorts.
+  question mark and the en dash, ü á and italic ü Ü ä, 23 of 26 small caps, Greek *α β γ ζ η θ κ λ μ ν ξ π σ τ χ ψ ω ϕ ϵ*
+  and Γ Δ Π Σ Φ Ω, ∮ ∨, + − × ÷ = ≠ ≡ ≅ < > ≦ ≧ ≤ ≃ ∞ → ← ∈ ⊂ ∪ ∩ ⊗ ∂ ∑ ∏ ( ) [ ] { } / | § & * !,
+  the display ∑ ∏ ∫, calligraphic 𝒜 𝒞 ℒ 𝒰, Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔎 𝔔 ℜ ℑ 𝔖 𝔗 𝔛, the roman *fi ff ffi* and italic *fi ff* ligatures,
+  bold (by the word: title lines and run-in heads) for all but J K X Z q w z 8 9,
+  40 + 3 script sorts and 80 + 54 9 pt sorts.
 - **1922 specimen:** only small caps J Q X and $, which the scans lack. Each is
   the average of all its impressions (up to six sizes, each scaled by its
   own calibration), so a hairline broken in one is carried by the others.

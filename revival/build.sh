@@ -11,6 +11,7 @@ python3 docweight.py      # type size and stroke weight of each scan vs. the Erd
 python3 cluster.py        # group identical sorts
 python3 classify.py       # slant / weight / size measurements
 python3 assign.py         # labels: rules + overrides.tsv
+python3 boldwords.py      # which impressions are bold: title lines and run-in heads
 python3 masters.py        # average each sort at 4x
 python3 oldstyle.py       # old-style figures from the years in the Bulletin running heads
 python3 specimen.py       # 1922 alphabets for missing letters

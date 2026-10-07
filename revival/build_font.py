@@ -50,10 +50,10 @@ U_PER_PX = 1000 / EM_PX                     # font units per scan px
 INK_PX = float(os.environ.get("MILLS8A_INK", "0.7"))
 SPACE = 322                                  # 6 units of 10.7 set, in font units
 MATH_IT_CAP, MATH_IT_LOW = 0x1D434, 0x1D44E
-GREEK_MATH_IT = {"α": 0x1D6FC, "β": 0x1D6FD, "ζ": 0x1D701, "π": 0x1D70B,
-                 "σ": 0x1D70E, "ϕ": 0x1D719, "ϵ": 0x1D716, "ξ": 0x1D709,
-                 "γ": 0x1D6FE, "η": 0x1D702, "κ": 0x1D705, "λ": 0x1D706, "μ": 0x1D707, "ν": 0x1D708,
-                 "τ": 0x1D70F, "χ": 0x1D712, "ψ": 0x1D713, "ω": 0x1D714}
+# text Greek -> its math italic code point, for every lowercase letter and
+# variant, so that any Greek sort found in the scans reaches the math font
+GREEK_MATH_IT = {chr(0x3B1 + i): 0x1D6FC + i for i in range(25)}           # α .. ω
+GREEK_MATH_IT.update({"ϵ": 0x1D716, "ϑ": 0x1D717, "ϕ": 0x1D719, "ϱ": 0x1D71A, "ϖ": 0x1D71B})
 
 
 # ---------------------------------------------------------------- outlines

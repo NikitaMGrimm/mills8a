@@ -128,11 +128,16 @@ impressions):
 - the old-style figures, from the years in the Bulletin's running heads;
 - punctuation, with the 1947 quotes ‘ ’ “ ”, the question mark (10
   impressions) and the en dash (a 9 pt sort, scaled);
-- 23 small capitals, 22 bold capitals and the bold hyphen;
-- Greek, most math operators and relations, the display ∑ ∏ ∫, and
-  Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛;
+- the accented ü á (roman) and ü Ü ä (italic), and the dieresis;
+- 23 small capitals;
+- bold, from the title lines and run-in heads (told by the word, not the
+  letter): the capitals but J K X Z, the lowercase but q w z, the figures
+  0–7 and the hyphen;
+- Greek (with Γ Σ Φ and θ), most math operators and relations, ∮ ∨, the
+  display ∑ ∏ ∫, Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔎 𝔔 ℜ ℑ 𝔖 𝔗 𝔛 and script 𝒜 𝒞 ℒ 𝒰;
 - the 9 pt cut: 80 roman and 54 italic sorts;
-- 51 script sorts for indices (46 first-order, 5 second-order).
+- 43 script sorts for indices (40 first-order, 3 second-order), among
+  them the short 1947 index arrow.
 
 Filled in otherwise:
 
@@ -140,11 +145,12 @@ Filled in otherwise:
   J Q X and `$`;
 - built from 1947 sorts: the *fl*/*ffl* and italic *ffi*/*ffl* ligatures,
   the em dash, the colon and ellipsis, `\cdot` and `\cdots` (from the
-  period), bold lowercase and bold italic (thickened), and the script sizes
-  that have no legible real sort (the text glyph scaled: among them the
-  index 2 3 4 8 and the arrow, whose real sorts fill in or were misfiled);
+  period), bold J K X Z q w z 8 9 and bold italic (thickened, to the real
+  bold's weight and x-height), and the script sizes that have no legible
+  real sort (the text glyph scaled: among them the index 2 3 4 8, whose
+  real sorts fill in);
 - from Latin Modern, thickened to the type's weight: accents other than the
-  dieresis, rarer punctuation and symbols (`# % @` † ‡ ¶ « » ß Æ Œ Ø Ł
+  dieresis (the acute of á and é is real only in those letters), rarer punctuation and symbols (`# % @` † ‡ ¶ « » ß Æ Œ Ø Ł
   and so on), and the math symbols the scans lack.
 
 Spacing is measured as well: side bearings from about 440,000 letter
