@@ -16,7 +16,7 @@ for d in $papers; do
   [ "$(pdfinfo out/pages/$d.pdf | awk '/^Pages/ {print $2}')" = 1 ] || echo "$d: more than one page"
   python3 revival/crop_scan.py "$R/work/pages/$d-000.png" "out/pages/$d-scan.png"
   bbox=$(gs -q -dNOPAUSE -dBATCH -sDEVICE=bbox "out/pages/$d.pdf" 2>&1 \
-         | sed -n 's/^%%HiResBoundingBox: //p')
+         | sed -n "s/^%%HiResBoundingBox: //p" | head -1)
   (cd out && pdflatex -interaction=nonstopmode -jobname="compare-$d" \
      "\def\doc{$d}\def\bbox{$bbox}\input{compare-page}" >/dev/null) \
     || { tail -20 "out/compare-$d.log"; exit 1; }

@@ -590,3 +590,6 @@ eilenbergmaclane1945-033@894,4669	”	R	9
 post1944-027@2214,4349	”	R	9
 # the en dash, from the 9 pt references ("pp. 713–721")
 vonkarman1940-062@1643,3284	–	R	9
+# the question mark: one cluster of 10 impressions, never labelled (Tesseract
+# also writes ? for what it cannot read, so the label alone was not trusted)
+feller1945-014@2418,999	?	R	11

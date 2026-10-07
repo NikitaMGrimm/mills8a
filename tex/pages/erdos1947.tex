@@ -1,0 +1,48 @@
+% P. Erdős, "Some asymptotic formulas for multiplicative functions", Bull. Amer. Math. Soc. 53 (1947), first page, reset in Mills 8A.
+\documentclass[11pt]{article}
+\usepackage{bulletin1947}
+\begin{document}
+\setcounter{page}{536}
+\received{Received by the editors May 27, 1946, and, in revised form, December 11, 1946.}
+\articletitle{SOME ASYMPTOTIC FORMULAS FOR\\ MULTIPLICATIVE FUNCTIONS}{p. erd\"os}
+
+The present paper contains several asymptotic formulas for the sum of
+multiplicative functions. A function $f(n)$ is called multiplicative if
+$f(a\cdot b)=f(a)\cdot f(b)$ for $(a,b)=1$. We assume $f(n)>0$. In this paper
+$f(n)$, $f_1(n)$ will always denote multiplicative functions. First we prove
+the following theorem.
+
+\par\smallskip\begingroup\textsc{Theorem 1.}\footnote{This result generalizes
+a result of Wintner, Amer.\ J. Math.\ vol.~67 (1945) pp.~481--485.}\
+\itshape Assume that the two series
+\begin{equation}\tag{1}
+-\sum_{p,\alpha}\frac{f(p^\alpha)-1}{p^\alpha}\,,\qquad
+\sum_{p,\alpha}\frac{(f(p^\alpha)-1)^2}{p^\alpha},
+\end{equation}
+converge; then $f(n)$ has a mean value, that is,
+\begin{equation*}
+\lim_{n\to\infty}\frac{1}{n}\textstyle\sum f(m)
+\end{equation*}
+exists and is not equal to zero.\thmend
+
+This result was conjectured in a slightly more special form at the end of my
+paper \emph{Some remarks on additive and multiplicative
+functions}.\footnote{Bull.\ Amer.\ Math.\ Soc.\ vol.~52 (1946) pp.~527--537.}
+
+\textsc{Remark.} The convergence of (1) is the necessary and sufficient
+condition for the existence of the distribution function of
+$f(n)$.\footnote{P. Erd\"os and A. Wintner, Amer.\ J. Math.\ vol.~61 (1939)
+pp.~713--721. See also footnote 2.}
+
+For the sake of simplicity we assume $f(p^\alpha)=f(p)$. Then we prove
+\begin{equation}\tag{2}
+\lim_{n\to\infty}\frac{1}{n}\sum_{m\leqq n}f(m)=\prod_p\biggl(1+\frac{f(p)-1}{p}\biggr).
+\end{equation}
+It easily follows from (1) that the product on the right side of (2) converges
+and thus the value of the limit is not 0.
+
+We easily obtain from (1) that for every $\epsilon>0$
+\begin{equation*}
+\sum_{|f(p)-1|>\epsilon}\frac{1}{p}<\infty.
+\end{equation*}
+\end{document}

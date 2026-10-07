@@ -16,7 +16,6 @@
 \RequirePackage[leqno]{amsmath}
 \RequirePackage{amssymb}
 \RequirePackage{mills8a}
-\makeatletter
 \renewcommand\normalsize{\@setfontsize\normalsize{11}{12}%
   \abovedisplayskip 6pt plus 2pt minus 2pt
   \belowdisplayskip \abovedisplayskip
@@ -29,19 +28,31 @@
   \check@mathfonts\fontdimen13\textfont2=7.26pt}
 \renewcommand\@makefntext[1]{\parindent1.5em\noindent
   \hbox to 1.5em{\hss\@makefnmark\,}#1}
-\makeatother
 \lineskiplimit=-3pt
 \providecommand\bulletinmeasure{317pt}
-\RequirePackage[paperwidth=33pc,paperheight=50pc,textwidth=\bulletinmeasure,
-  top=4pc,bottom=4pc,footskip=2pc]{geometry}
+\RequirePackage[paperwidth=33pc,paperheight=56pc,textwidth=\bulletinmeasure,
+  top=4pc,bottom=4pc,footskip=17.5pt]{geometry}
 \setlength\parindent{1.5em}
 \setlength\parskip{0pt}
 \pagestyle{plain}
 \raggedbottom          % footnotes follow the text, as on the 1947 pages
+% end the page before \end{document}'s \vfil, which would push the
+% footnotes to the foot of a page that is not full, and bring the page
+% number up with them (the 1947 pages are full)
+\AtEndDocument{\par
+  \ifdim\pagegoal<\maxdimen
+    % the column box (\vbox to\@colht in \@makecol) loses the space left
+    % over, so the page number follows the footnotes at \footskip
+    \dimen0=\pagegoal \advance\dimen0-\pagetotal
+    \global\advance\@colht-\dimen0
+  \fi
+  \penalty-10000\relax}
 \renewcommand\thefootnote{\arabic{footnote}}
 % the 1947 footnote rule: 75 pt long, 0.7 pt as printed (LaTeX's is 0.4 of
-% the measure and 0.4 pt)
-\renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern2.3pt}
+% the measure and 0.4 pt), 6 pt below the text and 6 pt above the first
+% footnote (measured on the Mills page; LaTeX leaves 11 and 3.5)
+\renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern4.7pt}
+\skip\footins=9.1pt plus 2pt minus 1pt
 \ExplSyntaxOn
 \NewDocumentCommand\spacedwords{O{.45em}m}{% title lines: words #1 apart
   \seq_set_split:Nnn \l_tmpa_seq {~} {#2}

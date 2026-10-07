@@ -27,6 +27,38 @@ Mills 8A (right):
 [`mills-compare.pdf`](mills-compare.pdf) has the two side by side and then
 each on its own page; [`mills-8a.pdf`](mills-8a.pdf) is the page alone.
 
+<details>
+<summary>Six more first pages from the scans, reset the same way</summary>
+
+Each reset is in `tex/pages/`, set with `tex/bulletin1947.sty`; `./compare-pages.sh` rebuilds
+the images from the scans.
+
+**P. Erdős, *Some asymptotic formulas for multiplicative functions*, Bull. Amer. Math. Soc. 53 (1947)**
+
+![P. Erdős, first page: scan and Mills 8A](docs/pages/erdos1947.png)
+
+**J. L. Doob, *Probability in function space*, Bull. Amer. Math. Soc. 53 (1947)**
+
+![J. L. Doob, first page: scan and Mills 8A](docs/pages/doob1947.png)
+
+**M. Kac, *On the notion of recurrence in discrete stochastic processes*, Bull. Amer. Math. Soc. 53 (1947)**
+
+![M. Kac, first page: scan and Mills 8A](docs/pages/kac1947.png)
+
+**E. L. Post, *Recursively enumerable sets of positive integers and their decision problems*, Bull. Amer. Math. Soc. 50 (1944)**
+
+![E. L. Post, first page: scan and Mills 8A](docs/pages/post1944.png)
+
+**S. Wright, *Statistical genetics and evolution*, Bull. Amer. Math. Soc. 48 (1942)**
+
+![S. Wright, first page: scan and Mills 8A](docs/pages/wright1942.png)
+
+**Th. von Kármán, *The engineer grapples with nonlinear problems*, Bull. Amer. Math. Soc. 46 (1940)**
+
+![Th. von Kármán, first page: scan and Mills 8A](docs/pages/vonkarman1940.png)
+
+</details>
+
 ## Using it
 
 ```latex
@@ -94,8 +126,8 @@ impressions):
 - every roman and italic letter and figure at 11 pt, the roman J from its
   9 pt sort (66 impressions) scaled up;
 - the old-style figures, from the years in the Bulletin's running heads;
-- punctuation, with the 1947 quotes ‘ ’ “ ” and the en dash (a 9 pt sort,
-  scaled);
+- punctuation, with the 1947 quotes ‘ ’ “ ”, the question mark (10
+  impressions) and the en dash (a 9 pt sort, scaled);
 - 23 small capitals and 21 bold capitals;
 - Greek, most math operators and relations, the display ∑ ∏ ∫, and
   Fraktur 𝔄 𝔅 ℭ 𝔇 𝔊 𝔖 𝔛;
@@ -112,7 +144,7 @@ Filled in otherwise:
   that have no legible real sort (the text glyph scaled: among them the
   index 2 3 4 8 and the arrow, whose real sorts fill in or were misfiled);
 - from Latin Modern, thickened to the type's weight: accents other than the
-  dieresis, rarer punctuation and symbols (`? # % @` † ‡ ¶ « » ß Æ Œ Ø Ł
+  dieresis, rarer punctuation and symbols (`# % @` † ‡ ¶ « » ß Æ Œ Ø Ł
   and so on), and the math symbols the scans lack.
 
 Spacing is measured as well: side bearings from about 440,000 letter

@@ -73,11 +73,23 @@
   \lineskiplimit=-3pt
 \fi
 \usepackage[paperwidth=31pc,paperheight=50pc,textwidth=317pt,
-  top=4pc,bottom=4pc,footskip=2pc]{geometry}
+  top=4pc,bottom=4pc,footskip=17.5pt]{geometry}
 \setlength\parindent{1.5em}
 \setlength\parskip{0pt}
 \pagestyle{plain}
 \raggedbottom        % footnotes follow the text, as on the 1947 page
+% end the page before \end{document}'s \vfil, which would push the
+% footnotes to the foot, and bring the page number up by the space left over
+\makeatletter
+\AtEndDocument{\par
+  \ifdim\pagegoal<\maxdimen
+    % the column box (\vbox to\@colht in \@makecol) loses the space left
+    % over, so the page number follows the footnotes at \footskip
+    \dimen0=\pagegoal \advance\dimen0-\pagetotal
+    \global\advance\@colht-\dimen0
+  \fi
+  \penalty-10000\relax}
+\makeatother
 \ExplSyntaxOn
 \NewDocumentCommand\spaced{O{0em}O{.45em}m}{% letterspaced title lines:
   % [letter kern][word space]{text}
@@ -91,8 +103,10 @@
 \newcommand\proofhead{\par\textsc{Proof.}\ \ignorespaces}
 \renewcommand\thefootnote{\arabic{footnote}}
 % the 1947 footnote rule: 75 pt long, 0.7 pt as printed (LaTeX's is 0.4 of
-% the measure and 0.4 pt)
-\renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern2.3pt}
+% the measure and 0.4 pt), 6 pt below the text and 6 pt above the first
+% footnote (measured on the Mills page; LaTeX leaves 11 and 3.5)
+\renewcommand\footnoterule{\kern-3pt\hrule width 75pt height 0.7pt\kern4.7pt}
+\skip\footins=9.1pt plus 2pt minus 1pt
 \makeatletter
 \renewcommand\@makefntext[1]{\parindent1.5em\noindent
   \hbox to 1.5em{\hss\@makefnmark\,}#1}
