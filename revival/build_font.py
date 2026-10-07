@@ -130,7 +130,19 @@ SYMMETRIC = set("oOnuvwxHIMNOUVWX08=+")
 # build_math.py.)
 SPACING_BY_HAND = {"I": {"f": (-0.10, -0.07),
                          "A": (-0.02, 0.025)},     # fitted 0.12 em right: pairs with spaces
-                   "R": {"—": (0.02, 0.02)}}     # the em dash is constructed
+                   "R": {"—": (0.02, 0.02)},     # the em dash is constructed
+                   # small caps: the A is seen only before other small caps
+                   # or a roman period ("LEMMA."), so its bearings cannot be
+                   # fitted; as measured on the 1947 page
+                   "R:SC": {"A": (0.015, 0.044)}}
+# small marks lose ink in the average of many slightly misaligned
+# impressions (a stroke keeps its width); px per edge added back, as
+# measured against the 1947 page (period and comma ~14% light in area)
+EXTRA_INK = {".": 0.4, ",": 0.4, ";": 0.4, ":": 0.4}
+
+
+def by_hand(style, size):
+    return {**SPACING_BY_HAND.get(style, {}), **SPACING_BY_HAND.get(f"{style}:{size}", {})}
 
 
 _ds = os.path.join(WORK, "docscale.json")
@@ -303,7 +315,7 @@ def fit_spacing(style, size, widths):
     if "ff" in widths and "ffi" in lig_measured and "i" in out and "ff" not in lig_measured:
         # ff: the ffi sort less the width of the i it no longer carries
         out["ff"] = (out["ffi"][0], out["ffi"][1] - out["i"][1])
-    for g, (lsb_em, rsb_em) in SPACING_BY_HAND.get(style, {}).items():
+    for g, (lsb_em, rsb_em) in by_hand(style, size).items():
         if g in widths:
             lsb, rsb = lsb_em * EM_PX, rsb_em * EM_PX
             out[g] = (lsb, lsb + widths[g] + rsb)
@@ -319,7 +331,7 @@ def fit_spacing(style, size, widths):
         out["ff"] = (out["f"][0], out["f"][1] + FF_DX[style] / UP)
     if unit:
         for g, (lsb, adv) in out.items():
-            if g in SPACING_BY_HAND.get(style, {}) or (g == "ff" and style in FF_DX):
+            if g in by_hand(style, size) or (g == "ff" and style in FF_DX):
                 continue
             snapped = max(1, round(adv / unit)) * unit
             out[g] = (lsb + (snapped - adv) / 2, snapped)
@@ -722,17 +734,18 @@ def build(style, masters, size=11, suffix=""):
                         v[2] if len(v) > 2 else [])
     spacing = fit_spacing(style, size, {g: (c[5] - c[4]) / UP for g, c in crops.items()})
     glyphs = {}                              # name -> (contours, dx, dy, adv, char)
-    grow = int(np.ceil(INK_PX * UP)) + 1
     for g, (img, base, r0, r1, c0, c1, alts) in crops.items():
         lsb, adv = spacing[g]
         name = glyph_name(g) + suffix
+        ink = INK_PX + EXTRA_INK.get(g, 0.0)
+        grow = int(np.ceil(ink * UP)) + 1
         # spacing was measured on the ink as printed; extra ink grows the
         # outline around the same position (window widened to hold it)
-        img = embolden(np.pad(img, grow), INK_PX)
+        img = embolden(np.pad(img, grow), ink)
         base, r0, r1, c0, c1 = base + grow, r0, r1 + 2 * grow, c0, c1 + 2 * grow
         glyphs[name] = (*traced(img, r0, r1, c0, c1, base, c0 + grow, lsb), adv * U_PER_PX, g)
         for k, alt in enumerate(alts, 1):
-            a = embolden(np.pad(alternate(alt), grow), INK_PX)
+            a = embolden(np.pad(alternate(alt), grow), ink)
             m = 4 * UP + grow                # impressions may reach past the mean
             ar0, ac0 = max(0, r0 - m), max(0, c0 - m)
             ar1, ac1 = min(a.shape[0], r1 + m), min(a.shape[1], c1 + m)

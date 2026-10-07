@@ -379,6 +379,30 @@ def main():
             for n in [target] + [v for v in variants if v in cs]:
                 bb = bounds(cs[n])
                 accents[n] = round((bb[0] + bb[2]) / 2)
+    # \cdot and \cdots: the 1947 page sets dots on the math axis a tenth
+    # larger than its periods ("P_0, P_1, P_2, \cdots"), 0.65 em apart;
+    # Latin Modern has hairline dots.  (pdfLaTeX: \cdots spaced in mills8a.sty)
+    period = our_cmap["R"].get(ord("."))
+    if period:
+        from fontTools.pens.boundsPen import BoundsPen
+        from fontTools.pens.transformPen import TransformPen
+        bp = BoundsPen(our_gs["R"])
+        our_gs["R"][period].draw(bp)
+        x0, y0, x1, y1 = bp.bounds
+        axis = lm["MATH"].table.MathConstants.AxisHeight.Value
+        cx, cy, f = (x0 + x1) / 2, (y0 + y1) / 2, 1.1
+        for cp, dots in ((0x22C5, 1), (0x22EF, 3)):   # dot operator, midline ellipsis
+            n = lm_cmap.get(cp)
+            if not n:
+                continue
+            if dots > 1:
+                adv[n] = dots * 646
+            step = adv[n] / dots
+            pen = T2CharStringPen(adv[n], our_gs["R"])
+            for i in range(dots):
+                tx = i * step + step / 2
+                our_gs["R"][period].draw(TransformPen(pen, (f, 0, 0, f, tx - f * cx, axis - f * cy)))
+            cs[n] = pen.getCharString(private, gsubrs)
     # binary operators, relations and arrows: centred, whatever spacing the
     # text fit gave them (the text minus had 267 units on its right)
     for n, (st, ch) in targets.items():

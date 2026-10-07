@@ -453,7 +453,10 @@ FD = {
 \def\mills@rel#1#2{\mathchardef#1=\numexpr"3000+\symmillsextra*"100+#2\relax}
 \AtBeginDocument{%
   \mills@rel\neq0 \let\ne\neq
-  \mills@rel\leqq1 \mills@rel\geqq2 \mills@rel\cong3 }
+  \mills@rel\leqq1 \mills@rel\geqq2 \mills@rel\cong3
+  % \cdots as on the 1947 page: dots 0.65 em apart
+  \def\mills@cdots{\mathinner{\cdotp\mkern3.75mu\cdotp\mkern3.75mu\cdotp}}%
+  \let\@cdots\mills@cdots \DeclareRobustCommand\cdots{\mills@cdots}}
 % section, dagger, double dagger and pilcrow from the 1947 text font
 \DeclareTextCommand{\textsection}{T1}{{\usefont{U}{m8asym}{m}{n}\char0}}
 \DeclareTextCommand{\textdagger}{T1}{{\usefont{U}{m8asym}{m}{n}\char1}}
