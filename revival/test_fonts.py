@@ -1,13 +1,33 @@
 """Regression checks for the shipped fonts: python -m unittest discover -s revival."""
 import unittest
 import unicodedata
+import uharfbuzz as hb
 
 from fontTools.ttLib import TTFont
 
 from finish_fonts import FONTS, glyph_bounds, normalize_accent_advances, update_ink_metrics
 
 
+def shape(path, text, features=None):
+    font = TTFont(path)
+    hbfont = hb.Font(hb.Face(path.read_bytes()))
+    hbfont.scale = (1000, 1000)
+    buffer = hb.Buffer()
+    buffer.add_str(text)
+    buffer.guess_segment_properties()
+    hb.shape(hbfont, buffer, {"rand": False, **(features or {})})
+    return [(font.getGlyphName(info.codepoint), pos)
+            for info, pos in zip(buffer.glyph_infos, buffer.glyph_positions)]
+
+
 class FontTests(unittest.TestCase):
+    def test_smallcaps_are_selectable_in_every_roman_style(self):
+        for style in ("Regular", "Regular9", "Bold"):
+            with self.subTest(style=style):
+                glyphs = shape(FONTS / f"Mills8A-{style}.otf", "abcxyz", {"smcp": True})
+                self.assertEqual([name for name, _ in glyphs],
+                                 [ch + ".sc" for ch in "abcxyz"])
+
     def test_accents_keep_the_base_letter_advance(self):
         for path in sorted(FONTS.glob("*.otf")):
             font = TTFont(path)
