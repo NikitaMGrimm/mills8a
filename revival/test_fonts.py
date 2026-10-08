@@ -4,8 +4,9 @@ import unicodedata
 import uharfbuzz as hb
 
 from fontTools.ttLib import TTFont
+from fontTools.pens.recordingPen import RecordingPen
 
-from finish_fonts import FONTS, glyph_bounds, normalize_accent_advances, update_ink_metrics
+from finish_fonts import FONTS, finish, glyph_bounds, normalize_accent_advances, update_ink_metrics
 
 
 def shape(path, text, features=None):
@@ -21,6 +22,33 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_finishing_recreates_missing_smallcap_features(self):
+        font = TTFont(FONTS / "Mills8A-Regular9.otf")
+        features = font["GSUB"].table.FeatureList
+        features.FeatureRecord = [r for r in features.FeatureRecord if r.FeatureTag != "smcp"]
+        features.FeatureCount = len(features.FeatureRecord)
+        finish(font)
+        self.assertIn("smcp", [r.FeatureTag for r in font["GSUB"].table.FeatureList.FeatureRecord])
+
+    def test_clipping_bounds_do_not_define_line_pitch(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            os2 = TTFont(path)["OS/2"]
+            with self.subTest(font=path.name):
+                self.assertGreaterEqual(os2.version, 4)
+                self.assertTrue(os2.fsSelection & 0x80)
+                if not os2.fsSelection & (0x01 | 0x20):
+                    self.assertTrue(os2.fsSelection & 0x40)
+
+    def test_cff_widths_match_horizontal_metrics(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            font = TTFont(path)
+            top = font["CFF "].cff.topDictIndex[0]
+            for name in font.getGlyphOrder():
+                charstring = top.CharStrings[name]
+                charstring.draw(RecordingPen())
+                with self.subTest(font=path.name, glyph=name):
+                    self.assertEqual(charstring.width, font["hmtx"][name][0])
+
     def test_accented_smallcaps_and_ligature_letters(self):
         for style in ("Regular", "Regular9", "Bold"):
             path = FONTS / f"Mills8A-{style}.otf"
@@ -63,6 +91,23 @@ class FontTests(unittest.TestCase):
                 glyphs = shape(FONTS / f"Mills8A-{style}.otf", "abcxyz", {"smcp": True})
                 self.assertEqual([name for name, _ in glyphs],
                                  [ch + ".sc" for ch in "abcxyz"])
+
+    def test_random_impressions_follow_smallcaps_and_keep_their_widths(self):
+        path = FONTS / "Mills8A-Regular.otf"
+        plain = shape(path, "abcxyz", {"smcp": True})
+        random = shape(path, "abcxyz", {"smcp": True, "rand": True})
+        self.assertEqual([name.split(".r")[0] for name, _ in random],
+                         [name for name, _ in plain])
+        self.assertEqual([pos.x_advance for _, pos in random],
+                         [pos.x_advance for _, pos in plain])
+
+    def test_smallcaps_do_not_keep_lowercase_ligatures(self):
+        for style in ("Regular", "Regular9", "Bold"):
+            path = FONTS / f"Mills8A-{style}.otf"
+            with self.subTest(style=style):
+                glyphs = shape(path, "officefiflffifflff", {"smcp": True})
+                self.assertEqual([name for name, _ in glyphs],
+                                 [ch + ".sc" for ch in "officefiflffifflff"])
 
     def test_accents_keep_the_base_letter_advance(self):
         for path in sorted(FONTS.glob("*.otf")):

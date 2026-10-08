@@ -34,7 +34,9 @@ def record(font, name, transform=(1, 0, 0, 1, 0, 0)):
 
 def put_glyph(font, name, drawing, advance):
     top = font["CFF "].cff.topDictIndex[0]
-    pen = T2CharStringPen(round(advance), None, roundTolerance=0)
+    advance = round(advance)
+    width = None if advance == top.Private.defaultWidthX else advance - top.Private.nominalWidthX
+    pen = T2CharStringPen(width, None, roundTolerance=0)
     drawing.replay(pen)
     charstring = pen.getCharString(top.Private, top.GlobalSubrs)
     order = list(font.getGlyphOrder())
@@ -216,8 +218,6 @@ def substitution_features(font):
 
 def add_mark_features(font):
     rules = substitution_features(font)
-    # Replace our derived ccmp rules on repeat runs; keep traced liga/rand rules.
-    rules.pop("ccmp", None)
     lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;"]
     for cp in MARKS:
         kind = "BOTTOM" if cp in BELOW else "TOP"
@@ -228,7 +228,9 @@ def add_mark_features(font):
     lines.append(f"@aboveMarks = [{above}];")
     lines.append("feature ccmp { sub i' @aboveMarks by dotlessi; "
                  "sub j' @aboveMarks by uni0237; } ccmp;")
-    for tag in ("liga", "onum", "smcp", "rand"):
+    # Convert letters before f-ligatures consume them. The small caps have
+    # separate F and I/L sorts, not lowercase fi/ffi ligatures.
+    for tag in ("smcp", "liga", "onum", "rand"):
         if tag in rules:
             lines.append(f"feature {tag} {{ {' '.join(rules.pop(tag))} }} {tag};")
     if rules:

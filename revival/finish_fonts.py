@@ -11,7 +11,6 @@ from pathlib import Path
 from fontTools.pens.boundsPen import BoundsPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
-from fontTools.ttLib.tables import otTables
 
 from unicode_fonts import add_accented_smallcaps, add_mark_features, add_unicode
 
@@ -32,6 +31,12 @@ def update_ink_metrics(font):
     # These are clipping bounds, not a request to change the document's leading.
     os2.usWinAscent = max(os2.usWinAscent, math.ceil(max(b[3] for b in boxes)))
     os2.usWinDescent = max(os2.usWinDescent, math.ceil(-min(b[1] for b in boxes)))
+    # Version 4 defines USE_TYPO_METRICS. Enlarging clipping bounds must not
+    # make supported layout engines use those bounds as the line pitch.
+    os2.version = max(os2.version, 4)
+    os2.fsSelection |= 0x80
+    if not os2.fsSelection & (0x01 | 0x20):
+        os2.fsSelection |= 0x40
     cmap = font.getBestCmap()
     for ch, field in (("x", "sxHeight"), ("H", "sCapHeight")):
         if ord(ch) in cmap:
@@ -40,7 +45,8 @@ def update_ink_metrics(font):
 
 def set_advance(font, name, advance):
     top = font["CFF "].cff.topDictIndex[0]
-    pen = T2CharStringPen(advance, None, roundTolerance=0)
+    width = None if advance == top.Private.defaultWidthX else advance - top.Private.nominalWidthX
+    pen = T2CharStringPen(width, None, roundTolerance=0)
     top.CharStrings[name].draw(pen)
     top.CharStrings[name] = pen.getCharString(top.Private, top.GlobalSubrs)
     font["hmtx"].metrics[name] = (advance, font["hmtx"].metrics[name][1])
@@ -65,59 +71,11 @@ def normalize_accent_advances(font):
                 set_advance(font, variant, advance)
 
 
-def add_smallcaps_feature(font):
-    order = set(font.getGlyphOrder())
-    cmap = font.getBestCmap()
-    mapping = {name: name + ".sc" for name in set(cmap.values())
-               if name + ".sc" in order}
-    if not mapping:
-        return
-    table = font["GSUB"].table
-    existing = next((f for f in table.FeatureList.FeatureRecord
-                     if f.FeatureTag == "smcp"), None)
-    if existing:
-        return
-    sub = otTables.SingleSubst()
-    sub.mapping = mapping
-    lookup = otTables.Lookup()
-    lookup.LookupType, lookup.LookupFlag = 1, 0
-    lookup.SubTable, lookup.SubTableCount = [sub], 1
-    index = len(table.LookupList.Lookup)
-    table.LookupList.Lookup.append(lookup)
-    table.LookupList.LookupCount = len(table.LookupList.Lookup)
-    feature = otTables.FeatureRecord()
-    feature.FeatureTag = "smcp"
-    feature.Feature = otTables.Feature()
-    feature.Feature.FeatureParams = None
-    feature.Feature.LookupListIndex = [index]
-    feature.Feature.LookupCount = 1
-    feature_index = len(table.FeatureList.FeatureRecord)
-    table.FeatureList.FeatureRecord.append(feature)
-    table.FeatureList.FeatureCount = len(table.FeatureList.FeatureRecord)
-    for record in table.ScriptList.ScriptRecord:
-        if record.ScriptTag in ("DFLT", "latn"):
-            lang = record.Script.DefaultLangSys
-            lang.FeatureIndex.append(feature_index)
-            lang.FeatureCount = len(lang.FeatureIndex)
-    # smcp must run before rand so alternates are selected from the small caps.
-    records = table.FeatureList.FeatureRecord
-    sorted_indices = sorted(range(len(records)), key=lambda i: records[i].FeatureTag)
-    remap = {old: new for new, old in enumerate(sorted_indices)}
-    table.FeatureList.FeatureRecord = [records[i] for i in sorted_indices]
-    for record in table.ScriptList.ScriptRecord:
-        langs = [record.Script.DefaultLangSys] + [r.LangSys for r in record.Script.LangSysRecord]
-        for lang in filter(None, langs):
-            lang.FeatureIndex = sorted(remap[i] for i in lang.FeatureIndex)
-            if lang.ReqFeatureIndex != 0xFFFF:
-                lang.ReqFeatureIndex = remap[lang.ReqFeatureIndex]
-
-
 def finish(font):
     if "MATH" not in font:
         add_unicode(font)
         normalize_accent_advances(font)
         add_accented_smallcaps(font)
-        add_smallcaps_feature(font)
         add_mark_features(font)
     update_ink_metrics(font)
 
@@ -128,7 +86,7 @@ def main():
                         help="OTF files; defaults to revival/fonts/*.otf")
     args = parser.parse_args()
     for path in args.fonts or sorted(FONTS.glob("*.otf")):
-        font = TTFont(path)
+        font = TTFont(path, recalcTimestamp=False)
         finish(font)
         font.save(path)
         print(f"Finished {path.name}")
