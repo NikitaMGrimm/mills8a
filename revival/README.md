@@ -37,12 +37,12 @@ so **the real 1947 script sorts work in pdfLaTeX too**, the way `cmmi7` and
 the symbol font's fontdimens; `mills.tex` sets the Mills display
 superscript shift with `\fontdimen13\textfont2`.
 
-Second-order indices (the exponent of an exponent) are set as in 1947:
-in the first-order size, not 5.5 pt, and on the index's own line, raised
-only by TeX's minimum (a quarter of the x-height) instead of a full step,
-so that `3^{-n}` reads like the printed "3−n". (The 1947 page sets the
-"−n" level with the 3 and 0.74 of its height; ours: 8 px higher at
-600 dpi, 0.70.)
+Second-order indices (the exponent of an exponent) are set as on the Mills
+page: in the first-order size, not 5.5 pt (the 1947 x of `[A^{3^x}]` is
+0.68 of its 3, about the ratio within one size), and raised 0.52 em of
+the index font, its foot 28 px above the 3's at 600 dpi as printed
+(ours: 28-29 px). The flat "3−n" of the Mills displays is how the source
+writes them, as printed.
 
 Compared with the OpenType fonts (below) it lacks
 
