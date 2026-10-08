@@ -204,6 +204,10 @@ Releases follow [semantic versioning](https://semver.org). The version is in
 release is tagged `vX.Y.Z`. Until 1.0.0 glyph shapes and spacing may still
 change in a minor release; patch releases change no metrics.
 
+To release: set `VERSION`, commit, and publish a GitHub release tagged
+`vX.Y.Z`. The `release` workflow then builds `mills8a.tds.zip`, checks that
+it installs and typesets, and attaches it to the release.
+
 ## Sources and licences
 
 - The scans: *Bulletin* and *Transactions of the AMS*, 1940–1948, from the

@@ -1,0 +1,75 @@
+# On a published release: build mills8a.tds.zip (./make-tds.sh), test that
+# it installs and typesets, and attach it to the release.  The fonts are
+# committed, so nothing is built from the scans here.
+name: release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:          # build and test only (the zip is kept as an artifact)
+
+permissions:
+  contents: write             # to attach the zip to the release
+
+jobs:
+  tds:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version matches the tag
+        if: github.event_name == 'release'
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          want="v$(cat VERSION)"
+          [ "$tag" = "$want" ] || { echo "release tag $tag, but VERSION says $want"; exit 1; }
+
+      - name: Build mills8a.tds.zip
+        run: ./make-tds.sh
+
+      - name: Install TeX
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended texlive-fonts-recommended \
+            poppler-utils
+
+      - name: Install the zip into an empty TEXMFHOME and typeset
+        run: |
+          export TEXMFHOME="$RUNNER_TEMP/texmf"
+          mkdir -p "$TEXMFHOME"
+          unzip -q mills8a.tds.zip -d "$TEXMFHOME"
+          cd "$RUNNER_TEMP"
+          cat > test.tex <<'TEX'
+          \documentclass[11pt]{article}
+          \usepackage{amsmath}
+          \usepackage{mills8a}
+          \begin{document}
+          \textbf{A PRIME-REPRESENTING FUNCTION} \textsc{W. H. Mills}
+
+          A function $f(x)$ is said to be a prime-representing function if
+          $f(x)$ is a prime number for all positive integral values of~$x$:
+          $[A^{3^x}]$, \emph{italic}, ``quoted'', 1940--1948, ffi fl.
+          \[ p_{n+1}-p_n<Kp_n^{5/8}, \qquad
+             \sum_{n=1}^\infty \frac{1}{n^s}=\prod_p\frac{1}{1-p^{-s}}, \qquad
+             \lim_{n\to\infty}u_n \]
+          \end{document}
+          TEX
+          pdflatex -interaction=nonstopmode -halt-on-error test.tex
+          ! grep -q "Missing character" test.log
+          pdffonts test.pdf | tee fonts.txt
+          grep -q Mills8A-Regular fonts.txt
+          ! awk 'NR>2 && $5=="no"' fonts.txt | grep -q .     # every font embedded
+
+      - name: Attach to the release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" mills8a.tds.zip --clobber
+
+      - name: Keep the zip (manual runs)
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mills8a.tds
+          path: mills8a.tds.zip
