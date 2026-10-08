@@ -208,15 +208,12 @@ To release: set `VERSION`, commit, and publish a GitHub release tagged
 `vX.Y.Z`. The `release` workflow then builds `mills8a.tds.zip`, checks that
 it installs and typesets, and attaches it to the release.
 
-## Sources and licences
+## Sources
 
 - The scans: *Bulletin* and *Transactions of the AMS*, 1940–1948, from the
   AMS back-issue archive. Only the crops in the comparisons are included
-  here, and they are not covered by the licence below.
+  here.
 - *The Monotype Specimen Book of Type Faces*, Lanston Monotype, 1922
   (public domain).
-- Latin Modern and Latin Modern Math (GUST Font License): some text glyphs
-  and the base of `Mills8A-Math.otf`.
-
-The fonts are under the GUST Font License, as a modified version of Latin
-Modern; everything else is under the MIT License. See [LICENSE](LICENSE).
+- Latin Modern and Latin Modern Math: some text glyphs and the base of
+  `Mills8A-Math.otf`.
