@@ -111,7 +111,10 @@ run with LuaLaTeX shows the setup (`fontspec`, `unicode-math`); the
 installed tree includes them, so they are found by file name. The
 difference from the pdfLaTeX page is slight.
 
-## How it was made
+<details>
+<summary>More on how it was made</summary>
+
+### How it was made
 
 1. **Segment** each 600 dpi page into glyph impressions, with Tesseract for a
    first reading and the page's lines (`revival/segment.py`, `baselines.py`).
@@ -136,7 +139,7 @@ difference from the pdfLaTeX page is slight.
 `revival/README.md` describes each step, the measurements behind it, and
 where each glyph comes from.
 
-## How much is real
+### How much is real
 
 Traced from the 1940s scans (each glyph the average of its printed
 impressions):
@@ -176,6 +179,8 @@ pairs in the text, the thin space 1947 set before `:` and `;`, and the
 script positions and gaps of the Mills page. A few bearings that the
 pairs cannot fix (the small-cap A before a period) are set by hand from
 the scans.
+
+</details>
 
 ## Sources
 
