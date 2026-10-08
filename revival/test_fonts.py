@@ -23,6 +23,15 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_clipping_bounds_do_not_define_line_pitch(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            os2 = TTFont(path)["OS/2"]
+            with self.subTest(font=path.name):
+                self.assertGreaterEqual(os2.version, 4)
+                self.assertTrue(os2.fsSelection & 0x80)
+                if not os2.fsSelection & (0x01 | 0x20):
+                    self.assertTrue(os2.fsSelection & 0x40)
+
     def test_subroutinization_preserves_every_outline_and_metric(self):
         font = TTFont(FONTS / "Mills8A-Regular.otf")
         glyphs = font.getGlyphSet()

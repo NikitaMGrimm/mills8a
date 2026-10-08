@@ -32,6 +32,12 @@ def update_ink_metrics(font):
     # These are clipping bounds, not a request to change the document's leading.
     os2.usWinAscent = max(os2.usWinAscent, math.ceil(max(b[3] for b in boxes)))
     os2.usWinDescent = max(os2.usWinDescent, math.ceil(-min(b[1] for b in boxes)))
+    # Version 4 defines USE_TYPO_METRICS. Enlarging clipping bounds must not
+    # make supported layout engines use those bounds as the line pitch.
+    os2.version = max(os2.version, 4)
+    os2.fsSelection |= 0x80
+    if not os2.fsSelection & (0x01 | 0x20):
+        os2.fsSelection |= 0x40
     cmap = font.getBestCmap()
     for ch, field in (("x", "sxHeight"), ("H", "sCapHeight")):
         if ord(ch) in cmap:
