@@ -95,6 +95,10 @@ missing from the scans, the euro and trademark signs come from Latin Modern,
 scaled to the corresponding style's x-height or cap height. This extends
 coverage without claiming a historical source for those additions. Nonbreaking
 spaces and hyphens have explicit Unicode mappings. Kerning remains absent.
+Roman, bold and the 9 pt roman cut expose `smcp`, including accented letters
+and Æ/Œ/Ø/Ł counterparts. Accented small caps use the existing small-cap
+letters and accents; missing special forms use scaled capitals. Small-cap ß
+uses two small-cap S letters.
 
 `python3 finish_fonts.py` reapplies the Unicode supplements, OpenType features
 and clipping-metric repairs to the committed fonts without rebuilding the scan
