@@ -302,6 +302,11 @@ def math_fonts():
                 ("SUBDROP", v(mc.SubscriptBaselineDropMin)),
                 ("DELIM1", 2390), ("DELIM2", 1010),
                 ("AXISHEIGHT", v(mc.AxisHeight))]
+        if level:
+            # a superscript on an index: 1947 sets it on the index's line
+            # ("3-n" for 3^{-n}), not a full step up; TeX then raises it only
+            # by its minimum, a quarter of the x-height
+            dims = [(k, 0 if k in ("SUP1", "SUP2", "SUP3") else val) for k, val in dims]
         lines.append(make_tex_font(f"m8asy{suffix}", f, g, size, "MILLS8A-SYMBOLS", dims,
                                    ic=ic, acc=acc, skewchar=0x30))
         g = {s: glyph_for(f, cmap, ssty, cp, level) for s, cp in EXTRA.items()}
@@ -445,8 +450,11 @@ FD = {
 \DeclareSymbolFont{letters}     {OML}{m8am}{m}{it}
 \DeclareSymbolFont{symbols}     {OMS}{m8asy}{m}{n}
 \DeclareSymbolFont{largesymbols}{OMX}{m8aex}{m}{n}
-\DeclareMathSizes{11}{11}{6.48}{5.51}
-\DeclareMathSizes{10.95}{11}{6.48}{5.51}
+% second-order indices in the first-order size, as 1947 sets them (the
+% 5.5 pt sorts are hard to read): the exponent of an exponent stands level
+% with it, "3-n" for 3^{-n}
+\DeclareMathSizes{11}{11}{6.48}{6.48}
+\DeclareMathSizes{10.95}{11}{6.48}{6.48}
 % the 1947 sorts for relations the standard layouts have no slot for;
 % set at the start of the document so they win over amssymb's
 \DeclareSymbolFont{millsextra}{U}{m8axs}{m}{n}

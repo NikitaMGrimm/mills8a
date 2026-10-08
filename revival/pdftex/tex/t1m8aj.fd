@@ -1,4 +1,4 @@
-\ProvidesFile{t1m8aj.fd}[2026/10/07 v0.1.0 Mills 8A text, old-style figures, T1, pdfLaTeX]
+\ProvidesFile{t1m8aj.fd}[2026/10/08 v0.1.0 Mills 8A text, old-style figures, T1, pdfLaTeX]
 \DeclareFontFamily{T1}{m8aj}{}
 \DeclareFontShape{T1}{m8aj}{m}{n}{<-10> m8ar9j8t <10-> m8arj8t}{}
 \DeclareFontShape{T1}{m8aj}{m}{it}{<-10> m8ari9j8t <10-> m8arij8t}{}
