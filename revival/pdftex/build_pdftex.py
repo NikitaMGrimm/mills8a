@@ -485,7 +485,7 @@ def main():
     for fn, body in FD.items():
         body = body.replace("@DATE@", date).replace("@VERSION@", VERSION)
         with open(os.path.join(TEX, fn), "w") as fh:
-            fh.write(body)
+            fh.write("% Copyright 2026 heiner. MIT License, see LICENSE.\n" + body)
     for fn in os.listdir(OUT):
         if fn.endswith(".pl"):
             os.remove(os.path.join(OUT, fn))

@@ -1,3 +1,4 @@
+% Copyright 2026 heiner. MIT License, see LICENSE.
 \ProvidesFile{um8asym.fd}[2026/10/08 v0.1.0 Mills 8A text symbols, pdfLaTeX]
 \DeclareFontFamily{U}{m8asym}{}
 \DeclareFontShape{U}{m8asym}{m}{n}{<-> m8asym}{}

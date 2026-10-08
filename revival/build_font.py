@@ -23,6 +23,7 @@ from fontTools.fontBuilder import FontBuilder
 from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.agl import UV2AGL
+from fontTools.ttLib import TTFont
 from scipy import ndimage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -30,12 +31,26 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 VERSION = open(os.path.join(HERE, "..", "VERSION")).read().strip()
 
 
-def stamp_version(fb, names):
-    """Name table (with the version string) and head.fontRevision.  names
-    must carry psName, the CFF FontName: without a PostScript name in the
-    name table LuaTeX names the font after its file path, which breaks
-    under a long install path ("FontName string length too large")."""
-    fb.setupNameTable(dict(names, version=f"Version {VERSION}"))
+def stamp_version(fb, names, lm="lmroman10-regular.otf"):
+    """Name table (with the version string and licence) and head.fontRevision.
+    names must carry psName, the CFF FontName: without a PostScript name in
+    the name table LuaTeX names the font after its file path, which breaks
+    under a long install path ("FontName string length too large").
+    Every font has glyphs from Latin Modern (lm), so it carries Latin
+    Modern's notice and licence (GUST Font License)."""
+    path = subprocess.run(["kpsewhich", lm], check=True, capture_output=True,
+                          text=True).stdout.strip()
+    lm_notice = " ".join(TTFont(path)["name"].getDebugName(0).split())
+    copyright = f"Copyright 2026 heiner. Modified from Latin Modern: {lm_notice}"
+    fb.setupNameTable(dict(
+        names, version=f"Version {VERSION}", copyright=copyright,
+        description="Monotype Modern 8A traced from 1940s Bulletin AMS printing; "
+                    "the changes to Latin Modern are listed in LICENSE.",
+        licenseDescription="GUST Font License (LPPL 1.3c or later)",
+        licenseInfoURL="http://tug.org/fonts/licenses/GUST-FONT-LICENSE.txt"))
+    top = fb.font["CFF "].cff.topDictIndex[0]
+    top.Copyright = copyright
+    top.Notice = "Mills 8A, GUST Font License"
     major, minor = VERSION.split(".")[:2]
     fb.updateHead(fontRevision=int(major) + int(minor) / 1000)
 WORK = os.path.join(HERE, "work")

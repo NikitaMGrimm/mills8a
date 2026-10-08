@@ -151,7 +151,22 @@ def check_scripts():
                        f"(overlap {iou:.2f}, aspect {rb:.2f} vs {ra:.2f})")
 
 
+def check_licence():
+    """Every font has Latin Modern glyphs: it must carry the GUST notice."""
+    for f in sorted(os.listdir(FONTS)):
+        if f.endswith(".otf"):
+            n = TTFont(os.path.join(FONTS, f))["name"]
+            if "Latin Modern" not in (n.getDebugName(0) or "") or not n.getDebugName(13):
+                report(f"{f}: no Latin Modern / GUST Font License notice")
+    pfb = os.path.join(HERE, "pdftex", "fonts")
+    for f in sorted(os.listdir(pfb)) if os.path.isdir(pfb) else []:
+        # *LCDFJ.pfb: otftotfm's dotless-j font, only the 1947 j, no Latin Modern
+        if f.endswith(".pfb") and "LCDFJ" not in f and b"GUST Font License" not in open(os.path.join(pfb, f), "rb").read(4096):
+            report(f"{f}: no GUST Font License notice")
+
+
 def main():
+    check_licence()
     check_text("Mills8A-Regular.otf", smallcaps=True)
     check_text("Mills8A-Italic.otf", italic=True)
     check_text("Mills8A-Bold.otf")

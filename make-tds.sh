@@ -20,7 +20,7 @@ d fonts/map/dvips/mills8a;      cp $P/fonts/mills8a.map "$T/fonts/map/dvips/mill
 d fonts/opentype/public/mills8a; cp revival/fonts/*.otf "$T/fonts/opentype/public/mills8a/"
 d doc/fonts/mills8a
 cp README.md VERSION "$T/doc/fonts/mills8a/"
-[ -f LICENSE ] && cp LICENSE "$T/doc/fonts/mills8a/"
+cp LICENSE GUST-FONT-LICENSE.txt "$T/doc/fonts/mills8a/"
 for f in mills-specimen-a4.pdf mills-specimen-letter.pdf mills-8a.pdf; do
   [ -f "$f" ] && cp "$f" "$T/doc/fonts/mills8a/"
 done

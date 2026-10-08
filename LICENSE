@@ -1,0 +1,58 @@
+Mills 8A
+Copyright 2026 heiner
+
+Fonts
+-----
+
+The font files (*.otf, *.pfb, *.tfm, *.vf, *.enc, mills8a.map) contain
+glyphs from Latin Modern and Latin Modern Math, copyright B. Jackowski,
+J. M. Nowacki, P. Strzelczyk and P. Pianowski (on behalf of TeX users
+groups), released under the GUST Font License. They are a modified version
+of Latin Modern and are distributed under the same licence: see
+GUST-FONT-LICENSE.txt (the LaTeX Project Public License 1.3c or later).
+The unmodified fonts: https://ctan.org/pkg/lm and https://ctan.org/pkg/lm-math
+
+Changes to Latin Modern:
+- Mills8A-Math: Latin Modern Math with its letters, Greek, figures,
+  operators, \cdot and \cdots, display sum, product and integral and their
+  script variants replaced by glyphs traced from 1940s printing in Monotype
+  Modern 8A; script sizes and shifts in the MATH table changed; the other
+  glyphs and the MATH table are Latin Modern Math's.
+- The text fonts: glyphs traced from the same printing; the accents other
+  than the dieresis and the symbols the printing lacks (# % @ \ ^ _ { } ~
+  § † ‡ ¶ « » ß Æ Œ Ø Ł and others) are Latin Modern Roman's, thickened
+  and repositioned; bold, bold italic and 9 pt versions of these are
+  further thickened or scaled.
+- The pdfTeX fonts (*.pfb, *.tfm, *.vf, *.enc) are conversions of the
+  above, split into TeX's 256-glyph encodings.
+- All are renamed (Mills 8A, m8a*).
+
+Everything else
+---------------
+
+MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Not covered
+-----------
+
+The scans of 1940s Bulletin and Transactions of the AMS pages
+(scan-mills1947.png, mills-compare.pdf and the scan halves of the images in
+docs/) are reproduced for comparison only and are not licensed here.

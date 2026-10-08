@@ -1,3 +1,4 @@
+% Copyright 2026 heiner. MIT License, see LICENSE.
 \ProvidesFile{um8axs.fd}[2026/10/08 v0.1.0 Mills 8A extra relations, pdfLaTeX]
 \DeclareFontFamily{U}{m8axs}{}
 \DeclareFontShape{U}{m8axs}{m}{n}{<-6> m8axsss <6-8> m8axss <8-> m8axs}{}

@@ -1,4 +1,5 @@
 -- mills8a-jitter.lua: letterpress baseline wobble for LuaLaTeX.
+-- Copyright 2026 heiner. MIT License, see LICENSE.
 --
 -- On the 1947 pages, flat-bottomed letters (n m h i l r k) scatter around
 -- their line's baseline by 1.00 px at 600 dpi: 40% exactly on it, 87%
