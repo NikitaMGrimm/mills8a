@@ -31,7 +31,10 @@ VERSION = open(os.path.join(HERE, "..", "VERSION")).read().strip()
 
 
 def stamp_version(fb, names):
-    """Name table (with the version string) and head.fontRevision."""
+    """Name table (with the version string) and head.fontRevision.  names
+    must carry psName, the CFF FontName: without a PostScript name in the
+    name table LuaTeX names the font after its file path, which breaks
+    under a long install path ("FontName string length too large")."""
     fb.setupNameTable(dict(names, version=f"Version {VERSION}"))
     major, minor = VERSION.split(".")[:2]
     fb.updateHead(fontRevision=int(major) + int(minor) / 1000)
@@ -841,7 +844,7 @@ def assemble(glyphs, family, style_name, out, extra_cmap=None, features=""):
         lsb[n] = b[0] if b else 0
     fb.setupHorizontalMetrics({n: (adv[n], lsb[n]) for n in order})
     fb.setupHorizontalHeader(ascent=800, descent=-250)
-    stamp_version(fb, {"familyName": family, "styleName": style_name})
+    stamp_version(fb, {"familyName": family, "styleName": style_name, "psName": ps})
     fb.setupOS2(sTypoAscender=800, sTypoDescender=-250, usWinAscent=900, usWinDescent=300,
                 sxHeight=440, sCapHeight=650, fsSelection=0x01 if style_name == "Italic" else 0x40)
     fb.setupPost(italicAngle=-14 if style_name == "Italic" else 0)

@@ -634,6 +634,7 @@ def main():
     fb.setupHorizontalMetrics({n: (adv[n], round(bounds(cs[n])[0])) for n in glyph_order})
     fb.setupHorizontalHeader(ascent=lm["hhea"].ascent, descent=lm["hhea"].descent)
     bf.stamp_version(fb, {"familyName": "Mills 8A Math", "styleName": "Regular",
+                       "psName": "Mills8A-Math",
                        "copyright": "Based on Latin Modern Math (GUST Font License); "
                                     "glyphs traced from 1947 Monotype Modern 8A printing"})
     fb.setupOS2(sTypoAscender=lm["OS/2"].sTypoAscender, sTypoDescender=lm["OS/2"].sTypoDescender,

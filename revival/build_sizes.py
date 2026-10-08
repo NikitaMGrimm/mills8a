@@ -179,7 +179,7 @@ def make(out, family, style_name, base_otf, real, em_pt, grow_print, spacing=Non
     fb.setupCFF(ps, {"FullName": f"{family} {style_name}"}, {n: cs[n] for n in order}, {})
     fb.setupHorizontalMetrics({n: (adv[n], round(bounds(cs[n])[0])) for n in order})
     fb.setupHorizontalHeader(ascent=800, descent=-250)
-    bf.stamp_version(fb, {"familyName": family, "styleName": style_name})
+    bf.stamp_version(fb, {"familyName": family, "styleName": style_name, "psName": ps})
     fb.setupOS2(sTypoAscender=800, sTypoDescender=-250, usWinAscent=900, usWinDescent=300,
                 sxHeight=440, sCapHeight=650,
                 fsSelection=(0x01 if italic else 0) | (0x20 if "Bold" in style_name else 0) or 0x40,

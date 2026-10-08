@@ -63,21 +63,40 @@ the images from the scans.
 
 </details>
 
+## Installing
+
+The built fonts are in the repository, so nothing needs to be built:
+
+    git clone https://github.com/heiner/mills8a && cd mills8a
+    ./make-tds.sh        # assemble the TeX tree (build/tds) and mills8a.tds.zip
+    ./install.sh         # copy it into your personal TeX tree (TEXMFHOME)
+
+`install.sh` puts the files where TeX looks by default (`~/texmf` on
+Linux, `~/Library/texmf` on macOS: whatever `kpsewhich -var-value
+TEXMFHOME` says), so no environment variables and no `updmap` are needed:
+the package loads its own map file. Alternatively unzip
+`mills8a.tds.zip` into that directory yourself.
+
+- **MiKTeX:** unzip `mills8a.tds.zip` into a new directory, add it as a
+  root directory (MiKTeX Console → Settings → Directories) and refresh the
+  file name database.
+- **dvips** (`latex` + `dvips` instead of `pdflatex`): also run
+  `./install.sh --dvips`, which enables the map file with `updmap-user`.
+
 ## Using it
 
 ```latex
 \usepackage{mills8a}            % or [osf] for old-style figures in text
 ```
 
-with `revival/pdftex/tex` on `TEXINPUTS` and `revival/pdftex/fonts` on
-`TFMFONTS`, `VFFONTS`, `T1FONTS`, `ENCFONTS` and `TEXFONTMAPS` (see
-`render.sh`). The Bulletin set 11 pt type on 12 pt leading; `tex/mills.tex`
-is a complete example, including the 1947 script positions.
+The Bulletin set 11 pt type on 12 pt leading; `tex/mills.tex` is a complete
+example, including the 1947 script positions.
 
 It works with pdfLaTeX and standard TeX font machinery only: T1 text fonts,
-OML/OMS/OMX math fonts at 11, 6.5 and 5.5 pt (so indices use the real script
-sorts, as `cmmi7`/`cmmi5` do), and a virtual font that puts the 1947 big
-operators into `cmex10`.
+OML/OMS/OMX math fonts at 11 and 6.5 pt (so indices use the real script
+sorts, as `cmmi7` does; second-order indices take the first-order size,
+as in 1947), and a virtual font that puts the 1947 big operators into
+`cmex10`.
 
 ## What is in the family
 
@@ -94,7 +113,8 @@ operators into `cmex10`.
 The family is also built as OpenType fonts (`revival/fonts`, with an OpenType
 math font) for LuaLaTeX and other software. They can set each letter as one
 of up to 8 real 1947 impressions at random (feature `rand`); `tex/mills.tex`
-run with LuaLaTeX shows the setup (`fontspec`, `unicode-math`). The
+run with LuaLaTeX shows the setup (`fontspec`, `unicode-math`); the
+installed tree includes them, so they are found by file name. The
 difference from the pdfLaTeX page is slight.
 
 ## How it was made
