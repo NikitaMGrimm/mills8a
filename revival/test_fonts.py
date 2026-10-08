@@ -21,6 +21,30 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_unicode_supplements_in_every_text_style(self):
+        text = "€ ™ Ąą Ęę Įį Ųų ďľĽť Đđ Ħħ Ŋŋ"
+        for path in sorted(FONTS.glob("*.otf")):
+            if "Math" in path.name:
+                continue
+            with self.subTest(font=path.name):
+                self.assertNotIn(".notdef", [n for n, _ in shape(path, text)])
+
+    def test_decomposed_and_stacked_marks(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            if "Math" in path.name:
+                continue
+            with self.subTest(font=path.name):
+                self.assertEqual([n for n, _ in shape(path, "á")],
+                                 [n for n, _ in shape(path, "a\u0301")])
+                glyphs = shape(path, "a\u0304\u0301\u0308")
+                self.assertNotIn(".notdef", [n for n, _ in glyphs])
+                marks = [pos for name, pos in glyphs if name.startswith("uni03")]
+                self.assertTrue(marks)
+                self.assertTrue(all(pos.x_advance == 0 for pos in marks))
+                self.assertGreater(marks[-1].y_offset, marks[0].y_offset)
+                dotless = shape(path, "i\u0304\u0301\u0308")
+                self.assertNotIn(".notdef", [n for n, _ in dotless])
+
     def test_smallcaps_are_selectable_in_every_roman_style(self):
         for style in ("Regular", "Regular9", "Bold"):
             with self.subTest(style=style):

@@ -13,6 +13,8 @@ from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 from fontTools.ttLib.tables import otTables
 
+from unicode_fonts import add_mark_features, add_unicode
+
 FONTS = Path(__file__).resolve().parent / "fonts"
 
 
@@ -112,8 +114,10 @@ def add_smallcaps_feature(font):
 
 def finish(font):
     if "MATH" not in font:
+        add_unicode(font)
         normalize_accent_advances(font)
         add_smallcaps_feature(font)
+        add_mark_features(font)
     update_ink_metrics(font)
 
 
