@@ -21,6 +21,18 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_accented_smallcaps_and_ligature_letters(self):
+        for style in ("Regular", "Regular9", "Bold"):
+            path = FONTS / f"Mills8A-{style}.otf"
+            with self.subTest(style=style):
+                glyphs = shape(path, "aáäæœßąďøłı", {"smcp": True})
+                self.assertTrue(all(name.endswith(".sc") for name, _ in glyphs))
+                cmap = TTFont(path).getBestCmap()
+                for ch in "áäą":
+                    name = cmap[ord(ch)] + ".sc"
+                    font = TTFont(path)
+                    self.assertEqual(font["hmtx"][name][0], font["hmtx"]["a.sc"][0])
+
     def test_unicode_supplements_in_every_text_style(self):
         text = "€ ™ Ąą Ęę Įį Ųų ďľĽť Đđ Ħħ Ŋŋ"
         for path in sorted(FONTS.glob("*.otf")):
