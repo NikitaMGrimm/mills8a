@@ -92,12 +92,6 @@ the package loads its own map file. Alternatively unzip
 The Bulletin set 11 pt type on 12 pt leading; `tex/mills.tex` is a complete
 example, including the 1947 script positions.
 
-It works with pdfLaTeX and standard TeX font machinery only: T1 text fonts,
-OML/OMS/OMX math fonts at 11 and 6.5 pt (so indices use the real script
-sorts, as `cmmi7` does; second-order indices take the first-order size,
-as in 1947), and a virtual font that puts the 1947 big operators into
-`cmex10`.
-
 ## What is in the family
 
 | font | contents |
