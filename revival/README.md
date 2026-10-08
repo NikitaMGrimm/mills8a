@@ -133,8 +133,9 @@ small caps, old-style figures, combining marks and math features are retained.
 Both directories include the font licences. The generated exports stay out
 of Git; regenerate them from the committed fonts.
 
-The T1 package selects the 9 pt small caps below 10 pt, supports bold small
-caps, and loads the added euro and trademark signs through its symbol font.
+The pdfLaTeX conversion also omits unused random impressions. Its T1 package
+selects the 9 pt small caps below 10 pt, supports bold small caps, and loads
+the added euro and trademark signs through its symbol font.
 
 Run `./verify.sh` from the root to test the fonts and install the TDS zip
 into a temporary TeX tree, then typeset `tex/font-regression.tex` with
