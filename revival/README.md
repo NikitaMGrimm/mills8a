@@ -117,6 +117,21 @@ the shipped OpenType fonts use this lossless optimization. It runs in
 with `--hint --output-dir build/hinted`. The hints use measured alignment
 zones and stem widths. They can increase file size and are deliberately kept
 as a separate export; the primary fonts preserve the unhinted print outlines.
+The hinting tool rounds fractional outline coordinates to the nearest unit;
+it leaves advances and OpenType layout features unchanged.
+
+For websites or installations that do not need random impressions:
+
+```sh
+python3 revival/export_fonts.py  # from the repository root
+```
+
+`build/web/` contains the complete family as WOFF2. `build/compact/` contains
+OTF and WOFF2 versions without `rand`, named **Mills 8A Compact** so they can
+be installed alongside the complete family. Unicode coverage, ligatures,
+small caps, old-style figures, combining marks and math features are retained.
+Both directories include the font licences. The generated exports stay out
+of Git; regenerate them from the committed fonts.
 
 ## Sources
 
