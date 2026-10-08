@@ -89,7 +89,19 @@ def text_fonts():
             if line.strip():
                 maplines.append(re.sub(r"<([\w-]+)\.otf", r"<\1.pfb", line))
         if otf not in done:
-            run("cfftot1", os.path.join(SRC, otf), otf[:-4] + ".pfb", cwd=OUT)
+            # Type 1 cannot select rand. Keep all encoded characters and the
+            # supported text substitutions, but omit the unused impressions.
+            font = TTFont(os.path.join(SRC, otf))
+            options = subset.Options()
+            options.layout_features = ["liga", "onum", "smcp"]
+            options.name_IDs = ["*"]
+            subsetter = subset.Subsetter(options=options)
+            subsetter.populate(unicodes=list(font.getBestCmap()))
+            subsetter.subset(font)
+            with tempfile.TemporaryDirectory() as directory:
+                source = os.path.join(directory, otf)
+                font.save(source)
+                run("cfftot1", source, otf[:-4] + ".pfb", cwd=OUT)
             done.add(otf)
     # § † ‡ ¶ (LaTeX takes them from TS1): a small font in its own encoding
     with open(os.path.join(OUT, "m8asym.enc"), "w") as fh:
