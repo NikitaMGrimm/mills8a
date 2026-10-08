@@ -1,12 +1,36 @@
 """Regression checks for the shipped fonts: python -m unittest discover -s revival."""
 import unittest
+import unicodedata
 
 from fontTools.ttLib import TTFont
 
-from finish_fonts import FONTS, glyph_bounds, update_ink_metrics
+from finish_fonts import FONTS, glyph_bounds, normalize_accent_advances, update_ink_metrics
 
 
 class FontTests(unittest.TestCase):
+    def test_accents_keep_the_base_letter_advance(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            font = TTFont(path)
+            if "MATH" in font:
+                continue
+            cmap = font.getBestCmap()
+            for cp, name in cmap.items():
+                ch = chr(cp)
+                d = unicodedata.normalize("NFD", ch)
+                if (ch.isalpha() and len(d) > 1 and ord(d[0]) in cmap
+                        and all(unicodedata.combining(c) for c in d[1:])):
+                    with self.subTest(font=path.name, character=ch):
+                        self.assertEqual(font["hmtx"][name][0],
+                                         font["hmtx"][cmap[ord(d[0])]][0])
+
+    def test_accent_spacing_repair_keeps_traced_ink(self):
+        font = TTFont(FONTS / "Mills8A-Regular.otf")
+        box = glyph_bounds(font, "aacute")
+        font["hmtx"].metrics["aacute"] = (378, font["hmtx"]["aacute"][1])
+        normalize_accent_advances(font)
+        self.assertEqual(box, glyph_bounds(font, "aacute"))
+        self.assertEqual(font["hmtx"]["a"][0], font["hmtx"]["aacute"][0])
+
     def test_windows_metrics_contain_every_outline(self):
         for path in sorted(FONTS.glob("*.otf")):
             font = TTFont(path)

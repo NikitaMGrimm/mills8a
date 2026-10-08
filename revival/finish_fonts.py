@@ -5,9 +5,11 @@ line metrics are kept separate from the Windows metrics used for clipping.
 """
 import argparse
 import math
+import unicodedata
 from pathlib import Path
 
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.ttLib import TTFont
 
 FONTS = Path(__file__).resolve().parent / "fonts"
@@ -33,7 +35,36 @@ def update_ink_metrics(font):
             setattr(os2, field, round(glyph_bounds(font, cmap[ord(ch)])[3]))
 
 
+def set_advance(font, name, advance):
+    top = font["CFF "].cff.topDictIndex[0]
+    pen = T2CharStringPen(advance, None, roundTolerance=0)
+    top.CharStrings[name].draw(pen)
+    top.CharStrings[name] = pen.getCharString(top.Private, top.GlobalSubrs)
+    font["hmtx"].metrics[name] = (advance, font["hmtx"].metrics[name][1])
+
+
+def normalize_accent_advances(font):
+    cmap = font.getBestCmap()
+    order = font.getGlyphOrder()
+    for cp, name in cmap.items():
+        ch = chr(cp)
+        decomposed = unicodedata.normalize("NFD", ch)
+        if (not ch.isalpha() or len(decomposed) < 2
+                or not all(unicodedata.combining(c) for c in decomposed[1:])
+                or ord(decomposed[0]) not in cmap):
+            continue
+        base = cmap[ord(decomposed[0])]
+        advance = font["hmtx"][base][0]
+        # Rare sorts have an underdetermined spacing fit. An accent does not
+        # change its letter's Monotype set width; retain the traced ink itself.
+        for variant in [name] + [n for n in order if n.startswith(name + ".r")]:
+            if font["hmtx"][variant][0] != advance:
+                set_advance(font, variant, advance)
+
+
 def finish(font):
+    if "MATH" not in font:
+        normalize_accent_advances(font)
     update_ink_metrics(font)
 
 
