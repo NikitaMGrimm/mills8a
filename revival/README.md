@@ -108,8 +108,17 @@ pipeline. It also runs automatically in `build.sh`. Font regression checks:
 python3 -m unittest discover -s revival -v  # from the repository root
 ```
 
-The checks require fontTools and uharfbuzz; finishing requires fontTools and
-the Latin Modern OpenType fonts supplied by TeX Live.
+Install the Python tools with `python3 -m pip install -r revival/requirements.txt`.
+Finishing also requires the Latin Modern OpenType fonts supplied by TeX Live.
+
+The T1 package selects the 9 pt small caps below 10 pt, supports bold small
+caps, and loads the added euro and trademark signs through its symbol font.
+
+Run `./verify.sh` from the root to test the fonts and install the TDS zip
+into a temporary TeX tree, then typeset `tex/font-regression.tex` with
+pdfLaTeX and LuaLaTeX. This requires TeX Live's LaTeX, LuaTeX and recommended
+fonts packages, `poppler-utils`, ripgrep, and the Python requirements above.
+Rebuilding the Type 1 files additionally requires `lcdf-typetools`.
 
 ## Sources
 
