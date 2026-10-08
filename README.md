@@ -183,31 +183,6 @@ script positions and gaps of the Mills page. A few bearings that the
 pairs cannot fix (the small-cap A before a period) are set by hand from
 the scans.
 
-## Building
-
-The scans are not in the repository; `revival/README.md` lists them (free
-from the AMS back issues). With them in `revival/scans/`:
-
-    revival/fetch-specimen.sh     # the 1922 specimen pages (public domain)
-    revival/build.sh              # about 1.5-2 h on 4 cores; clustering is most of it
-    ./render.sh                   # the PDFs, proof sheets and the images above
-
-Requires TeX Live (pdfLaTeX, `lcdf-typetools`; LuaLaTeX for the OpenType example), Tesseract, potrace,
-and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are
-committed in `revival/fonts/` and `revival/pdftex/fonts/`.
-
-## Versions
-
-Releases follow [semantic versioning](https://semver.org). The version is in
-`VERSION`; the build stamps it into every font (name table and
-`head.fontRevision`) and into `mills8a.sty` and its `.fd` files, and each
-release is tagged `vX.Y.Z`. Until 1.0.0 glyph shapes and spacing may still
-change in a minor release; patch releases change no metrics.
-
-To release: set `VERSION`, commit, and publish a GitHub release tagged
-`vX.Y.Z`. The `release` workflow then builds `mills8a.tds.zip`, checks that
-it installs and typesets, and attaches it to the release.
-
 ## Sources
 
 - The scans: *Bulletin* and *Transactions of the AMS*, 1940–1948, from the

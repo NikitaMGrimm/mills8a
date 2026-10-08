@@ -129,6 +129,19 @@ The AMS PDFs are 600 dpi bilevel scans (461 pages; the 1940-48 papers were
 added for the old-style figures of their years). They're not in the
 repository; put copies in `scans/` under these names.
 
+## Building
+
+The scans are not in the repository (see *Sources* above for the list). With
+them in `scans/`:
+
+    ./fetch-specimen.sh     # the 1922 specimen pages (public domain)
+    ./build.sh              # the fonts
+    ../render.sh            # the PDFs, proof sheets and the images in the top-level README
+
+Requires TeX Live (pdfLaTeX, `lcdf-typetools`; LuaLaTeX for the OpenType example), Tesseract, potrace,
+and Python 3 with numpy, scipy, Pillow and fontTools. The built fonts are
+committed in `fonts/` and `pdftex/fonts/`.
+
 ## Pipeline (`./build.sh`, about 1 h 15 min on 4 cores; OCR and clustering are most of it)
 
 | step | what it does |
