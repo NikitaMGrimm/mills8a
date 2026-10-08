@@ -6,7 +6,7 @@ import uharfbuzz as hb
 from fontTools.ttLib import TTFont
 from fontTools.pens.recordingPen import RecordingPen
 
-from finish_fonts import FONTS, glyph_bounds, normalize_accent_advances, update_ink_metrics
+from finish_fonts import FONTS, finish, glyph_bounds, normalize_accent_advances, update_ink_metrics
 from optimize_fonts import subroutinize
 
 
@@ -23,6 +23,14 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_finishing_recreates_missing_smallcap_features(self):
+        font = TTFont(FONTS / "Mills8A-Regular9.otf")
+        features = font["GSUB"].table.FeatureList
+        features.FeatureRecord = [r for r in features.FeatureRecord if r.FeatureTag != "smcp"]
+        features.FeatureCount = len(features.FeatureRecord)
+        finish(font)
+        self.assertIn("smcp", [r.FeatureTag for r in font["GSUB"].table.FeatureList.FeatureRecord])
+
     def test_clipping_bounds_do_not_define_line_pitch(self):
         for path in sorted(FONTS.glob("*.otf")):
             os2 = TTFont(path)["OS/2"]

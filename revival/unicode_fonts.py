@@ -218,8 +218,6 @@ def substitution_features(font):
 
 def add_mark_features(font):
     rules = substitution_features(font)
-    # Replace our derived ccmp rules on repeat runs; keep traced liga/rand rules.
-    rules.pop("ccmp", None)
     lines = ["languagesystem DFLT dflt;", "languagesystem latn dflt;"]
     for cp in MARKS:
         kind = "BOTTOM" if cp in BELOW else "TOP"
