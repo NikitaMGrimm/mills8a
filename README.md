@@ -7,6 +7,10 @@ It is named after W. H. Mills, *A prime-representing function* (Bull. AMS 53,
 
 ![Mills 8A type specimen](docs/specimen.png)
 
+To see it at its real size, print [`mills-specimen-a4.pdf`](mills-specimen-a4.pdf) or
+[`mills-specimen-letter.pdf`](mills-specimen-letter.pdf) at actual size (100%, not
+"fit to page"): the text is then 11 pt, as in the 1947 *Bulletin*.
+
 Monotype Modern 8A (Lanston Monotype's series 8, roman with italic) is a
 Scotch-style "modern" face: strong contrast, ball terminals, cast in hot metal
 and printed by letterpress. It was a standard face of American mathematical

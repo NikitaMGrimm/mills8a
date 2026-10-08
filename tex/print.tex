@@ -1,0 +1,14 @@
+% The type specimen for printing at its true size (11 pt text, 9 pt
+% footnote cut), centred on an A4 or Letter sheet.  render.sh builds
+% mills-specimen-a4.pdf and mills-specimen-letter.pdf:
+%   pdflatex -jobname=mills-specimen-a4 "\def\paper{a4paper}\input{print}"
+\documentclass{article}
+\usepackage[\paper]{geometry}
+\usepackage{pdfpages}
+\pagestyle{empty}
+\begin{document}
+\AddToHookNext{shipout/foreground}{\put(0,\dimexpr-\paperheight+36pt\relax){%
+  \makebox[\paperwidth]{\footnotesize\sffamily
+    Mills 8A. Print at actual size (100\%), not ``fit to page'': the text is then 11\,pt, as in 1947.}}}
+\includepdf[noautoscale]{specimen.pdf}
+\end{document}

@@ -46,12 +46,19 @@ pdf -output-directory=proof proof-pdf.tex || { tail -30 proof/proof-pdf.log; exi
 
 # the specimen and the comparison images shown in README.md
 pdf specimen.tex || { tail -30 specimen.log; exit 1; }
+# the specimen for printing at its true size, on A4 and on Letter
+for paper in a4 letter; do
+  pdflatex -interaction=nonstopmode -jobname=mills-specimen-$paper \
+    "\\def\\paper{${paper}paper}\\input{print}" >/dev/null || { tail -20 mills-specimen-$paper.log; exit 1; }
+done
 mkdir -p ../docs
 pdftoppm -r 170 -png -singlefile specimen.pdf ../docs/specimen
 pdftoppm -r 110 -png -singlefile -f 1 -l 1 mills-compare.pdf ../docs/comparison
 
+
+
 # the PDFs README.md links to
-cp mills-compare.pdf mills-8a.pdf ..
+cp mills-compare.pdf mills-8a.pdf mills-specimen-a4.pdf mills-specimen-letter.pdf ..
 
 grep -l "Missing character" *.log proof/*.log || true
-echo "mills-8a.pdf mills-compare.pdf out/mills-8a-lua.pdf out/proof/*.pdf docs/*.png"
+echo "mills-8a.pdf mills-compare.pdf mills-specimen-a4.pdf mills-specimen-letter.pdf out/mills-8a-lua.pdf out/proof/*.pdf docs/*.png"

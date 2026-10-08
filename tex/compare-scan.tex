@@ -1,5 +1,6 @@
-% The 1947 scan on a page of the same size as the typeset versions, its ink
-% placed where theirs is (bbox.tex, written by render.sh).
+% The 1947 scan on a page of the same size as the typeset version, its ink
+% placed where theirs is (bbox.tex, written by render.sh), at its true size:
+% the crop is 2647 px wide at 600 dpi, i.e. 317.64 bp.
 \documentclass{article}
 \usepackage[paperwidth=31pc,paperheight=50pc,margin=0pt]{geometry}
 \usepackage{graphicx}
@@ -8,5 +9,5 @@
 \input{bbox}
 \begin{document}
 \vspace*{\bboxtop}\hspace*{\bboxleft}%
-\includegraphics[width=\bboxwidth]{../scan-mills1947.png}
+\includegraphics[width=317.64bp]{../scan-mills1947.png}
 \end{document}
