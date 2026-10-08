@@ -88,6 +88,25 @@ leading (see *Scripts* below).
 LuaLaTeX is needed for the randomness: XeLaTeX loads the fonts, but its
 HarfBuzz shaping gives every repeat of a word the same impressions.
 
+The text fonts include zero-advance combining grave, acute, circumflex,
+tilde, macron, breve, dot, dieresis, ring, double acute, caron, cedilla and
+ogonek marks, with `mark` and `mkmk` positioning. Common European letters
+missing from the scans, the euro and trademark signs come from Latin Modern,
+scaled to the corresponding style's x-height or cap height. This extends
+coverage without claiming a historical source for those additions. Nonbreaking
+spaces and hyphens have explicit Unicode mappings. Kerning remains absent.
+
+`python3 finish_fonts.py` reapplies the Unicode supplements, OpenType features
+and clipping-metric repairs to the committed fonts without rebuilding the scan
+pipeline. It also runs automatically in `build.sh`. Font regression checks:
+
+```sh
+python3 -m unittest discover -s revival -v  # from the repository root
+```
+
+The checks require fontTools and uharfbuzz; finishing requires fontTools and
+the Latin Modern OpenType fonts supplied by TeX Live.
+
 ## Sources
 
 - `scans/erdos1947.pdf`: P. Erdős, *Some asymptotic formulas for
