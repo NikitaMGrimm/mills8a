@@ -105,8 +105,10 @@ example, including the 1947 script positions.
 ### OpenType fonts
 
 This fork adds extended Latin small caps, Unicode supplements and combining-mark
-positioning, and repairs accent widths and clipping metrics. See [the build
-documentation](revival/README.md) for dependencies and font regression checks.
+positioning, repairs accent widths and clipping metrics, and optimizes CFF
+storage. Compact OTF and WOFF2 exports are available through
+`python3 revival/export_fonts.py`; see [the build documentation](revival/README.md)
+for dependencies and optional screen hinting.
 
 The family is also built as OpenType fonts (`revival/fonts`, with an OpenType
 math font) for LuaLaTeX and other software. They can set each letter as one

@@ -4,7 +4,7 @@ Copyright 2026 heiner
 Fonts
 -----
 
-The font files (*.otf, *.pfb, *.tfm, *.vf, *.enc, mills8a.map) contain
+The font files (*.otf, *.woff2, *.pfb, *.tfm, *.vf, *.enc, mills8a.map) contain
 glyphs from Latin Modern and Latin Modern Math, copyright B. Jackowski,
 J. M. Nowacki, P. Strzelczyk and P. Pianowski (on behalf of TeX users
 groups), released under the GUST Font License. They are a modified version

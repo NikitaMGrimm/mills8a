@@ -120,6 +120,19 @@ as a separate export; the primary fonts preserve the unhinted print outlines.
 The hinting tool rounds fractional outline coordinates to the nearest unit;
 it leaves advances and OpenType layout features unchanged.
 
+For websites or installations that do not need random impressions:
+
+```sh
+python3 revival/export_fonts.py  # from the repository root
+```
+
+`build/web/` contains the complete family as WOFF2. `build/compact/` contains
+OTF and WOFF2 versions without `rand`, named **Mills 8A Compact** so they can
+be installed alongside the complete family. Unicode coverage, ligatures,
+small caps, old-style figures, combining marks and math features are retained.
+Both directories include the font licences. The generated exports stay out
+of Git; regenerate them from the committed fonts.
+
 The T1 package selects the 9 pt small caps below 10 pt, supports bold small
 caps, and loads the added euro and trademark signs through its symbol font.
 
