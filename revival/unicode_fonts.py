@@ -228,7 +228,9 @@ def add_mark_features(font):
     lines.append(f"@aboveMarks = [{above}];")
     lines.append("feature ccmp { sub i' @aboveMarks by dotlessi; "
                  "sub j' @aboveMarks by uni0237; } ccmp;")
-    for tag in ("liga", "onum", "smcp", "rand"):
+    # Convert letters before f-ligatures consume them. The small caps have
+    # separate F and I/L sorts, not lowercase fi/ffi ligatures.
+    for tag in ("smcp", "liga", "onum", "rand"):
         if tag in rules:
             lines.append(f"feature {tag} {{ {' '.join(rules.pop(tag))} }} {tag};")
     if rules:

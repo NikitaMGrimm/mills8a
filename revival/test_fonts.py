@@ -122,6 +122,14 @@ class FontTests(unittest.TestCase):
         self.assertEqual([pos.x_advance for _, pos in random],
                          [pos.x_advance for _, pos in plain])
 
+    def test_smallcaps_do_not_keep_lowercase_ligatures(self):
+        for style in ("Regular", "Regular9", "Bold"):
+            path = FONTS / f"Mills8A-{style}.otf"
+            with self.subTest(style=style):
+                glyphs = shape(path, "officefiflffifflff", {"smcp": True})
+                self.assertEqual([name for name, _ in glyphs],
+                                 [ch + ".sc" for ch in "officefiflffifflff"])
+
     def test_accents_keep_the_base_letter_advance(self):
         for path in sorted(FONTS.glob("*.otf")):
             font = TTFont(path)
