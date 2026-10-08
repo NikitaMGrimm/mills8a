@@ -111,6 +111,15 @@ python3 -m unittest discover -s revival -v  # from the repository root
 Install the Python tools with `python3 -m pip install -r revival/requirements.txt`.
 Finishing also requires the Latin Modern OpenType fonts supplied by TeX Live.
 
+`python3 revival/optimize_fonts.py` shares repeated CFF outline programs;
+the shipped OpenType fonts use this lossless optimization. It runs in
+`build.sh` before the Type 1 conversion. Optional screen hints are available
+with `--hint --output-dir build/hinted`. The hints use measured alignment
+zones and stem widths. They can increase file size and are deliberately kept
+as a separate export; the primary fonts preserve the unhinted print outlines.
+The hinting tool rounds fractional outline coordinates to the nearest unit;
+it leaves advances and OpenType layout features unchanged.
+
 The T1 package selects the 9 pt small caps below 10 pt, supports bold small
 caps, and loads the added euro and trademark signs through its symbol font.
 
