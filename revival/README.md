@@ -108,8 +108,15 @@ pipeline. It also runs automatically in `build.sh`. Font regression checks:
 python3 -m unittest discover -s revival -v  # from the repository root
 ```
 
-The checks require fontTools and uharfbuzz; finishing requires fontTools and
-the Latin Modern OpenType fonts supplied by TeX Live.
+Install the Python tools with `python3 -m pip install -r revival/requirements.txt`.
+Finishing also requires the Latin Modern OpenType fonts supplied by TeX Live.
+
+`python3 revival/optimize_fonts.py` shares repeated CFF outline programs;
+the shipped OpenType fonts use this lossless optimization. It runs in
+`build.sh` before the Type 1 conversion. Optional screen hints are available
+with `--hint --output-dir build/hinted`. The hints use measured alignment
+zones and stem widths. They can increase file size and are deliberately kept
+as a separate export; the primary fonts preserve the unhinted print outlines.
 
 ## Sources
 

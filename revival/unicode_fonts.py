@@ -34,7 +34,9 @@ def record(font, name, transform=(1, 0, 0, 1, 0, 0)):
 
 def put_glyph(font, name, drawing, advance):
     top = font["CFF "].cff.topDictIndex[0]
-    pen = T2CharStringPen(round(advance), None, roundTolerance=0)
+    advance = round(advance)
+    width = None if advance == top.Private.defaultWidthX else advance - top.Private.nominalWidthX
+    pen = T2CharStringPen(width, None, roundTolerance=0)
     drawing.replay(pen)
     charstring = pen.getCharString(top.Private, top.GlobalSubrs)
     order = list(font.getGlyphOrder())

@@ -40,7 +40,8 @@ def update_ink_metrics(font):
 
 def set_advance(font, name, advance):
     top = font["CFF "].cff.topDictIndex[0]
-    pen = T2CharStringPen(advance, None, roundTolerance=0)
+    width = None if advance == top.Private.defaultWidthX else advance - top.Private.nominalWidthX
+    pen = T2CharStringPen(width, None, roundTolerance=0)
     top.CharStrings[name].draw(pen)
     top.CharStrings[name] = pen.getCharString(top.Private, top.GlobalSubrs)
     font["hmtx"].metrics[name] = (advance, font["hmtx"].metrics[name][1])
@@ -128,7 +129,7 @@ def main():
                         help="OTF files; defaults to revival/fonts/*.otf")
     args = parser.parse_args()
     for path in args.fonts or sorted(FONTS.glob("*.otf")):
-        font = TTFont(path)
+        font = TTFont(path, recalcTimestamp=False)
         finish(font)
         font.save(path)
         print(f"Finished {path.name}")

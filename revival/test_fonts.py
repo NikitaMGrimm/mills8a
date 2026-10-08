@@ -4,8 +4,10 @@ import unicodedata
 import uharfbuzz as hb
 
 from fontTools.ttLib import TTFont
+from fontTools.pens.recordingPen import RecordingPen
 
 from finish_fonts import FONTS, glyph_bounds, normalize_accent_advances, update_ink_metrics
+from optimize_fonts import subroutinize
 
 
 def shape(path, text, features=None):
@@ -21,6 +23,36 @@ def shape(path, text, features=None):
 
 
 class FontTests(unittest.TestCase):
+    def test_subroutinization_preserves_every_outline_and_metric(self):
+        font = TTFont(FONTS / "Mills8A-Regular.otf")
+        glyphs = font.getGlyphSet()
+        originals = {}
+        for name in font.getGlyphOrder():
+            pen = RecordingPen()
+            glyphs[name].draw(pen)
+            originals[name] = pen.value
+        metrics = dict(font["hmtx"].metrics)
+        cmap = dict(font.getBestCmap())
+        subroutinize(font)
+        glyphs = font.getGlyphSet()
+        self.assertEqual(metrics, font["hmtx"].metrics)
+        self.assertEqual(cmap, font.getBestCmap())
+        for name, drawing in originals.items():
+            pen = RecordingPen()
+            glyphs[name].draw(pen)
+            with self.subTest(glyph=name):
+                self.assertEqual(drawing, pen.value)
+
+    def test_cff_widths_match_horizontal_metrics(self):
+        for path in sorted(FONTS.glob("*.otf")):
+            font = TTFont(path)
+            top = font["CFF "].cff.topDictIndex[0]
+            for name in font.getGlyphOrder():
+                charstring = top.CharStrings[name]
+                charstring.draw(RecordingPen())
+                with self.subTest(font=path.name, glyph=name):
+                    self.assertEqual(charstring.width, font["hmtx"][name][0])
+
     def test_accented_smallcaps_and_ligature_letters(self):
         for style in ("Regular", "Regular9", "Bold"):
             path = FONTS / f"Mills8A-{style}.otf"
