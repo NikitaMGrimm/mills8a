@@ -113,6 +113,15 @@ class FontTests(unittest.TestCase):
                 self.assertEqual([name for name, _ in glyphs],
                                  [ch + ".sc" for ch in "abcxyz"])
 
+    def test_random_impressions_follow_smallcaps_and_keep_their_widths(self):
+        path = FONTS / "Mills8A-Regular.otf"
+        plain = shape(path, "abcxyz", {"smcp": True})
+        random = shape(path, "abcxyz", {"smcp": True, "rand": True})
+        self.assertEqual([name.split(".r")[0] for name, _ in random],
+                         [name for name, _ in plain])
+        self.assertEqual([pos.x_advance for _, pos in random],
+                         [pos.x_advance for _, pos in plain])
+
     def test_accents_keep_the_base_letter_advance(self):
         for path in sorted(FONTS.glob("*.otf")):
             font = TTFont(path)
